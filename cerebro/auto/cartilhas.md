@@ -1,13 +1,13 @@
 ---
 titulo: Cartilhas do SINDEPRESTEM
 fonte: https://www.sindeprestem.com.br/cartilhas
-atualizado: 2026-10-13
+atualizado: 2026-11-05
 tipo: autogerado
 prioridade: 2
 gatilhos: cartilha, cartilhas, guia, esg, bombeiro civil, trabalho temporário, lei 13.429, material, orientação
 ---
 
-<!-- AUTOGERADO por src/lib/cerebro/gerar.ts em 2026-10-13. Não edite: as alterações serão perdidas. Para ajustar regras e respostas, edite os arquivos da pasta cerebro/. -->
+<!-- AUTOGERADO por src/lib/cerebro/gerar.ts em 2026-11-05. Não edite: as alterações serão perdidas. Para ajustar regras e respostas, edite os arquivos da pasta cerebro/. -->
 
 ## Cartilhas disponíveis
 "Conteúdos informativos produzidos para orientar empresas, associados e profissionais sobre temas relevantes do setor" ([página Cartilhas](https://www.sindeprestem.com.br/cartilhas)).
@@ -39,6 +39,10 @@ PDF digitalizado (imagem): o texto não está disponível para a SINDI; consulte
 ### Cartilha do SINDEPRESTEM (85a539)
 [Abrir PDF](https://www.sindeprestem.com.br/_files/ugd/a96667_b1bb4bc118b24566862b73dcea85a539.pdf)
 PDF digitalizado (imagem): o texto não está disponível para a SINDI; consulte o documento.
+
+### Cartilha do SINDEPRESTEM (88d8b6)
+[Abrir PDF](https://www.sindeprestem.com.br/_files/ugd/a96667_a42377ea2d574c1aaebe8182c888d8b6.pdf)
+Início do texto: Às entidades sindicais de trabalhadores e de empregadores Ref.: orientações sobre assédio eleitoral – denúncia e mediação coletiva no MTE O Ministério do Trabalho e Emprego (MTE) dirige-se às entidades sindicais de trabalhadores e de empregadores para alertar sobre práticas de assédio eleitoral antes e depois das eleições gerais de 2026 e para reforçar a importância da atuação sindical no seu enfrentamento, seja […]
 
 ### Cartilha do SINDEPRESTEM (a626c6)
 [Abrir PDF](https://www.sindeprestem.com.br/_files/ugd/a96667_068b87c88edc4766a3f2b6eb9ba626c6.pdf)

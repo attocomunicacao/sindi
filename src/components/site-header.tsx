@@ -6,6 +6,7 @@ import { Menu, RotateCcw, X } from 'lucide-react';
 import { SindiMark, type Pagina } from '@/components/sindi-mark';
 import { ThemeToggle } from '@/components/theme-toggle';
 import { Pendente } from '@/components/pendente';
+import { Configuracao } from '@/components/configuracao';
 
 const links = [['/', 'inicio', 'Início'], ['/painel', 'painel', 'Painel do setor'], ['/orcamento', 'orcamento', 'Orçamento'], ['/base', 'base', 'Biblioteca'], ['/uso', 'uso', 'Uso']] as const;
 const paginaDe = (caminho: string): Pagina => (['orcamento', 'painel', 'base', 'uso'] as const).find(p => caminho === `/${p}` || caminho.startsWith(`/${p}/`)) ?? 'inicio';
@@ -39,6 +40,7 @@ export function SiteHeader() {
           {links.map(([href, chave, label]) => { const ativo = pagina === chave; return <Link key={href} href={href} aria-current={ativo ? 'page' : undefined} className={`relative whitespace-nowrap rounded-lg px-2.5 py-2 hover:text-slate-900 focus-visible:outline-2 focus-visible:outline-amber-400 lg:px-3 ${ativo ? 'font-medium text-slate-900 after:absolute after:inset-x-2.5 after:-bottom-px after:h-0.5 after:bg-amber-400' : 'text-slate-500'}`}>{label}<Pendente /></Link>; })}
         </nav>
         {caminho === '/' && <button type="button" aria-label="Nova conversa" title="Nova conversa" onClick={() => window.dispatchEvent(new Event(NOVA_CONVERSA))} className={icone}><RotateCcw size={16} /></button>}
+        <Configuracao className={icone} />
         <ThemeToggle className={icone} />
         <button type="button" aria-label={aberto ? 'Fechar menu' : 'Abrir menu'} aria-expanded={aberto} aria-controls="menu-principal" onClick={() => setAbertoEm(aberto ? null : caminho)} className={`${icone} md:hidden`}>{aberto ? <X size={18} /> : <Menu size={18} />}</button>
       </div>

@@ -1,0 +1,7 @@
+{
+  "version": "0.0.1",
+  "configurations": [
+    { "name": "sindi", "runtimeExecutable": "npm", "runtimeArgs": ["run", "dev"], "port": 3000 },
+    { "name": "sindi-producao", "runtimeExecutable": "npm", "runtimeArgs": ["run", "start", "--", "-p", "3001"], "port": 3001 }
+  ]
+}

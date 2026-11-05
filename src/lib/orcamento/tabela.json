@@ -1,0 +1,1619 @@
+{
+ "meta": {
+  "origem": "02 TERCEIRIZAÇÃO ATUALIZADA.xlsx",
+  "extraidoEm": "2026-10-13",
+  "observacao": "Valores de referência da planilha; confirmar vigência e convenção coletiva da categoria antes de contratar."
+ },
+ "parametros": {
+  "salarioMinimo": 1212.0,
+  "ppr": 22.625,
+  "cestaBasica": 123.82,
+  "valeRefeicaoDia": 17.77,
+  "diasValeRefeicao": 26.0,
+  "assistenciaSocialFamiliar": 9.74,
+  "seguroVida": 1.51,
+  "pcmso": 11.5,
+  "assistenciaMedica": 0,
+  "valeTransporteUnitario": 5.5,
+  "diasValeTransporte": 26.0,
+  "viagensPorDia": 2.0,
+  "descontoValeTransporte": 0.06,
+  "seac": 0,
+  "contribuicaoAssistencialPatronal": 0,
+  "bdi": 0.03,
+  "lucro": 0.03,
+  "impostos": {
+   "iss": 0.05,
+   "pis": 0.0165,
+   "cofins": 0.076,
+   "contribuicaoSocial": 0.01,
+   "irpj": 0.01
+  },
+  "adicionalNoturno": 0.2,
+  "dsr": {
+   "diasDescanso": 8,
+   "diasUteis": 22
+  }
+ },
+ "encargos": {
+  "grupoA": [
+   {
+    "nome": "INSS",
+    "taxa": 0.2,
+    "baseLegal": "Lei 8212/91 artigo 22 Inciso I"
+   },
+   {
+    "nome": "FGTS",
+    "taxa": 0.08,
+    "baseLegal": "Lei 8030 Artigo 15 e artigo 7o Inciso III CF/88"
+   },
+   {
+    "nome": "SAT",
+    "taxa": 0.03,
+    "baseLegal": "Lei 8.212/91 artigo 22 inciso II"
+   },
+   {
+    "nome": "SALÁRIO EDUCAÇÃO",
+    "taxa": 0.025,
+    "baseLegal": "Decreto 87043/82 artigo 3o."
+   },
+   {
+    "nome": "SESC SESI",
+    "taxa": 0.015,
+    "baseLegal": "Artigo 30 Lei 8.036/90"
+   },
+   {
+    "nome": "SENAC / SENAI",
+    "taxa": 0.01,
+    "baseLegal": "Decreto 2.318/86"
+   },
+   {
+    "nome": "SEBRAE",
+    "taxa": 0.006,
+    "baseLegal": "Lei 8029 de 12/04/90 e Lei 8154 de 28/12/90"
+   },
+   {
+    "nome": "INCRA",
+    "taxa": 0.002,
+    "baseLegal": "Decreto Lei 1.146/70"
+   },
+   {
+    "nome": "CONTRIBUIÇÃO SOCIAL",
+    "taxa": 0.0,
+    "baseLegal": "Lei Complementar 110/01 Artigo2o."
+   }
+  ],
+  "parametros": {
+   "diasAno": 365.25,
+   "domingosAno": 52.18,
+   "sabadosAno": 0,
+   "feriadosAno": 11.57,
+   "faltasJustificadas": 1.0,
+   "faltasAtestado": 10.353,
+   "acidenteTrabalho": 0.092121336,
+   "auxilioPaternidade": 0.032,
+   "avisoPrevioTrabalhadoDias": 5.77,
+   "representacaoSindical": 0.0,
+   "treinamento": 1.5,
+   "diasDecimoTerceiro": 24.76,
+   "avisoPrevioIndenizadoPct": 0.95,
+   "avisoPrevioTrabalhadoPct": 0.05,
+   "demitidosSemJustaCausa": 0.0256,
+   "demitidosAte30Dias": 0.03,
+   "permanenciaMeses": 26.11,
+   "maternidadeBase": {
+    "dias": 120,
+    "participacao": 0.5293,
+    "taxa": 0.02,
+    "licenca": 0.6
+   }
+  },
+  "grupoD": {
+   "grupoAsobreB": 0.0963,
+   "incidenciasSalarioMaternidade": 0.0026
+  },
+  "baseLegal": {
+   "FÉRIAS": "Argito 130 CLT",
+   "AUXILIO DOENÇA": "Artigo 131 CLT",
+   "ACIDENTE DE TRABALHO": "Artigo 131 CLT",
+   "AUXILIO PATERNIDADE": "Artigo 7 item XIX CF/88 e Art. 10 Disp.Transitorias",
+   "FALTAS LEGAIS": "Artigo 473 CLT",
+   "REPRESENTAÇÃO SINDICAL": "Artigo 543 § 6o.",
+   "AVISO PRÉVIO TRABALHADO": "Art. 488 § único",
+   "TREINAMENTO": "Artigo 157o CLT e IN 5 DO MTE",
+   "1/3 FÉRIAS CONSTITUCIONAL": "Artigo 7 item XVII CF/88 ",
+   "13o. SALÁRIO": "Leis 4.090/62 e 7.787/89",
+   "AVISO PRÉVIO INDENIZADO": "Artigo 477 CLT",
+   "FGTS S/ AVISO PRÉVIO": "Sumula 305 TST",
+   "CONTRIBUIÇÃO SOCIAL": "Lei complementar 110 de 29/06/01",
+   "REFLEXOS NO AVISO PRÉVIO INDENIZADO": "Sumula 182 TST",
+   "MULTA DO FGTS": "Artigo 10 das disposições transitórias CF/88",
+   "CONTRIBUIÇÃO SOCIAL ARTIGO 1o": "Lei complementar 110 de 29/06/01",
+   "INDENIZAÇÃO ADICIONAL": "Artigo 9o. Lei 7238/84"
+  },
+  "totalPlanilha": 0.8423586181780701
+ },
+ "funcoes": [
+  {
+   "id": "auxiliar-de-limpeza-diurno",
+   "nome": "Auxiliar de Limpeza Diurno",
+   "nomeOriginal": "AUXILIAR DE LIMPEZA DIURNO",
+   "salario": 1384.65,
+   "divisorHoras": 220,
+   "periculosidade": 0,
+   "insalubridade": 0,
+   "uniforme": {
+    "unitario": 115.8,
+    "quantidade": 12.0,
+    "meses": 12.0
+   },
+   "epis": []
+  },
+  {
+   "id": "auxiliar-de-limpeza-com-periculosidade",
+   "nome": "Auxiliar de Limpeza Com Periculosidade",
+   "nomeOriginal": "AUXILIAR DE LIMPEZA COM PERICULOSIDADE",
+   "salario": 1384.65,
+   "divisorHoras": 220,
+   "periculosidade": 0.3,
+   "insalubridade": 0,
+   "uniforme": {
+    "unitario": 115.8,
+    "quantidade": 0.0,
+    "meses": 12.0
+   },
+   "epis": []
+  },
+  {
+   "id": "operador-de-maquina",
+   "nome": "Operador de Máquina",
+   "nomeOriginal": "OPERADOR DE MÁQUINA",
+   "salario": 2043.5,
+   "divisorHoras": 220,
+   "periculosidade": 0,
+   "insalubridade": 0,
+   "uniforme": {
+    "unitario": 145.8,
+    "quantidade": 0.0,
+    "meses": 12.0
+   },
+   "epis": []
+  },
+  {
+   "id": "portaria",
+   "nome": "Portaria",
+   "nomeOriginal": "PORTARIA",
+   "salario": 1521.91,
+   "divisorHoras": 220,
+   "periculosidade": 0,
+   "insalubridade": 0,
+   "uniforme": {
+    "unitario": 310.6,
+    "quantidade": 1.0,
+    "meses": 12.0
+   },
+   "epis": []
+  },
+  {
+   "id": "controlador-de-acesso",
+   "nome": "Controlador de Acesso",
+   "nomeOriginal": "CONTROLADOR DE ACESSO",
+   "salario": 1521.91,
+   "divisorHoras": 220,
+   "periculosidade": 0,
+   "insalubridade": 0,
+   "uniforme": {
+    "unitario": 348.8,
+    "quantidade": 1.0,
+    "meses": 12.0
+   },
+   "epis": []
+  },
+  {
+   "id": "auxiliar-de-atendimento",
+   "nome": "Auxiliar de Atendimento",
+   "nomeOriginal": "AUXILIAR DE ATENDIMENTO",
+   "salario": null,
+   "divisorHoras": 220,
+   "periculosidade": 0,
+   "insalubridade": 0,
+   "uniforme": {
+    "unitario": 376.7,
+    "quantidade": 1.0,
+    "meses": 12.0
+   },
+   "epis": []
+  },
+  {
+   "id": "encarregado-de-limpeza",
+   "nome": "Encarregado de Limpeza",
+   "nomeOriginal": "ENCARREGADO DE LIMPEZA",
+   "salario": 1692.28,
+   "divisorHoras": 220,
+   "periculosidade": 0,
+   "insalubridade": 0,
+   "uniforme": {
+    "unitario": 63.8,
+    "quantidade": 1.0,
+    "meses": 12.0
+   },
+   "epis": []
+  },
+  {
+   "id": "fiscal-de-piso",
+   "nome": "Fiscal de Piso",
+   "nomeOriginal": "FISCAL DE PISO",
+   "salario": null,
+   "divisorHoras": 220,
+   "periculosidade": 0,
+   "insalubridade": 0,
+   "uniforme": {
+    "unitario": 248.6,
+    "quantidade": 1.0,
+    "meses": 12.0
+   },
+   "epis": []
+  },
+  {
+   "id": "manutencao",
+   "nome": "Manutenção",
+   "nomeOriginal": "MANUTENÇÃO",
+   "salario": 1330.25,
+   "divisorHoras": 220,
+   "periculosidade": 0,
+   "insalubridade": 0.2,
+   "uniforme": {
+    "unitario": 145.6,
+    "quantidade": 1.0,
+    "meses": 12.0
+   },
+   "epis": []
+  },
+  {
+   "id": "oficial-de-manutencao-e-hidraulica-bras",
+   "nome": "Oficial de Manutenção e Hidráulica - Brás",
+   "nomeOriginal": "OFICIAL DE MANUTENÇÃO E HIDRÁULICA - BRÁS",
+   "salario": null,
+   "divisorHoras": 220,
+   "periculosidade": 0,
+   "insalubridade": 0,
+   "uniforme": {
+    "unitario": 227.1,
+    "quantidade": 1.0,
+    "meses": 12.0
+   },
+   "epis": []
+  },
+  {
+   "id": "bombeiro-civil",
+   "nome": "Bombeiro civil",
+   "nomeOriginal": "BOMBEIRO CIVIL",
+   "salario": null,
+   "divisorHoras": 180,
+   "periculosidade": 0,
+   "insalubridade": 0,
+   "uniforme": {
+    "unitario": 1171.8,
+    "quantidade": 1.0,
+    "meses": 12.0
+   },
+   "epis": []
+  },
+  {
+   "id": "eletricista-de-manutencao",
+   "nome": "Eletricista de Manutenção",
+   "nomeOriginal": "ELETRICISTA DE MANUTENÇÃO",
+   "salario": null,
+   "divisorHoras": 220,
+   "periculosidade": 0,
+   "insalubridade": 0,
+   "uniforme": {
+    "unitario": 574.22,
+    "quantidade": 1.0,
+    "meses": 12.0
+   },
+   "epis": []
+  },
+  {
+   "id": "jardineiro",
+   "nome": "Jardineiro",
+   "nomeOriginal": "JARDINEIRO",
+   "salario": 1240.12,
+   "divisorHoras": 220,
+   "periculosidade": 0,
+   "insalubridade": 0,
+   "uniforme": {
+    "unitario": 224.5,
+    "quantidade": 1.0,
+    "meses": 12.0
+   },
+   "epis": []
+  },
+  {
+   "id": "limpador-de-vidros",
+   "nome": "Limpador de Vidros",
+   "nomeOriginal": "LIMPADOR DE VIDROS",
+   "salario": null,
+   "divisorHoras": 220,
+   "periculosidade": 0,
+   "insalubridade": 0,
+   "uniforme": {
+    "unitario": 134.7,
+    "quantidade": 1.0,
+    "meses": 12.0
+   },
+   "epis": []
+  },
+  {
+   "id": "recepcionista-masculino",
+   "nome": "Recepcionista Masculino",
+   "nomeOriginal": "RECEPCIONISTA MASCULINO",
+   "salario": 1404.14,
+   "divisorHoras": 220,
+   "periculosidade": 0,
+   "insalubridade": 0,
+   "uniforme": {
+    "unitario": 283.0,
+    "quantidade": 1.0,
+    "meses": 12.0
+   },
+   "epis": []
+  },
+  {
+   "id": "recepcionista-feminino",
+   "nome": "Recepcionista Feminino",
+   "nomeOriginal": "RECEPCIONISTA FEMININO",
+   "salario": 1404.14,
+   "divisorHoras": 220,
+   "periculosidade": 0,
+   "insalubridade": 0,
+   "uniforme": {
+    "unitario": 283.0,
+    "quantidade": 1.0,
+    "meses": 12.0
+   },
+   "epis": []
+  },
+  {
+   "id": "mensageiro",
+   "nome": "Mensageiro",
+   "nomeOriginal": "MENSAGEIRO",
+   "salario": null,
+   "divisorHoras": 220,
+   "periculosidade": 0,
+   "insalubridade": 0,
+   "uniforme": {
+    "unitario": 330.5,
+    "quantidade": 1.0,
+    "meses": 12.0
+   },
+   "epis": []
+  },
+  {
+   "id": "auxiliar-de-servicos-gerais",
+   "nome": "Auxiliar de Serviços Gerais",
+   "nomeOriginal": "AUXILIAR DE SERVIÇOS GERAIS",
+   "salario": 1330.0,
+   "divisorHoras": 220,
+   "periculosidade": 0,
+   "insalubridade": 0.4,
+   "uniforme": {
+    "unitario": 115.8,
+    "quantidade": 1.0,
+    "meses": 12.0
+   },
+   "epis": []
+  },
+  {
+   "id": "auxiliar-de-departamento-pessoal",
+   "nome": "Auxiliar de Departamento Pessoal",
+   "nomeOriginal": "AUXILIAR DE DEPARTAMENTO PESSOAL",
+   "salario": 1404.14,
+   "divisorHoras": 220,
+   "periculosidade": 0,
+   "insalubridade": 0,
+   "uniforme": {
+    "unitario": 376.7,
+    "quantidade": 1.0,
+    "meses": 12.0
+   },
+   "epis": []
+  },
+  {
+   "id": "zelador",
+   "nome": "Zelador",
+   "nomeOriginal": "ZELADOR",
+   "salario": 1654.59,
+   "divisorHoras": 220,
+   "periculosidade": 0,
+   "insalubridade": 0,
+   "uniforme": {
+    "unitario": 310.6,
+    "quantidade": 1.0,
+    "meses": 12.0
+   },
+   "epis": []
+  },
+  {
+   "id": "lider",
+   "nome": "Líder",
+   "nomeOriginal": "LÍDER",
+   "salario": 1410.23,
+   "divisorHoras": 220,
+   "periculosidade": 0,
+   "insalubridade": 0,
+   "uniforme": {
+    "unitario": 150.0,
+    "quantidade": 1.0,
+    "meses": 12.0
+   },
+   "epis": []
+  },
+  {
+   "id": "banheirista-diurno",
+   "nome": "Banheirista Diurno",
+   "nomeOriginal": "BANHEIRISTA DIURNO",
+   "salario": 1253.07,
+   "divisorHoras": 220,
+   "periculosidade": 0,
+   "insalubridade": 0,
+   "uniforme": {
+    "unitario": 115.8,
+    "quantidade": 1.0,
+    "meses": 12.0
+   },
+   "epis": []
+  },
+  {
+   "id": "banheirista-noturno",
+   "nome": "Banheirista Noturno",
+   "nomeOriginal": "BANHEIRISTA NOTURNO",
+   "salario": 1253.07,
+   "divisorHoras": 220,
+   "periculosidade": 0,
+   "insalubridade": 0,
+   "uniforme": {
+    "unitario": 115.8,
+    "quantidade": 1.0,
+    "meses": 12.0
+   },
+   "epis": []
+  }
+ ],
+ "kitsEpi": {
+  "Aux de Limpeza": [
+   {
+    "descricao": "Luva Nitrilica Forrada",
+    "valor": 10.0
+   },
+   {
+    "descricao": "Máscara PFF1 com Válvula",
+    "valor": 3.0
+   },
+   {
+    "descricao": "Sapato elastico com Bico PVC",
+    "valor": 55.0
+   },
+   {
+    "descricao": "Sapato elastico com Bico Aço",
+    "valor": 60.0
+   },
+   {
+    "descricao": "Bota PVC cano Longo",
+    "valor": 60.0
+   },
+   {
+    "descricao": "Óculos de proteção com lente incolor",
+    "valor": 5.0
+   },
+   {
+    "descricao": "Creme proteção para a Pele grupo",
+    "valor": 7.0
+   }
+  ],
+  "Ag. Asseio e Copeira": [
+   {
+    "descricao": "Luva Nitrilica Forrada",
+    "valor": 10.0
+   },
+   {
+    "descricao": "Máscara PFF1 com Válvula",
+    "valor": 3.0
+   },
+   {
+    "descricao": "Sapato elastico com Bico PVC",
+    "valor": 55.0
+   },
+   {
+    "descricao": "Sapato elastico com Bico Aço",
+    "valor": 60.0
+   },
+   {
+    "descricao": "Bota PVC cano Longo",
+    "valor": 60.0
+   },
+   {
+    "descricao": "Óculos de proteção com lente incolor",
+    "valor": 5.0
+   },
+   {
+    "descricao": "Creme proteção para a Pele grupo 3",
+    "valor": 7.0
+   }
+  ],
+  "Fiscal de Piso": [
+   {
+    "descricao": "Sapato com bico PVC",
+    "valor": 55.0
+   }
+  ],
+  "Encarregado de Limpeza": [
+   {
+    "descricao": "Luva Nitrilica Forrada",
+    "valor": 10.0
+   },
+   {
+    "descricao": "Máscara PFF1 com Válvula",
+    "valor": 3.0
+   },
+   {
+    "descricao": "Sapato elastico com Bico PVC",
+    "valor": 55.0
+   },
+   {
+    "descricao": "Sapato elastico com Bico Aço",
+    "valor": 60.0
+   },
+   {
+    "descricao": "Óculos de proteção com lente incolor",
+    "valor": 5.0
+   },
+   {
+    "descricao": "Bota PVC cano Longo",
+    "valor": 60.0
+   },
+   {
+    "descricao": "Creme proteção para a Pele grupo 3",
+    "valor": 7.0
+   }
+  ],
+  "Oficial de Hidráulica": [
+   {
+    "descricao": "Bota PVC cano Longo",
+    "valor": 60.0
+   },
+   {
+    "descricao": "Avental de Raspa",
+    "valor": 30.0
+   },
+   {
+    "descricao": "Óculos de proteção com lente incolor",
+    "valor": 5.0
+   },
+   {
+    "descricao": "Protetor Auricular tipo Plug",
+    "valor": 2.0
+   },
+   {
+    "descricao": "Protetor Auricular tipo Concha",
+    "valor": 15.0
+   },
+   {
+    "descricao": "Respirador Purificador Semi Facial c/ Filtro",
+    "valor": 25.0
+   },
+   {
+    "descricao": "Máscara PFF1 com Válvula",
+    "valor": 3.0
+   },
+   {
+    "descricao": "Creme proteção para a Pele grupo 3",
+    "valor": 7.0
+   },
+   {
+    "descricao": "Luva Nitrilica Forrada",
+    "valor": 10.0
+   },
+   {
+    "descricao": "Luva Poliamida c/ banho em PU",
+    "valor": 4.0
+   },
+   {
+    "descricao": "Sapato elastico com Bico PVC",
+    "valor": 55.0
+   },
+   {
+    "descricao": "Luva de Raspa",
+    "valor": 9.0
+   },
+   {
+    "descricao": "Mangote de Raspas com Fivelas",
+    "valor": 25.0
+   },
+   {
+    "descricao": "Perneira de Raspa",
+    "valor": 25.0
+   },
+   {
+    "descricao": "Macacão acoplados com luvas e botas",
+    "valor": 191.08
+   }
+  ],
+  "Oficial de Manutenção": [
+   {
+    "descricao": "Bota PVC cano Longo",
+    "valor": 60.0
+   },
+   {
+    "descricao": "Avental de Raspa",
+    "valor": 30.0
+   },
+   {
+    "descricao": "Óculos de proteção com lente incolor",
+    "valor": 5.0
+   },
+   {
+    "descricao": "Protetor Auricular tipo Plug",
+    "valor": 2.0
+   },
+   {
+    "descricao": "Protetor Auricular tipo Concha",
+    "valor": 15.0
+   },
+   {
+    "descricao": "Respirador Purificador Semi Facial c/ Filtro",
+    "valor": 25.0
+   },
+   {
+    "descricao": "Máscara PFF1 com Válvula",
+    "valor": 3.0
+   },
+   {
+    "descricao": "Creme proteção para a Pele grupo 3",
+    "valor": 7.0
+   },
+   {
+    "descricao": "Luva Nitrilica Forrada",
+    "valor": 10.0
+   },
+   {
+    "descricao": "Luva Poliamida c/ banho em PU",
+    "valor": 4.0
+   },
+   {
+    "descricao": "Sapato elastico com Bico Aço",
+    "valor": 60.0
+   },
+   {
+    "descricao": "Luva de Raspa",
+    "valor": 9.0
+   },
+   {
+    "descricao": "Mangote de Raspas com Fivelas",
+    "valor": 25.0
+   },
+   {
+    "descricao": "Perneira de Raspa",
+    "valor": 25.0
+   },
+   {
+    "descricao": "Trava quedas para cordas",
+    "valor": 125.0
+   },
+   {
+    "descricao": "Talabarte Y tubular c/ Abs mosq",
+    "valor": 140.0
+   },
+   {
+    "descricao": "Cinto Paraquedista c/ 3 Argolas",
+    "valor": 75.0
+   },
+   {
+    "descricao": "Capacete com Carneira e Jugular",
+    "valor": 30.0
+   }
+  ],
+  "Eletricista de Manutenção": [
+   {
+    "descricao": "Bota PVC cano Longo",
+    "valor": 60.0
+   },
+   {
+    "descricao": "Avental de Raspa",
+    "valor": 30.0
+   },
+   {
+    "descricao": "Óculos de proteção com lente incolor",
+    "valor": 5.0
+   },
+   {
+    "descricao": "Protetor Auricular tipo Plug",
+    "valor": 2.0
+   },
+   {
+    "descricao": "Protetor Auricular tipo Concha",
+    "valor": 15.0
+   },
+   {
+    "descricao": "Respirador Purificador Semi Facial c/ Filtro",
+    "valor": 25.0
+   },
+   {
+    "descricao": "Máscara PFF1 com Válvula",
+    "valor": 3.0
+   },
+   {
+    "descricao": "Creme proteção para a Pele grupo 3",
+    "valor": 7.0
+   },
+   {
+    "descricao": "Luva Nitrilica Forrada",
+    "valor": 10.0
+   },
+   {
+    "descricao": "Luva Poliamida c/ banho em PU",
+    "valor": 4.0
+   },
+   {
+    "descricao": "Sapato elastico com Bico PVC - Eletricista",
+    "valor": 55.0
+   },
+   {
+    "descricao": "Luva de Raspa",
+    "valor": 9.0
+   },
+   {
+    "descricao": "Mangote de Raspas com Fivelas",
+    "valor": 25.0
+   },
+   {
+    "descricao": "Perneira de Raspa",
+    "valor": 25.0
+   },
+   {
+    "descricao": "Trava quedas para cordas",
+    "valor": 125.0
+   },
+   {
+    "descricao": "Talabarte Y tubular c/ Abs mosq",
+    "valor": 140.0
+   },
+   {
+    "descricao": "Cinto Paraquedista c/ 3 Argolas",
+    "valor": 75.0
+   },
+   {
+    "descricao": "Capacete com Carneira e Jugular",
+    "valor": 30.0
+   },
+   {
+    "descricao": "Luvas de proteção alta tensão 1000v",
+    "valor": 400.0
+   },
+   {
+    "descricao": "Luvas de proteção baixa tensão 500v",
+    "valor": 300.0
+   }
+  ],
+  "Bombeiro Civil": [
+   {
+    "descricao": "Bota Coturno Cano alto anti-impacto",
+    "valor": 350.0
+   },
+   {
+    "descricao": "roupa de aproximação e combate contra incendio",
+    "valor": 1000.0
+   }
+  ],
+  "Limpador de Vidros": [
+   {
+    "descricao": "Creme proteção para a Pele grupo 3",
+    "valor": 7.0
+   },
+   {
+    "descricao": "Luva Nitrilica Forrada",
+    "valor": 10.0
+   },
+   {
+    "descricao": "1 boné",
+    "valor": 20.0
+   },
+   {
+    "descricao": "Máscara PFF1 com Válvula",
+    "valor": 3.0
+   },
+   {
+    "descricao": "Trava quedas para cordas",
+    "valor": 125.0
+   },
+   {
+    "descricao": "Talabarte Y tubular c/ Abs mosq",
+    "valor": 140.0
+   },
+   {
+    "descricao": "Cinto Paraquedista c/ 3 Argolas",
+    "valor": 75.0
+   },
+   {
+    "descricao": "Capacete com Carneira e Jugular",
+    "valor": 30.0
+   }
+  ],
+  "Jardineiro": [
+   {
+    "descricao": "Óculos de proteção com lente incolor",
+    "valor": 5.0
+   },
+   {
+    "descricao": "Botina elastica com Bico Aço",
+    "valor": 60.0
+   },
+   {
+    "descricao": "Perneira de Raspa",
+    "valor": 25.0
+   },
+   {
+    "descricao": "Mangote de Raspas com Fivelas",
+    "valor": 25.0
+   },
+   {
+    "descricao": "Avental de Raspa",
+    "valor": 30.0
+   },
+   {
+    "descricao": "Luva de Raspa",
+    "valor": 9.0
+   },
+   {
+    "descricao": "Kit Proteção Facial",
+    "valor": 200.0
+   }
+  ],
+  "Banheirista": [
+   {
+    "descricao": "Luva Nitrilica Forrada",
+    "valor": 10.0
+   },
+   {
+    "descricao": "Máscara PFF1 com Válvula",
+    "valor": 3.0
+   },
+   {
+    "descricao": "Sapato elastico com Bico PVC",
+    "valor": 55.0
+   },
+   {
+    "descricao": "Sapato elastico com Bico Aço",
+    "valor": 60.0
+   },
+   {
+    "descricao": "Bota PVC cano Longo",
+    "valor": 60.0
+   },
+   {
+    "descricao": "Óculos de proteção com lente incolor",
+    "valor": 5.0
+   },
+   {
+    "descricao": "Creme proteção para a Pele grupo 3",
+    "valor": 7.0
+   }
+  ]
+ },
+ "catalogo": {
+  "quimicos": [
+   {
+    "id": "detergente-power-det-10",
+    "nome": "DETERGENTE POWER DET - 10",
+    "valor": 37.41
+   },
+   {
+    "id": "desinfetante-power-bac-20-classic",
+    "nome": "DESINFETANTE POWER BAC - 20 CLASSIC",
+    "valor": 45.86
+   },
+   {
+    "id": "desinfetante-power-bac-20-outras-fragancias",
+    "nome": "DESINFETANTE POWER BAC - 20 OUTRAS FRAGÂNCIAS",
+    "valor": 50.69
+   },
+   {
+    "id": "hipoclorito-power-6-cloro-ativo",
+    "nome": "HIPOCLORITO POWER 6% CLORO ATIVO",
+    "valor": 28.92
+   },
+   {
+    "id": "limpador-perfumado-power",
+    "nome": "LIMPADOR PERFUMADO POWER",
+    "valor": 52.25
+   },
+   {
+    "id": "soft-power-multilimpador",
+    "nome": "SOFT POWER - MULTILIMPADOR",
+    "valor": 46.58
+   },
+   {
+    "id": "multi-uso-lemom",
+    "nome": "MULTI USO LEMOM",
+    "valor": 61.7
+   },
+   {
+    "id": "limpa-vidros-power",
+    "nome": "LIMPA VIDROS POWER",
+    "valor": 31.78
+   },
+   {
+    "id": "limpa-carpete-power",
+    "nome": "LIMPA CARPETE POWER",
+    "valor": 34.6
+   },
+   {
+    "id": "soft-power-pine-limpador",
+    "nome": "SOFT POWER - PINE LIMPADOR",
+    "valor": 46.58
+   },
+   {
+    "id": "pine-limpador-geral",
+    "nome": "PINE LIMPADOR GERAL",
+    "valor": 59.52
+   },
+   {
+    "id": "vaso-limpo-power",
+    "nome": "VASO LIMPO POWER",
+    "valor": 53.42
+   },
+   {
+    "id": "detergente-desengraxante-power",
+    "nome": "DETERGENTE DESENGRAXANTE POWER",
+    "valor": 57.67
+   },
+   {
+    "id": "detergente-desincrustante-classico",
+    "nome": "DETERGENTE DESINCRUSTANTE CLÁSSICO",
+    "valor": 88.25
+   },
+   {
+    "id": "power-det-15-maquina",
+    "nome": "POWER DET - 15 (MÁQUINA)",
+    "valor": 58.87
+   },
+   {
+    "id": "power-limpa-pedras",
+    "nome": "POWER LIMPA PEDRAS",
+    "valor": 82.14
+   },
+   {
+    "id": "remopower",
+    "nome": "REMOPOWER",
+    "valor": 91.58
+   },
+   {
+    "id": "cera-power-brilho-instantaneo",
+    "nome": "CERA POWER BRILHO INSTANTÂNEO",
+    "valor": 107.09
+   },
+   {
+    "id": "brightness-wax",
+    "nome": "BRIGHTNESS WAX",
+    "valor": 148.87
+   },
+   {
+    "id": "aromatizante-de-ambientes-power",
+    "nome": "AROMATIZANTE DE AMBIENTES POWER",
+    "valor": 112.49
+   },
+   {
+    "id": "gastos-mensais",
+    "nome": "GASTOS MENSAIS",
+    "valor": 290.0
+   }
+  ],
+  "materiaisDiversos": [
+   {
+    "id": "disco-piso-british-350-mm",
+    "nome": "DISCO PISO BRITISH 350 MM",
+    "valor": 25.0
+   },
+   {
+    "id": "disco-piso-british-410-mm",
+    "nome": "DISCO PISO BRITISH 410 MM",
+    "valor": 36.0
+   },
+   {
+    "id": "disco-piso-british-510-mm",
+    "nome": "DISCO PISO BRITISH 510 MM",
+    "valor": 40.0
+   },
+   {
+    "id": "flanelas-brancas-40x60",
+    "nome": "FLANELAS BRANCAS 40X60",
+    "valor": 1.76
+   },
+   {
+    "id": "sacos-alvejados-extra-grandes",
+    "nome": "SACOS ALVEJADOS EXTRA GRANDES",
+    "valor": 3.26
+   },
+   {
+    "id": "fibra-abrasiva-macia-branca",
+    "nome": "FIBRA ABRASIVA MACIA BRANCA",
+    "valor": 1.1
+   },
+   {
+    "id": "fibra-abrasiva-uso-geral-verde",
+    "nome": "FIBRA ABRASIVA USO GERAL VERDE",
+    "valor": 1.3
+   },
+   {
+    "id": "fibra-abrasiva-uso-pesado",
+    "nome": "FIBRA ABRASIVA USO PESADO",
+    "valor": 1.52
+   },
+   {
+    "id": "maquina-aluguel-elev",
+    "nome": "MÁQUINA - ALUGUEL - ELEV",
+    "valor": 4300.0
+   },
+   {
+    "id": "enceradeira-certec-510-220v",
+    "nome": "ENCERADEIRA CERTEC 510 - 220V",
+    "valor": 290.0
+   },
+   {
+    "id": "enceradeira-bralimpia-350-220v",
+    "nome": "ENCERADEIRA BRALIMPIA 350 - 220V",
+    "valor": 195.0
+   }
+  ],
+  "equipamentosLimpeza": [
+   {
+    "id": "aspirador-po-agua-nt27-1",
+    "nome": "ASPIRADOR PÓ/ÁGUA NT27/1",
+    "valor": 1600.0,
+    "depreciacaoMeses": 24.0,
+    "manutencaoAno": 0.1
+   },
+   {
+    "id": "enceradeira-com-acessorios-350mm",
+    "nome": "ENCERADEIRA COM ACESSÓRIOS 350mm",
+    "valor": 1400.0,
+    "depreciacaoMeses": 48.0,
+    "manutencaoAno": 0.1
+   },
+   {
+    "id": "jateadora-karcher-hd-585-profi-s",
+    "nome": "JATEADORA KARCHER HD 585 PROFI S",
+    "valor": 3000.0,
+    "depreciacaoMeses": 36.0,
+    "manutencaoAno": 0.1
+   },
+   {
+    "id": "lavadora-de-pisos-pilotavel",
+    "nome": "LAVADORA DE PISOS PILOTÁVEL",
+    "valor": 4200.0,
+    "depreciacaoMeses": 1.0,
+    "manutencaoAno": 0
+   },
+   {
+    "id": "varredeira-karcher-km-70-20-c",
+    "nome": "VARREDEIRA KARCHER KM 70/20 C",
+    "valor": 4000.0,
+    "depreciacaoMeses": 24.0,
+    "manutencaoAno": 0.1
+   },
+   {
+    "id": "carro-funcional-america-c-bolsa",
+    "nome": "CARRO FUNCIONAL AMÉRICA (C BOLSA)",
+    "valor": 520.0,
+    "depreciacaoMeses": 24.0,
+    "manutencaoAno": 0.1
+   },
+   {
+    "id": "balde-espremedor-doblo-30-litros",
+    "nome": "BALDE ESPREMEDOR DOBLÔ 30 LITROS",
+    "valor": 400.0,
+    "depreciacaoMeses": 24.0,
+    "manutencaoAno": 0
+   },
+   {
+    "id": "conjunto-mop-umido",
+    "nome": "CONJUNTO MOP ÚMIDO",
+    "valor": 90.0,
+    "depreciacaoMeses": 12.0,
+    "manutencaoAno": 0
+   },
+   {
+    "id": "refil-mop-umido",
+    "nome": "REFIL MOP ÚMIDO",
+    "valor": 40.0,
+    "depreciacaoMeses": 3.0,
+    "manutencaoAno": 0
+   },
+   {
+    "id": "conjunto-mop-po-45-cm",
+    "nome": "CONJUNTO MOP PÓ 45 CM",
+    "valor": 57.5,
+    "depreciacaoMeses": 12.0,
+    "manutencaoAno": 0
+   },
+   {
+    "id": "refil-mop-po-45-cm",
+    "nome": "REFIL MOP PÓ 45 CM",
+    "valor": 21.9,
+    "depreciacaoMeses": 3.0,
+    "manutencaoAno": 0
+   },
+   {
+    "id": "conjunto-mop-po-60-cm",
+    "nome": "CONJUNTO MOP PÓ 60 CM",
+    "valor": 80.0,
+    "depreciacaoMeses": 12.0,
+    "manutencaoAno": 0
+   },
+   {
+    "id": "refil-mop-po-60-cm",
+    "nome": "REFIL MOP PÓ 60 CM",
+    "valor": 30.0,
+    "depreciacaoMeses": 3.0,
+    "manutencaoAno": 0
+   },
+   {
+    "id": "conjunto-mop-po-80-cm",
+    "nome": "CONJUNTO MOP PÓ 80 CM",
+    "valor": 150.0,
+    "depreciacaoMeses": 12.0,
+    "manutencaoAno": 0
+   },
+   {
+    "id": "refil-mop-po-80-cm",
+    "nome": "REFIL MOP PÓ 80 CM",
+    "valor": 60.0,
+    "depreciacaoMeses": 3.0,
+    "manutencaoAno": 0
+   },
+   {
+    "id": "extensao-telescopica-7-5m-03-estagios",
+    "nome": "EXTENSÃO TELESCÓPICA 7,5m - 03 ESTÁGIOS",
+    "valor": 200.0,
+    "depreciacaoMeses": 24.0,
+    "manutencaoAno": 0
+   },
+   {
+    "id": "pulverizador-500ml",
+    "nome": "PULVERIZADOR 500ML",
+    "valor": 7.5,
+    "depreciacaoMeses": 3.0,
+    "manutencaoAno": 0
+   },
+   {
+    "id": "lt-com-cabo",
+    "nome": "LT COM CABO",
+    "valor": 50.0,
+    "depreciacaoMeses": 12.0,
+    "manutencaoAno": 0
+   },
+   {
+    "id": "pa-coletora-pop-cata-cata",
+    "nome": "PÁ COLETORA POP CATA-CATA",
+    "valor": 36.0,
+    "depreciacaoMeses": 6.0,
+    "manutencaoAno": 0
+   },
+   {
+    "id": "vassoura-mini-p-pa-coletora-pop",
+    "nome": "VASSOURA MINI P PÁ COLETORA POP",
+    "valor": 25.0,
+    "depreciacaoMeses": 6.0,
+    "manutencaoAno": 0
+   },
+   {
+    "id": "escova-aerea-para-tubo",
+    "nome": "ESCOVA AÉREA PARA TUBO",
+    "valor": 60.0,
+    "depreciacaoMeses": 6.0,
+    "manutencaoAno": 0
+   },
+   {
+    "id": "placa-sinalizadora-cuidado-piso-molhado",
+    "nome": "PLACA SINALIZADORA \"CUIDADO PISO MOLHADO\"",
+    "valor": 35.19,
+    "depreciacaoMeses": 12.0,
+    "manutencaoAno": 0
+   },
+   {
+    "id": "placa-sinalizadora-banheiro-fora-de-uso",
+    "nome": "PLACA SINALIZADORA \"BANHEIRO FORA DE USO\"",
+    "valor": 35.19,
+    "depreciacaoMeses": 12.0,
+    "manutencaoAno": 0
+   },
+   {
+    "id": "placa-sinalizadora-cuidado-em-manutencao",
+    "nome": "PLACA SINALIZADORA \"CUIDADO EM MANUTENÇÃO\"",
+    "valor": 35.19,
+    "depreciacaoMeses": 12.0,
+    "manutencaoAno": 0
+   },
+   {
+    "id": "rodo-dry-65cm-com-cabo-de-aluminio",
+    "nome": "RODO DRY 65cm COM CABO DE ALUMÍNIO",
+    "valor": 51.92,
+    "depreciacaoMeses": 12.0,
+    "manutencaoAno": 0
+   },
+   {
+    "id": "rodo-dry-45cm-com-cabo-de-aluminio",
+    "nome": "RODO DRY 45cm COM CABO DE ALUMÍNIO",
+    "valor": 41.8,
+    "depreciacaoMeses": 12.0,
+    "manutencaoAno": 0
+   },
+   {
+    "id": "conjunto-de-limpeza-mopinho",
+    "nome": "CONJUNTO DE LIMPEZA MOPINHO",
+    "valor": 70.0,
+    "depreciacaoMeses": 12.0,
+    "manutencaoAno": 0
+   },
+   {
+    "id": "refil-30cm-mopinho",
+    "nome": "REFIL 30cm MOPINHO",
+    "valor": 30.0,
+    "depreciacaoMeses": 3.0,
+    "manutencaoAno": 0
+   },
+   {
+    "id": "kit-limpa-vidros-profi-bralimpia-com-bolsa",
+    "nome": "KIT LIMPA VIDROS PROFI BRALIMPIA COM BOLSA",
+    "valor": 248.0,
+    "depreciacaoMeses": 24.0,
+    "manutencaoAno": 0
+   },
+   {
+    "id": "carro-coletor-duas-rodas-120-litros",
+    "nome": "CARRO COLETOR DUAS RODAS 120 LITROS",
+    "valor": 230.2,
+    "depreciacaoMeses": 24.0,
+    "manutencaoAno": 0
+   },
+   {
+    "id": "espanador-eletrostatico",
+    "nome": "ESPANADOR ELETROSTÁTICO",
+    "valor": 30.0,
+    "depreciacaoMeses": 3.0,
+    "manutencaoAno": 0
+   },
+   {
+    "id": "organizador-de-acessorios-barra-com-06",
+    "nome": "ORGANIZADOR DE ACESSÓRIOS BARRA COM 06",
+    "valor": 50.0,
+    "depreciacaoMeses": 1.0,
+    "manutencaoAno": 0
+   },
+   {
+    "id": "balde-platico-10-litros",
+    "nome": "BALDE PLÁTICO 10 LITROS",
+    "valor": 5.0,
+    "depreciacaoMeses": 1.0,
+    "manutencaoAno": 0
+   },
+   {
+    "id": "vassoura-novica",
+    "nome": "VASSOURA NOVIÇA",
+    "valor": 3.89,
+    "depreciacaoMeses": 2.0,
+    "manutencaoAno": 0
+   },
+   {
+    "id": "extensao-60-metros-preta-cabo-pp-2x2-5",
+    "nome": "EXTENSÃO 60 METROS PRETA CABO PP 2X2,5",
+    "valor": 743.8,
+    "depreciacaoMeses": 1.0,
+    "manutencaoAno": 0
+   },
+   {
+    "id": "lavadora-alto-piso-alfa",
+    "nome": "LAVADORA ALTO PISO ALFA",
+    "valor": 546.0,
+    "depreciacaoMeses": 1.0,
+    "manutencaoAno": 0
+   },
+   {
+    "id": "enceradeira-certec-510-220v",
+    "nome": "ENCERADEIRA CERTEC 510 - 220V",
+    "valor": 290.0,
+    "depreciacaoMeses": 1.0,
+    "manutencaoAno": 0
+   },
+   {
+    "id": "pa-de-lixo-cabo-longo",
+    "nome": "PÁ DE LIXO CABO LONGO",
+    "valor": 3.49,
+    "depreciacaoMeses": 1.0,
+    "manutencaoAno": 0
+   }
+  ],
+  "jardinagemMateriais": [
+   {
+    "id": "carretel-fio-nylon",
+    "nome": "CARRETEL FIO NYLON",
+    "valor": 50.0
+   },
+   {
+    "id": "laminas-para-rocadeira",
+    "nome": "LÂMINAS PARA ROÇADEIRA",
+    "valor": 40.0
+   },
+   {
+    "id": "terra-manutencao-jardins",
+    "nome": "TERRA MANUTENÇÃO JARDINS",
+    "valor": 62.0
+   },
+   {
+    "id": "mangueira-3-4-200-mts",
+    "nome": "MANGUEIRA 3/4\" 200 MTS",
+    "valor": 95.0
+   },
+   {
+    "id": "extensao-pp-2x2-5mm",
+    "nome": "EXTENSÃO PP 2X2,5MM",
+    "valor": 55.0
+   }
+  ],
+  "jardinagemEquipamentos": [
+   {
+    "id": "rocadeira-lateral-eletrica-stihl",
+    "nome": "ROÇADEIRA LATERAL ELÉTRICA STIHL",
+    "valor": 1600.0,
+    "depreciacaoMeses": 12.0,
+    "manutencaoAno": 0.15
+   },
+   {
+    "id": "cortador-grama-eletrico-trapp",
+    "nome": "CORTADOR GRAMA ELÉTRICO TRAPP",
+    "valor": 1500.0,
+    "depreciacaoMeses": 12.0,
+    "manutencaoAno": 0.15
+   },
+   {
+    "id": "pulverizador-brudden-agricola-15-lt",
+    "nome": "PULVERIZADOR BRUDDEN AGRICOLA 15 LT",
+    "valor": 400.0,
+    "depreciacaoMeses": 12.0,
+    "manutencaoAno": 0
+   },
+   {
+    "id": "carrinho-de-mao",
+    "nome": "CARRINHO DE MÃO",
+    "valor": 190.0,
+    "depreciacaoMeses": 12.0,
+    "manutencaoAno": 0
+   },
+   {
+    "id": "aparador-cerca-viva",
+    "nome": "APARADOR CERCA VIVA",
+    "valor": 500.0,
+    "depreciacaoMeses": 12.0,
+    "manutencaoAno": 0.1
+   },
+   {
+    "id": "conjunto-ferramentas-diversas",
+    "nome": "CONJUNTO FERRAMENTAS DIVERSAS",
+    "valor": 300.0,
+    "depreciacaoMeses": 6.0,
+    "manutencaoAno": 0
+   },
+   {
+    "id": "vassoura-de-palha",
+    "nome": "VASSOURA DE PALHA",
+    "valor": 15.0,
+    "depreciacaoMeses": 2.0,
+    "manutencaoAno": 0
+   },
+   {
+    "id": "extensao-eletrica-lavadora-piso-metro",
+    "nome": "EXTENSAO ELETRICA LAVADORA PISO (METRO)",
+    "valor": 2.1,
+    "depreciacaoMeses": 12.0,
+    "manutencaoAno": 0
+   },
+   {
+    "id": "tesoura-de-poda",
+    "nome": "TESOURA DE PODA",
+    "valor": 100.0,
+    "depreciacaoMeses": 12.0,
+    "manutencaoAno": 0
+   },
+   {
+    "id": "rastelo",
+    "nome": "RASTELO",
+    "valor": 15.64,
+    "depreciacaoMeses": 12.0,
+    "manutencaoAno": 0
+   }
+  ],
+  "manutencaoEquipamentos": [
+   {
+    "id": "lixadeira-eletrica",
+    "nome": "LIXADEIRA ELÉTRICA",
+    "valor": 200.0,
+    "depreciacaoMeses": 24.0,
+    "manutencaoAno": 0.1
+   },
+   {
+    "id": "makita-14oo-w",
+    "nome": "MAKITA 14OO w",
+    "valor": 400.0,
+    "depreciacaoMeses": 24.0,
+    "manutencaoAno": 0.1
+   },
+   {
+    "id": "plaina-eletrica",
+    "nome": "PLAINA ELÉTRICA",
+    "valor": 300.0,
+    "depreciacaoMeses": 24.0,
+    "manutencaoAno": 0.1
+   },
+   {
+    "id": "furadeira-profissional",
+    "nome": "FURADEIRA PROFISSIONAL",
+    "valor": 400.0,
+    "depreciacaoMeses": 24.0,
+    "manutencaoAno": 0.1
+   },
+   {
+    "id": "escadas-13-degraus-madeira",
+    "nome": "ESCADAS 13 DEGRAUS MADEIRA",
+    "valor": 300.0,
+    "depreciacaoMeses": 36.0,
+    "manutencaoAno": 0
+   },
+   {
+    "id": "escadas-07-degraus-aluminio",
+    "nome": "ESCADAS 07 DEGRAUS ALUMINIO",
+    "valor": 200.0,
+    "depreciacaoMeses": 12.0,
+    "manutencaoAno": 0
+   },
+   {
+    "id": "ferramentas-diversas",
+    "nome": "FERRAMENTAS DIVERSAS",
+    "valor": 990.0,
+    "depreciacaoMeses": 12.0,
+    "manutencaoAno": 0
+   },
+   {
+    "id": "moto-esmeril",
+    "nome": "MOTO ESMERIL",
+    "valor": 180.0,
+    "depreciacaoMeses": 24.0,
+    "manutencaoAno": 0.1
+   },
+   {
+    "id": "armazenador-de-combustivel-25-lts-tekin",
+    "nome": "ARMAZENADOR DE COMBUSTIVEL 25 LTS TEKIN",
+    "valor": 950.0,
+    "depreciacaoMeses": 48.0,
+    "manutencaoAno": 0
+   }
+  ],
+  "informaticaComunicacao": [
+   {
+    "id": "nextel",
+    "nome": "NEXTEL",
+    "valor": 109.0,
+    "depreciacaoMeses": 1.0,
+    "manutencaoAno": 0
+   },
+   {
+    "id": "aparelhos-hts-par",
+    "nome": "APARELHOS HTs (PAR)",
+    "valor": 120.0,
+    "depreciacaoMeses": 6.0,
+    "manutencaoAno": 0
+   },
+   {
+    "id": "computador-cpu-monitor-mouse-teclado",
+    "nome": "COMPUTADOR (CPU/MONITOR/MOUSE/TECLADO)",
+    "valor": 1200.0,
+    "depreciacaoMeses": 36.0,
+    "manutencaoAno": 0.1
+   },
+   {
+    "id": "materiais-de-escritorio",
+    "nome": "MATERIAIS DE ESCRITÓRIO",
+    "valor": 90.0,
+    "depreciacaoMeses": 1.0,
+    "manutencaoAno": 0
+   },
+   {
+    "id": "relogio-de-ponto",
+    "nome": "RELÓGIO DE PONTO",
+    "valor": 950.0,
+    "depreciacaoMeses": 12.0,
+    "manutencaoAno": 0.1
+   },
+   {
+    "id": "lanterna",
+    "nome": "LANTERNA",
+    "valor": 65.0,
+    "depreciacaoMeses": 12.0,
+    "manutencaoAno": 0.1
+   },
+   {
+    "id": "guarda-chuvas",
+    "nome": "GUARDA CHUVAS",
+    "valor": 42.0,
+    "depreciacaoMeses": 6.0,
+    "manutencaoAno": 0
+   }
+  ],
+  "veiculos": [
+   {
+    "id": "van",
+    "nome": "VAN",
+    "valor": 28000.0,
+    "depreciacaoMeses": 24.0,
+    "manutencaoAno": 0.1
+   },
+   {
+    "id": "motocicleta",
+    "nome": "MOTOCICLETA",
+    "valor": 6000.0,
+    "depreciacaoMeses": 24.0,
+    "manutencaoAno": 0.1
+   }
+  ],
+  "combustivel": [
+   {
+    "id": "gasolina",
+    "nome": "GASOLINA",
+    "valor": 2.9
+   },
+   {
+    "id": "oleo-3-tempos",
+    "nome": "OLEO 3 TEMPOS",
+    "valor": 6.1
+   },
+   {
+    "id": "consumo-km",
+    "nome": "CONSUMO KM",
+    "valor": 0.6
+   }
+  ],
+  "servicosContratados": [
+   {
+    "id": "controle-de-pragas",
+    "nome": "CONTROLE DE PRAGAS",
+    "valor": 300.0
+   },
+   {
+    "id": "manutencao-refrigeracao",
+    "nome": "MANUTENÇÃO REFRIGERAÇÃO",
+    "valor": 100.0
+   },
+   {
+    "id": "manutencao-cabines-geradores",
+    "nome": "MANUTENÇÃO CABINES/GERADORES",
+    "valor": 900.0
+   },
+   {
+    "id": "limpeza-mensal-dos-vidros",
+    "nome": "LIMPEZA MENSAL DOS VIDROS",
+    "valor": 100.0
+   },
+   {
+    "id": "servicos-de-jardinagem-mensal",
+    "nome": "SERVIÇOS DE JARDINAGEM MENSAL",
+    "valor": 150.0
+   }
+  ],
+  "piscina": [
+   {
+    "id": "produtos-quimicos",
+    "nome": "PRODUTOS QUIMICOS",
+    "valor": 940.0
+   }
+  ]
+ }
+}

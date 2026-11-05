@@ -1,0 +1,155 @@
+@import 'tailwindcss';
+
+/* A variante dark segue o tema escolhido no site (data-theme), não a preferência do sistema. */
+@custom-variant dark (&:where([data-theme='dark'], [data-theme='dark'] *));
+/* "baixo": janelas com pouca altura (celular deitado, 320–430 px de altura), onde cabeçalho e caixa de mensagem fixos tomariam a tela. */
+@custom-variant baixo (@media (max-height: 32rem));
+
+/* Paleta SINDEPRESTEM: grafite #2D2727, dourado #EBB92E, vermelho #B61323.
+   As escalas slate/amber são redefinidas aqui e o tema escuro as inverte; assim toda utilidade do Tailwind continua legível nos dois temas. */
+@theme {
+  /* Breakpoints por largura da janela (CSS px), além dos padrões do Tailwind: sm 640 (celular deitado), md 768 (tablet em pé),
+     lg 1024 (tablet deitado, notebook pequeno), xl 1280 (notebook), 2xl 1536 (desktop 1536×864 e 1920×1080).
+     xs separa os celulares compactos (320 a 393: SE, 360, 375, 390, 393) dos grandes (412, 414, 430). */
+  --breakpoint-xs: 25rem;
+  --font-sans: 'Segoe UI', system-ui, -apple-system, 'Helvetica Neue', Arial, sans-serif;
+  /* Escala tipográfica: base 16 px, razão ~1,25 (terça maior) arredondada ao múltiplo de 4 px; entrelinha também em múltiplos de 4 px.
+     Espaçamento: unidade de 4 px do Tailwind (--spacing), usando sobretudo múltiplos de 8 px (2, 4, 6, 8, 12, 16). */
+  --text-xs: 0.75rem;   --text-xs--line-height: 1rem;
+  --text-sm: 0.875rem;  --text-sm--line-height: 1.25rem;
+  --text-base: 1rem;    --text-base--line-height: 1.5rem;
+  --text-lg: 1.25rem;   --text-lg--line-height: 1.75rem;
+  --text-xl: 1.5rem;    --text-xl--line-height: 2rem;
+  --text-2xl: 2rem;     --text-2xl--line-height: 2.5rem;
+  --text-3xl: 2.5rem;   --text-3xl--line-height: 3rem;
+  --text-4xl: 3rem;     --text-4xl--line-height: 3.5rem;
+  --text-5xl: 3.5rem;   --text-5xl--line-height: 4rem;
+  --color-slate-50: #faf8f5;
+  --color-slate-100: #f3efe9;
+  --color-slate-200: #e6e0d8;
+  --color-slate-300: #d3ccc2;
+  --color-slate-400: #8f8780;
+  --color-slate-500: #685f59;
+  --color-slate-600: #524b46;
+  --color-slate-700: #3d3735;
+  --color-slate-800: #2d2727;
+  --color-slate-900: #1e1a1a;
+  --color-amber-50: #fdf8e6;
+  --color-amber-100: #faefc4;
+  --color-amber-200: #f5e08f;
+  --color-amber-300: #f0cf5c;
+  --color-amber-400: #ebb92e;
+  --color-amber-600: #a87a06;
+  --color-amber-800: #6b4e0a;
+  --color-amber-900: #4a3607;
+  --color-canvas: #faf8f5;
+  --color-surface: #ffffff;
+  --color-primary: #2d2727;
+  --color-primary-hover: #433b3b;
+  --color-on-primary: #ffffff;
+  --color-brand-red: #b61323;
+}
+html[data-theme='dark'] {
+  color-scheme: dark;
+  --color-slate-50: #1b1717;
+  --color-slate-100: #272121;
+  --color-slate-200: #3a3232;
+  --color-slate-300: #4d4343;
+  --color-slate-400: #b0a8a1;
+  --color-slate-500: #c0b9b2;
+  --color-slate-600: #d3ccc5;
+  --color-slate-700: #e3ddd7;
+  --color-slate-800: #efeae5;
+  --color-slate-900: #f8f5f1;
+  --color-amber-50: #2c2411;
+  --color-amber-100: #3d3113;
+  --color-amber-200: #5c4812;
+  --color-amber-300: #8c6d17;
+  --color-amber-400: #ebb92e;
+  --color-amber-600: #ebb92e;
+  --color-amber-800: #f0cf5c;
+  --color-amber-900: #f5e08f;
+  --color-canvas: #141111;
+  --color-surface: #1d1919;
+  --color-primary: #ebb92e;
+  --color-primary-hover: #f0cf5c;
+  --color-on-primary: #2d2727;
+  --color-brand-red: #e5475a;
+}
+
+:root { color-scheme: light; }
+/* Margem lateral das páginas (utilidade .gutter): 16 px até 360 px de largura, 20 px nos demais celulares, 32 px a partir de sm,
+   nunca menor que a área segura (entalhe e cantos com o celular deitado; o layout usa viewport-fit=cover). */
+:root { --gutter: 1.25rem; }
+@media (max-width: 22.5rem) { :root { --gutter: 1rem; } }
+@media (min-width: 40rem) { :root { --gutter: 2rem; } }
+/* Telas grandes: a raiz cresce e, como tudo é medido em rem, texto, espaços e larguras máximas crescem juntos, sem virar uma faixa estreita.
+   1920 lógico é Full HD em 100%; 2560, QHD; 3840, 4K ou TV sem ampliação do sistema. As media queries em rem usam sempre 16 px, não esta raiz. */
+@media (min-width: 120rem) { html { font-size: 106.25%; } }
+@media (min-width: 160rem) { html { font-size: 125%; } }
+@media (min-width: 240rem) { html { font-size: 150%; } }
+html { background: var(--color-canvas); scrollbar-gutter: stable; -webkit-text-size-adjust: 100%; text-size-adjust: 100%; -webkit-tap-highlight-color: transparent; }
+body { margin: 0; min-width: 20rem; overflow-x: clip; background: var(--color-canvas); color: var(--color-slate-800); font-family: var(--font-sans); -webkit-font-smoothing: antialiased; }
+button, select { cursor: pointer; }
+img, svg, video, iframe { max-width: 100%; }
+@utility gutter { padding-left: max(var(--gutter), env(safe-area-inset-left)); padding-right: max(var(--gutter), env(safe-area-inset-right)); }
+/* Abaixo de sm, campos com fonte menor que 16 px fazem o iOS ampliar a página ao receber foco. */
+@media (max-width: 39.99rem) { input:not([type='checkbox'], [type='radio']), select, textarea { font-size: 1rem; } }
+textarea { resize: none; }
+::selection { background: var(--color-amber-200); color: #2d2727; }
+a, button, input, select, textarea { transition: color .2s ease, background-color .2s ease, border-color .2s ease, box-shadow .2s ease, opacity .2s ease; }
+
+@keyframes rise { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: none; } }
+@keyframes fade { from { opacity: 0; } to { opacity: 1; } }
+@keyframes pulse-dot { 0%, 80%, 100% { opacity: .25; } 40% { opacity: 1; } }
+.anim-rise { animation: rise .5s cubic-bezier(.2, .7, .2, 1) both; }
+.anim-fade { animation: fade .6s ease both; }
+.carregando { animation: fade .3s ease .15s both; }
+.barra-carregando { animation: barra-carregando 1.2s cubic-bezier(.4, 0, .2, 1) infinite; }
+/* Navegação pendente (components/pendente.tsx): faixa no topo da janela, fora do fluxo e sem capturar cliques; surge após 150 ms. */
+.barra-navegacao { position: fixed; inset: 0 0 auto; z-index: 50; height: 2px; overflow: hidden; pointer-events: none; animation: fade .15s ease .15s backwards; }
+.barra-navegacao::after { content: ''; position: absolute; inset-block: 0; width: 33%; background: var(--color-amber-400); animation: barra-carregando 1.2s cubic-bezier(.4, 0, .2, 1) infinite; }
+@keyframes barra-carregando { from { left: -33%; } to { left: 100%; } }
+.msg-in { animation: rise .35s ease both; }
+.dot { width: 5px; height: 5px; border-radius: 50%; background: var(--color-amber-400); animation: pulse-dot 1.2s infinite; }
+.dot:nth-child(2) { animation-delay: .15s; }
+.dot:nth-child(3) { animation-delay: .3s; }
+
+.message { overflow-wrap: anywhere; line-height: 1.75; }
+.message p { white-space: pre-wrap; margin: 0 0 .8rem; }
+.message > :last-child { margin-bottom: 0; }
+.message strong { font-weight: 700; }
+.message a { color: var(--color-amber-600); text-decoration: underline; text-underline-offset: 3px; }
+.message a:hover { color: var(--color-slate-900); }
+.message a:focus-visible { outline: 2px solid var(--color-amber-400); outline-offset: 3px; }
+.message ul, .message ol { padding-left: 1.4rem; margin: .6rem 0 1rem; }
+.message ul { list-style: disc; }
+.message ol { list-style: decimal; }
+.message li { margin: .25rem 0; }
+.message li p { margin-bottom: .25rem; }
+.message h1, .message h2, .message h3 { font-size: 1em; font-weight: 700; margin: 1rem 0 .5rem; }
+.message pre { overflow-x: auto; padding: .8rem; border-radius: .6rem; background: var(--color-slate-100); color: var(--color-slate-800); margin: .8rem 0; }
+.message code { font-size: .9em; white-space: pre-wrap; }
+.message blockquote { border-left: 3px solid var(--color-amber-400); padding-left: 1rem; margin: .8rem 0; color: var(--color-slate-600); }
+.message table { display: block; overflow-x: auto; border-collapse: collapse; margin: .8rem 0; }
+.message th, .message td { border: 1px solid var(--color-slate-200); padding: .4rem .6rem; text-align: left; }
+/* Marca da SINDI: o balão é fixo (sem animação de contorno); toda troca de glifo usa a mesma animação (o antigo cai, o novo sobe, em sequência).
+   Depois da entrada o fill é "backwards", então o hover (translateY em onda) volta a controlar o transform. */
+.sindi-mark { display: block; overflow: visible; cursor: default; }
+.sindi-mark .sm-fig { transform-box: fill-box; transform-origin: center; transition: transform .35s cubic-bezier(.3, .7, .2, 1); animation: sm-rise .5s cubic-bezier(.2, .8, .2, 1) backwards; animation-delay: calc(var(--i) * 90ms); }
+.sindi-mark .sm-saindo .sm-fig { animation: sm-fall .3s cubic-bezier(.5, 0, .8, .4) forwards; animation-delay: calc(var(--i) * 40ms); }
+.sm-f1 { --i: 0; } .sm-f2 { --i: 1; } .sm-f3 { --i: 2; } .sm-f4 { --i: 3; }
+.sindi-mark:hover .sm-fig { transform: translateY(-4px); }
+.sindi-mark:hover .sm-f2 { transition-delay: .08s; }
+.sindi-mark:hover .sm-f3 { transition-delay: .16s; }
+.sindi-mark:hover .sm-f4 { transition-delay: .24s; }
+@keyframes sm-rise { from { opacity: 0; transform: translateY(8px); } }
+@keyframes sm-fall { to { opacity: 0; transform: translateY(8px) scale(.85); } }
+/* Impressão: só o conteúdo, sem cabeçalho, faixa de indicadores nem caixa de mensagem (.no-print). */
+@media print {
+  html, body { background: #fff; font-size: 11pt; }
+  .no-print { display: none !important; }
+  .sticky { position: static !important; }
+  a[href^='http']::after { content: ' (' attr(href) ')'; font-size: .8em; overflow-wrap: anywhere; }
+}
+@media (prefers-reduced-motion: reduce) { *, *::before, *::after { animation: none !important; transition: none !important; scroll-behavior: auto !important; } }

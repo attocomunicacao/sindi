@@ -1,0 +1,15 @@
+node_modules/
+.next/
+.env*
+!.env.example
+.vercel/
+*.tsbuildinfo
+test-results/
+.data/
+.tools/
+.env.knowledge.local
+
+env.download
+env.knowledge
+env.knowledge.download
+gitignore

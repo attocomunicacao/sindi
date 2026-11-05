@@ -6,7 +6,7 @@
   "rewrites": [
     {
       "source": "/(.*)",
-      "destination": "https://administered-kevin-tension-kernel.trycloudflare.com/$1"
+      "destination": "https://adds-elephant-hudson-prerequisite.trycloudflare.com/$1"
     }
   ],
   "headers": [

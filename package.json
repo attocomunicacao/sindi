@@ -24,7 +24,7 @@
   "license": "ISC",
   "type": "module",
   "dependencies": {
-    "@ai-sdk/google": "^4.0.93",
+    "@ai-sdk/google": "^4.0.114",
     "@radix-ui/react-slot": "^1.4.0",
     "ai": "^7.0.137",
     "cheerio": "1.2.0",

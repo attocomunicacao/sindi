@@ -13,6 +13,8 @@ export default function Home() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [metricsWarning, setMetricsWarning] = useState(false);
+  // Mensagens que ainda restam hoje para quem está usando (a cota vem da resposta do servidor; some quando a cota está desligada ou a resposta veio da memória).
+  const [restantes, setRestantes] = useState<number | null>(null);
   // Três perguntas diferentes a cada vez que a tela inicial aparece (ao abrir o chat e ao iniciar uma nova conversa). O sorteio roda no navegador, depois da hidratação.
   const [suggestions, setSuggestions] = useState<string[]>([]);
   const busy = useRef(false);
@@ -48,7 +50,7 @@ export default function Home() {
             if (event.type === 'error') throw new Error(event.error || 'A resposta foi interrompida.');
             if (event.type === 'reset') { answer = ''; parcial = ''; setMessages([...pending, { role: 'assistant', content: '' }]); }
             if (event.type === 'delta') { answer += event.text; parcial = answer; setMessages([...pending, { role: 'assistant', content: answer }]); }
-            if (event.type === 'done') { complete = true; setMetricsWarning(event.metricsRecorded === false); setMessages([...pending, { role: 'assistant', content: event.text }]); }
+            if (event.type === 'done') { complete = true; setMetricsWarning(event.metricsRecorded === false); if (typeof event.restantes === 'number') setRestantes(event.restantes); setMessages([...pending, { role: 'assistant', content: event.text }]); }
           }
           if (done) break;
         }
@@ -57,7 +59,7 @@ export default function Home() {
     } catch (cause) {
       // Interrompida por quem enviou: se já havia texto, ele fica; se nada tinha chegado, a pergunta volta para a caixa de texto, para editar ou descartar.
       if (interrupcao.signal.aborted) { if (parcial.trim()) setMessages([...pending, { role: 'assistant', content: parcial }]); else { setMessages(messages); setInput(content); } return; }
-      setMessages(messages); setInput(content); setError(cause instanceof Error ? ['TimeoutError', 'AbortError'].includes(cause.name) ? 'O modelo local demorou para responder. Tente novamente em instantes.' : cause.message : 'Tente novamente.'); }
+      setMessages(messages); setInput(content); setError(cause instanceof Error ? ['TimeoutError', 'AbortError'].includes(cause.name) ? 'O serviço de IA demorou para responder. Tente novamente em instantes.' : cause.message : 'Tente novamente.'); }
     finally { busy.current = false; controle.current = null; setLoading(false); textarea.current?.focus({ preventScroll: true }); }
   }
   const parar = () => controle.current?.abort();
@@ -96,7 +98,7 @@ export default function Home() {
             ? <Button type="button" size="icon" variant="outline" aria-label="Parar resposta" title="Parar resposta (Esc)" onClick={parar}><Square size={14} fill="currentColor" /></Button>
             : <Button type="submit" size="icon" aria-label="Enviar" disabled={!input.trim()}><ArrowUp size={17} /></Button>}
         </form>
-        <p className="mt-2.5 text-center text-xs text-slate-500 baixo:mt-1.5">A IA pode errar. Não envie dados confidenciais.</p>
+        <p className="mt-2.5 text-center text-xs text-slate-500 baixo:mt-1.5">A IA pode errar. Não envie dados pessoais nem confidenciais: as perguntas passam por um serviço de IA externo gratuito.{restantes !== null && ` Restam ${restantes} ${restantes === 1 ? 'mensagem' : 'mensagens'} hoje.`}</p>
       </div>
     </div></main>
   </div>;

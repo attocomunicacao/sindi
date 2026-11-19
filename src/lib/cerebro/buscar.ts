@@ -79,7 +79,7 @@ export async function buscarHibrido(pergunta: string, limite = 2, trechos: Trech
   return [...pontos].map(([trecho, p]) => ({ trecho, pontos: p })).sort((a, b) => b.pontos - a.pontos).slice(0, limite);
 }
 
-/** Versão assíncrona usada pelo chat: busca híbrida com queda para palavras quando o Ollama não responde a tempo. */
+/** Versão assíncrona usada pelo chat: busca híbrida com queda para palavras quando o provedor de embeddings não responde a tempo. */
 export async function passagensHibridas(pergunta: string, limite = 2): Promise<Passage[]> {
   // A linha "Variações:" serve à busca; para o modelo é só leitura a mais.
   return (await buscarHibrido(pergunta, limite)).map(({ trecho }) => ({

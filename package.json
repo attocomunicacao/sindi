@@ -17,8 +17,6 @@
     "cerebro:avaliar": "tsx scripts/cerebro/avaliar-cerebro.ts",
     "cerebro:indexar": "tsx scripts/cerebro/indexar-cerebro.ts",
     "cerebro:comparar": "tsx scripts/cerebro/comparar-busca.ts",
-    "modelo:criar": "tsx scripts/modelo/criar-modelo.ts",
-    "modelo:medir": "tsx scripts/modelo/benchmark-ollama.ts",
     "avaliar:treino": "tsx scripts/avaliacao/avaliar-treino.ts",
     "test:coverage": "tsx --test --experimental-test-coverage tests/*.test.ts",
     "check": "npm run lint && npm run typecheck && npm test"

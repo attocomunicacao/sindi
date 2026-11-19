@@ -1,6 +1,7 @@
 import { chatSchema, historicoParaOModelo, recentMessages } from '@/lib/chat';
 import { recordUsage as registrarUso } from '@/lib/usage';
-import { modeloPrincipal, modeloRapido, ollamaChat, OllamaError } from '@/lib/ollama';
+import { modeloPrincipal, modeloRapido, gerarTexto, LlmError } from '@/lib/gemini';
+import { consumirCota, mensagemDeCota } from '@/lib/cota';
 import { retrieveKnowledge } from '@/lib/knowledge/retrieve';
 import { obrigacaoLegalDeContratacao, casoJuridicoIndividual, contemDadosSensiveis, foraDoEscopo, lacunaConhecida, notaDaSituacao, redigirDadosSensiveis, semFonteSemChute, sourceChoices, sourceReferences, trechoDeContato, verificarFatos, type Situacao } from '@/lib/knowledge/grounded';
 import { sufficientEvidence } from '@/lib/knowledge/core';
@@ -28,7 +29,7 @@ const WRITING = /\b(redija|reescreva|traduza|translate|draft|write|melhore o tex
 /** Pedido de um texto para o usuário preencher (modelo, rascunho, anúncio, e-mail): só aí os campos entre colchetes ficam na resposta. */
 const PEDE_MODELO = /\b(modelo|redija|escreva|rascunho|template|an[uú]ncio|e-?mail|carta|estrutur\w*|apresenta[cç][aã]o|proposta)\b/i;
 const REDACAO = 'Escreva o texto em nome da empresa do usuário, nunca em nome do SINDEPRESTEM nem da SINDI. Use as fontes só como estrutura: não copie delas valores, salários, leis nem números. Deixe entre colchetes os dados que só o usuário conhece, como [nome da empresa] e [tempo de atuação]; não invente nenhum deles. Não assine como SINDI.';
-// Orientações curtas: vão na mensagem de cada pergunta, depois das regras e dos exemplos (que o Ollama reaproveita do cache), então cada palavra aqui é lida toda vez.
+// Orientações curtas: vão na mensagem de cada pergunta, depois das regras e dos exemplos, então cada palavra aqui é lida (e paga em tokens) toda vez.
 const COM_FONTES = 'Responda com as suas palavras, só com o que as fontes dizem, ligando-as ao que foi perguntado. Não copie trechos longos nem títulos.';
 const SEM_FONTES = 'Não há fonte para esta pergunta. Você pode dar orientação geral de método, sem citar números, valores, prazos, leis, contatos nem o que o SINDEPRESTEM oferece. Para dados específicos, recomende falar com o SINDEPRESTEM.';
 const LISTA = 'As fontes são só títulos de documentos. Diga em uma ou duas frases de que assuntos eles tratam e avise que os links estão nas referências. Não descreva o conteúdo de nenhum documento.';
@@ -82,7 +83,7 @@ export async function POST(request: Request) {
   const controller = new AbortController();
   async function generate(onDelta?: (text: string) => void, onReset?: () => void) {
   try {
-    const signal = AbortSignal.any([request.signal, controller.signal, AbortSignal.timeout(240000)]);
+    const signal = AbortSignal.any([request.signal, controller.signal, AbortSignal.timeout(90000)]);
     const mensagens = parsed.data!.messages; const question = mensagens.at(-1)!.content;
     // Dados pessoais e segredos nunca chegam ao modelo: a pergunta e o histórico seguem com o trecho removido.
     const recentes = recentMessages(mensagens).map(message => ({ ...message, content: redigirDadosSensiveis(message.content) }));
@@ -116,7 +117,7 @@ export async function POST(request: Request) {
       if (knowledge.semResposta || lacunaConhecida(question, choices.map(p => p.content).join(' ')) || (!choices.length && conector?.modo !== 'orientacao' && semFonteSemChute(question))) { situacao = 'sem-fonte'; choices = [trechoDeContato()]; lista = false; relatorio = false; }
     }
 
-    // Em CPU o que mais demora é ler o que muda a cada pergunta (as regras e os exemplos são reaproveitados do cache do Ollama): as fontes têm orçamento de caracteres
+    // O que muda a cada pergunta custa tokens do limite gratuito (as regras e os exemplos vêm sempre iguais, primeiro): as fontes têm orçamento de caracteres
     // e a resposta tem limite de palavras, definido pelo conector da área.
     const base: Mensagem[] = [{ role: 'system', content: sistema() }, ...exemplos(), ...historico as Mensagem[]];
     const pedido = (nota: string, fontes: Passage[]) => {
@@ -147,13 +148,16 @@ export async function POST(request: Request) {
       const metricsRecorded = await recordUsage({ success: true, durationMs: Date.now() - started });
       return Response.json({ text: guardada, metricsRecorded }, { headers: { 'Cache-Control': 'no-store' } });
     }
+    // Cota de mensagens: uma por mensagem do usuário, só quando o provedor de IA vai ser usado (resposta guardada não gasta) e nunca no aquecimento do servidor.
+    const cota = aquecimento ? undefined : await consumirCota(request);
+    if (cota && !cota.ok) return Response.json({ error: mensagemDeCota(cota), restantes: 0 }, { status: 429, headers: { 'Cache-Control': 'no-store', 'Retry-After': String(cota.reiniciaEmSegundos) } });
     for (const [indice, tentativa] of tentativas.entries()) {
       if (indice > 0) onReset?.();
       const { texto: conteudo, palavras } = indice === 0 ? primeira : pedido(tentativa.nota, tentativa.fontes);
-      // Teto de tokens com folga sobre o limite de palavras: impede que uma resposta descontrolada ocupe o computador por minutos.
-      const gerar = (qual: string) => ollamaChat([...base, { role: 'user', content: conteudo }], signal, onDelta, { options: { num_predict: Math.round(palavras * 2.2) + 40 } }, qual);
-      // Sem o modelo rápido instalado, o principal responde.
-      const { text, usage, truncada } = await gerar(modelo).catch(falha => { if (falha instanceof OllamaError && falha.status === 404 && modelo !== modeloPrincipal()) { modelo = modeloPrincipal(); return gerar(modelo); } throw falha; });
+      // Teto de tokens com folga sobre o limite de palavras: impede que uma resposta descontrolada gaste o limite gratuito do provedor.
+      const gerar = (qual: string) => gerarTexto([...base, { role: 'user', content: conteudo }], signal, onDelta, { maxTokens: Math.round(palavras * 2.2) + 40 }, qual);
+      // Se o modelo rápido configurado não existir, o principal responde.
+      const { text, usage, truncada } = await gerar(modelo).catch(falha => { if (falha instanceof LlmError && falha.status === 404 && modelo !== modeloPrincipal()) { modelo = modeloPrincipal(); return gerar(modelo); } throw falha; });
       // Resposta cortada pelo teto: fica até a última frase completa (o evento final substitui na tela o texto parcial já mostrado).
       uso = somar(uso, usage); texto = limparResposta(truncada ? ateAUltimaFrase(text) : text, writing || PEDE_MODELO.test(question)); fontesUsadas = tentativa.fontes;
       // A reescrita depois de uma reprovação é sempre do modelo principal.
@@ -167,13 +171,13 @@ export async function POST(request: Request) {
     const metricsRecorded = await recordUsage({ success: Boolean(texto.trim()), durationMs: Date.now() - started, usage: uso });
     if (!texto.trim()) return error('Não foi possível gerar uma resposta. Tente novamente.', 502);
     if (chave && fontesUsadas === choices) guardarResposta(chave, texto + references);
-    return Response.json({ text: texto + references, metricsRecorded }, { headers: { 'Cache-Control': 'no-store' } });
+    return Response.json({ text: texto + references, metricsRecorded, restantes: cota?.restantes }, { headers: { 'Cache-Control': 'no-store' } });
   } catch (cause) {
     await recordUsage({ success: false, durationMs: Date.now() - started });
-    if (cause instanceof OllamaError) return error(cause.message, cause.status);
-    if (cause instanceof Error && ['TimeoutError', 'AbortError'].includes(cause.name)) return error('O modelo local demorou para responder. Tente novamente quando as outras conversas terminarem.', 504);
-    console.warn('SINDI local service failure', { type: cause instanceof Error ? cause.name : 'unknown' });
-    return error('Não foi possível conectar ao Ollama. Abra o Ollama neste computador e tente novamente.', 503);
+    if (cause instanceof LlmError) return error(cause.message, cause.status);
+    if (cause instanceof Error && ['TimeoutError', 'AbortError'].includes(cause.name)) return error('O serviço de IA demorou para responder. Tente novamente.', 504);
+    console.warn('SINDI AI service failure', { type: cause instanceof Error ? cause.name : 'unknown' });
+    return error('Não foi possível falar com o serviço de IA agora. Tente novamente em instantes.', 503);
   }
   }
   if (!request.headers.get('accept')?.includes('application/x-ndjson')) return generate();

@@ -1,13 +1,15 @@
 // Prepara as respostas das perguntas frequentes: pergunta ao servidor em execução, uma por vez, as sugestões da tela inicial e as perguntas de treinamento.
 // Cada resposta fica na memória de respostas do servidor (só em RAM, 24 horas), e quem fizer a mesma pergunta recebe a resposta em menos de um segundo.
-// Uso: npx tsx scripts/operacao/aquecer.ts [--base=http://127.0.0.1:3100]   (publicar.ps1 já roda este script em segundo plano)
+// Uso: npx tsx scripts/operacao/aquecer.ts [--base=http://127.0.0.1:3100] [--treino] [--pausa=4000]   (publicar.ps1 -Aquecer roda este script em segundo plano)
+// Cada pergunta usa o limite gratuito da API de IA: por padrão só as sugestões da tela inicial, com pausa entre elas; --treino inclui as perguntas de treinamento.
 // Exige o token SINDI_AQUECIMENTO_TOKEN do servidor (definido por publicar.ps1), para essas chamadas não entrarem nas métricas públicas de /uso.
 import { SUGESTOES } from '../../src/lib/sugestoes';
 import { carregarCasos } from '../../src/lib/cerebro/avaliar';
 
 const base = process.argv.find(a => a.startsWith('--base='))?.slice(7) ?? 'http://127.0.0.1:3100';
 const token = process.env.SINDI_AQUECIMENTO_TOKEN ?? '';
-const perguntas = [...new Set([...SUGESTOES, ...carregarCasos('treino-v1.md', true).map(c => c.pergunta)])];
+const pausa = Math.max(0, Number(process.argv.find(a => a.startsWith('--pausa='))?.slice(8)) || 4000);
+const perguntas = [...new Set([...SUGESTOES, ...(process.argv.includes('--treino') ? carregarCasos('treino-v1.md', true).map(c => c.pergunta) : [])])];
 const inicio = Date.now(); let prontas = 0;
 console.log(`${new Date().toLocaleTimeString('pt-BR')} · ${perguntas.length} perguntas para preparar em ${base}`);
 for (const [i, pergunta] of perguntas.entries()) {
@@ -18,5 +20,6 @@ for (const [i, pergunta] of perguntas.entries()) {
     if (resposta.ok) prontas++;
     console.log(`${String(i + 1).padStart(3)}/${perguntas.length} ${resposta.ok ? 'pronta' : `erro ${resposta.status}`} em ${((Date.now() - t) / 1000).toFixed(1)}s`);
   } catch (falha) { console.log(`${String(i + 1).padStart(3)}/${perguntas.length} falhou (${falha instanceof Error ? falha.name : 'erro'})`); }
+  await new Promise(r => setTimeout(r, pausa));
 }
 console.log(`${new Date().toLocaleTimeString('pt-BR')} · ${prontas} de ${perguntas.length} respostas prontas em ${Math.round((Date.now() - inicio) / 60000)} min`);

@@ -20,7 +20,8 @@
     "avaliar:treino": "tsx scripts/avaliacao/avaliar-treino.ts",
     "test:coverage": "tsx --test --experimental-test-coverage tests/*.test.ts tests/*.test.tsx",
     "check": "npm run lint && npm run typecheck && npm test",
-    "verificar:funcional": "tsx scripts/operacao/verificar-funcional.ts"
+    "verificar:funcional": "tsx scripts/operacao/verificar-funcional.ts",
+    "test:e2e": "npm run build && playwright test"
   },
   "license": "ISC",
   "type": "module",
@@ -44,6 +45,8 @@
     "zod": "^4.6.5"
   },
   "devDependencies": {
+    "@axe-core/playwright": "^4.14.0",
+    "@playwright/test": "^1.65.1",
     "@tailwindcss/postcss": "^4.3.3",
     "@testing-library/dom": "^10.4.2",
     "@testing-library/react": "^16.3.3",

@@ -80,6 +80,8 @@ Siga esta ordem; o teste `tests/ferramentas.test.ts` confere os itens 2, 3, 5 e 
 - **Lógica e rotas**: `tests/<assunto>.test.ts`, com `node:test`. Rotas se chamam direto (`POST(new Request(...))`); copie `tests/orcamento-rotas.test.ts`. Trocar `globalThis.fetch` simula o Gemini e a rede; restaure no `finally`.
 - **Interface**: `tests/<assunto>.test.tsx` com Testing Library. Importe `./setup-dom` **primeiro** (cria o navegador jsdom); `definirAbaOculta` simula a aba em segundo plano. Veja `tests/interface-orcamento.test.tsx`.
 - **Coletores de dados**: `tests/rede-simulada.ts` (`simularRede` com respostas gravadas e `comBanco` com SQLite temporário, sem esperas). Cada coletor leva uma resposta boa, uma vazia, uma malformada e uma com erro HTTP. Chamar uma URL que nenhuma rota cobre falha o teste.
+- **Ponta a ponta e acessibilidade**: `e2e/*.spec.ts` (Playwright, Chromium, desktop e celular) contra `next start` com banco vazio; `npm run test:e2e` faz o build e roda. O chat de IA é simulado no navegador (`e2e/ajuda.ts`, `simularChat`), então nada gasta o limite do Gemini. `e2e/integridade-acessibilidade.spec.ts` carrega cada página sem erro de console nem violação da CSP e roda o axe (WCAG 2.1 AA) em tema claro e escuro; página nova entra em `PAGINAS` de `e2e/ajuda.ts`. Violação grave ou crítica reprova.
+- **Segurança de ataque**: `tests/ataques*.test.ts*` (corpos hostis, injeção de prompt, SSRF, XSS, fuzz). Ao criar uma rota ou um lugar que recebe texto, acrescente o caso hostil ali.
 - **Antes de confiar num teste novo**, quebre o código de propósito e confirme que ele falha (foi assim que os testes de interface foram validados).
 - `npm run test:coverage` mostra a cobertura; ela só mede os arquivos que algum teste carrega.
 

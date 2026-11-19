@@ -26,6 +26,27 @@ jobs:
       - run: npm test
       - run: npm run build
       - run: npm audit --audit-level=high
+  e2e:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v7
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+      - run: npm ci
+      - run: npx playwright install --with-deps chromium
+      - run: npm run build
+      - run: npx playwright test
+      - uses: actions/upload-artifact@v4
+        if: failure()
+        with:
+          name: e2e-resultados
+          path: test-results/
+          retention-days: 7
   semgrep:
     runs-on: ubuntu-latest
     timeout-minutes: 10

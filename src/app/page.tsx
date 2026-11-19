@@ -85,7 +85,7 @@ export default function Home() {
     return () => window.removeEventListener('keydown', esc);
   }, [loading]);
   useEffect(() => {
-    const limpar = () => { if (busy.current) return; setMessages([]); setError(''); setInput(''); textarea.current?.focus({ preventScroll: true }); };
+    const limpar = () => { if (busy.current) return; setMessages([]); setError(''); setInput(''); setAnuncio(''); textarea.current?.focus({ preventScroll: true }); };
     window.addEventListener(NOVA_CONVERSA, limpar);
     return () => window.removeEventListener(NOVA_CONVERSA, limpar);
   }, []);

@@ -5,6 +5,8 @@ node_modules/
 .vercel/
 *.tsbuildinfo
 test-results/
+playwright-report/
+blob-report/
 .data/
 .tools/
 .env.knowledge.local

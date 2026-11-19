@@ -25,3 +25,15 @@ test('production metrics report unconfigured storage without blocking chat', asy
   finally { process.env = saved; }
 });
 
+test('a leitura dos 30 dias fica em memória por 30 s e uma nova métrica a invalida', async () => {
+  const saved = { ...process.env }; const originalFetch = globalThis.fetch;
+  const { esquecerLeituraDeUso } = await import('../src/lib/usage');
+  process.env.UPSTASH_REDIS_REST_URL = 'https://metrics.example'; process.env.UPSTASH_REDIS_REST_TOKEN = 'test'; delete process.env.VERCEL;
+  let consultas = 0; globalThis.fetch = async (_url, init) => { const comando = JSON.parse(init!.body as string) as string[]; if (comando[0] === 'HGETALL') consultas++; return Response.json({ result: ['requests', '1'] }); };
+  try {
+    esquecerLeituraDeUso();
+    await getUsage(); assert.equal(consultas, 30);
+    await getUsage(); await getUsage(); assert.equal(consultas, 30, 'as leituras seguintes não vão ao Redis');
+    await recordUsage({ success: true, durationMs: 1 }); await getUsage(); assert.equal(consultas, 60, 'depois de uma nova métrica, a leitura é refeita');
+  } finally { globalThis.fetch = originalFetch; process.env = saved; esquecerLeituraDeUso(); }
+});

@@ -1,6 +1,7 @@
 'use client';
 import { useEffect, useRef, useState } from 'react';
 import { recentMessages } from '@/lib/chat-historico';
+import { LeitorDoChat, textoParaLeitor } from '@/lib/chat-stream';
 import { sortearSugestoes } from '@/lib/sugestoes';
 import { ArrowUp, ArrowUpRight, Square } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -15,6 +16,10 @@ export default function Home() {
   const [metricsWarning, setMetricsWarning] = useState(false);
   // Mensagens que ainda restam hoje para quem está usando (a cota vem da resposta do servidor; some quando a cota está desligada ou a resposta veio da memória).
   const [restantes, setRestantes] = useState<number | null>(null);
+  // Leitores de tela: a resposta é anunciada uma vez, quando completa (o texto que cresce a cada token não fica numa região ao vivo).
+  const [anuncio, setAnuncio] = useState('');
+  // A tela só acompanha a resposta se quem lê já estava no fim: quem rolou para cima para reler não é arrastado de volta.
+  const noFim = useRef(true);
   // Três perguntas diferentes a cada vez que a tela inicial aparece (ao abrir o chat e ao iniciar uma nova conversa). O sorteio roda no navegador, depois da hidratação.
   const [suggestions, setSuggestions] = useState<string[]>([]);
   const busy = useRef(false);
@@ -25,41 +30,51 @@ export default function Home() {
   const empty = messages.length === 0;
   // eslint-disable-next-line react-hooks/set-state-in-effect -- sorteio no navegador após a hidratação, para não divergir do HTML do servidor
   useEffect(() => { if (empty) setSuggestions(anteriores => sortearSugestoes(anteriores)); }, [empty]);
-  useEffect(() => { if (messages.length) end.current?.scrollIntoView({ block: 'end', behavior: 'smooth' }); }, [messages]);
+  useEffect(() => {
+    const medir = () => { noFim.current = window.innerHeight + window.scrollY >= document.documentElement.scrollHeight - 160; };
+    window.addEventListener('scroll', medir, { passive: true });
+    return () => window.removeEventListener('scroll', medir);
+  }, []);
+  useEffect(() => { if (messages.length && noFim.current) end.current?.scrollIntoView({ block: 'end', behavior: loading ? 'auto' : 'smooth' }); }, [messages, loading]);
   async function send(text = input) {
     const content = text.trim();
     if (!content || content.length > 1500 || busy.current) return;
 
-    busy.current = true; setLoading(true); setError(''); setInput('');
-    const interrupcao = new AbortController(); controle.current = interrupcao; let parcial = '';
+    busy.current = true; noFim.current = true; setLoading(true); setError(''); setInput(''); setAnuncio('');
+    const interrupcao = new AbortController(); controle.current = interrupcao; let parcial = ''; let erroDoServidor = false;
     const pending: Message[] = [...messages, { role: 'user', content }];
     setMessages(pending);
     try {
-      const response = await fetch('/api/chat', { method: 'POST', headers: { 'Content-Type': 'application/json', Accept: 'application/x-ndjson' }, body: JSON.stringify({ messages: recentMessages(pending) }), signal: AbortSignal.any([interrupcao.signal, AbortSignal.timeout(310000)]) });
-      if (!response.ok) { const data = await response.json(); throw new Error(data.error || 'Não foi possível enviar.'); }
+      const response = await fetch('/api/chat', { method: 'POST', headers: { 'Content-Type': 'application/json', Accept: 'application/x-ndjson' }, body: JSON.stringify({ messages: recentMessages(pending) }), signal: AbortSignal.any([interrupcao.signal, AbortSignal.timeout(130000)]) });
+      // Um repasse ou o servidor pode devolver HTML (502/504): sem JSON, a mensagem é a do status, não um erro de leitura.
+      if (!response.ok) { const data = await response.json().catch(() => ({})) as { error?: string }; throw new Error(data.error || (response.status >= 500 ? 'O serviço está indisponível agora. Tente novamente em instantes.' : 'Não foi possível enviar.')); }
       if (!response.body) throw new Error('A resposta não pôde ser recebida.');
-      const reader = response.body.getReader(); const decoder = new TextDecoder(); let buffer = ''; let answer = ''; let complete = false;
+      const reader = response.body.getReader(); const leitor = new LeitorDoChat(); let answer = ''; let complete = false;
+      // Os pedaços chegam a cada token; a tela é atualizada no máximo uma vez por quadro, para o markdown não ser refeito dezenas de vezes por segundo.
+      let quadro = 0;
+      const mostrar = () => { quadro = 0; setMessages([...pending, { role: 'assistant', content: answer }]); };
+      const cancelarQuadro = () => { if (quadro) { cancelAnimationFrame(quadro); quadro = 0; } };
       try {
         while (true) {
           const { value, done } = await reader.read();
-          buffer += done ? decoder.decode() : decoder.decode(value, { stream: true });
-          const lines = buffer.split('\n'); buffer = lines.pop() || '';
-          if (done && buffer.trim()) { lines.push(buffer); buffer = ''; }
-          for (const line of lines.filter(line => line.trim())) {
-            const event = JSON.parse(line);
-            if (event.type === 'error') throw new Error(event.error || 'A resposta foi interrompida.');
-            if (event.type === 'reset') { answer = ''; parcial = ''; setMessages([...pending, { role: 'assistant', content: '' }]); }
-            if (event.type === 'delta') { answer += event.text; parcial = answer; setMessages([...pending, { role: 'assistant', content: answer }]); }
-            if (event.type === 'done') { complete = true; setMetricsWarning(event.metricsRecorded === false); if (typeof event.restantes === 'number') setRestantes(event.restantes); setMessages([...pending, { role: 'assistant', content: event.text }]); }
+          for (const event of leitor.empurrar(value, done)) {
+            // Erro enviado pelo servidor (cota, resposta reprovada): o texto parcial não é confiável e não fica na conversa.
+            if (event.type === 'error') { erroDoServidor = true; throw new Error(event.error || 'A resposta foi interrompida.'); }
+            if (event.type === 'reset') { cancelarQuadro(); answer = ''; parcial = ''; setMessages([...pending, { role: 'assistant', content: '' }]); }
+            if (event.type === 'delta') { answer += event.text; parcial = answer; if (!quadro) quadro = requestAnimationFrame(mostrar); }
+            if (event.type === 'done') { cancelarQuadro(); complete = true; setMetricsWarning(event.metricsRecorded === false); if (typeof event.restantes === 'number') setRestantes(event.restantes); setMessages([...pending, { role: 'assistant', content: event.text }]); setAnuncio(textoParaLeitor(event.text)); }
           }
           if (done) break;
         }
-        if (!complete) throw new Error('A resposta foi interrompida. Tente novamente.');
-      } finally { await reader.cancel().catch(() => {}); reader.releaseLock(); }
+        if (leitor.invalidas || !complete) throw new Error('A resposta foi interrompida. Tente novamente.');
+      } finally { cancelarQuadro(); await reader.cancel().catch(() => {}); reader.releaseLock(); }
     } catch (cause) {
       // Interrompida por quem enviou: se já havia texto, ele fica; se nada tinha chegado, a pergunta volta para a caixa de texto, para editar ou descartar.
       if (interrupcao.signal.aborted) { if (parcial.trim()) setMessages([...pending, { role: 'assistant', content: parcial }]); else { setMessages(messages); setInput(content); } return; }
-      setMessages(messages); setInput(content); setError(cause instanceof Error ? ['TimeoutError', 'AbortError'].includes(cause.name) ? 'O serviço de IA demorou para responder. Tente novamente em instantes.' : cause.message : 'Tente novamente.'); }
+      const aviso = cause instanceof Error ? ['TimeoutError', 'AbortError'].includes(cause.name) ? 'O serviço de IA demorou para responder. Tente novamente em instantes.' : cause.message : 'Tente novamente.';
+      // A conexão caiu no meio da resposta: o que já chegou fica na tela (com o aviso), e a pergunta continua na conversa.
+      if (!erroDoServidor && parcial.trim()) { setMessages([...pending, { role: 'assistant', content: parcial }]); setError(aviso); return; }
+      setMessages(messages); setInput(content); setError(aviso); }
     finally { busy.current = false; controle.current = null; setLoading(false); textarea.current?.focus({ preventScroll: true }); }
   }
   const parar = () => controle.current?.abort();
@@ -81,13 +96,14 @@ export default function Home() {
         <h1 className="text-4xl font-semibold tracking-tight text-slate-900 sm:text-5xl">SINDI</h1>
         <p className="mt-3 text-lg text-slate-500">Assistente virtual do SINDEPRESTEM.</p>
         <ul className="mt-10 divide-y divide-slate-200 border-y border-slate-200">{suggestions.map(s => <li key={s}><button disabled={loading} onClick={() => void send(s)} className="group flex w-full items-center justify-between gap-4 py-4 text-left text-base text-slate-700 hover:text-slate-900 focus-visible:outline-2 focus-visible:outline-amber-400">{s}<ArrowUpRight size={16} className="shrink-0 text-slate-400 transition-transform group-hover:-translate-y-0.5 group-hover:translate-x-0.5 group-hover:text-amber-600" /></button></li>)}</ul>
-      </div> : <div className="flex-1 space-y-8 pb-8 pt-8" role="log" aria-live="polite" aria-relevant="additions">
+      </div> : <div className="flex-1 space-y-8 pb-8 pt-8" role="region" aria-label="Mensagens da conversa">
         {messages.map((message, i) => message.role === 'user'
           ? <div key={i} className="msg-in flex justify-end"><p className="sr-only">Você</p><div className="max-w-[85%] whitespace-pre-wrap rounded-2xl rounded-br-md bg-slate-100 px-4 py-3 text-sm leading-6 text-slate-900">{message.content}</div></div>
           : <div key={i} className="msg-in flex gap-4"><span className="mt-1 h-5 w-1 shrink-0 rounded-full bg-amber-400" aria-hidden /><div className="min-w-0 flex-1 text-slate-800"><p className="sr-only">SINDI</p><ChatMessage content={message.content} /></div></div>)}
         {loading && messages.at(-1)?.role === 'user' && <div className="flex items-center gap-1.5 pl-5" role="status" aria-label="Preparando resposta"><span className="dot" /><span className="dot" /><span className="dot" /></div>}
         <div ref={end} />
       </div>}
+      <p className="sr-only" role="status" aria-live="polite">{anuncio ? `SINDI respondeu: ${anuncio}` : ''}</p>
       <div className="no-print sticky bottom-0 bg-canvas pb-[max(1rem,env(safe-area-inset-bottom))] pt-2">
         {error && <p role="alert" className="mb-3 rounded-lg border border-amber-300 bg-amber-50 px-3 py-2 text-sm text-amber-900">{error}</p>}
         {metricsWarning && <p role="status" className="mb-3 text-xs text-amber-800">O consumo desta resposta não pôde ser registrado.</p>}

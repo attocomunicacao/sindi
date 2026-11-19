@@ -20,7 +20,7 @@ export function hostInterno(host: string): boolean {
   const nome = host.toLowerCase().replace(/^\[|\]$/g, '').replace(/\.$/, '');
   return !nome.includes('.') || nome.includes(':') || /^\d{1,3}(\.\d{1,3}){3}$/.test(nome) || /^\d+$/.test(nome) || /\.(local|localhost|internal|lan|home|corp|intranet)$/.test(nome);
 }
-/** Destino recusado pela validação: não adianta tentar de novo. */
+/** Destino recusado pela validação (ou redirecionamentos em excesso): não adianta tentar de novo. */
 export class DestinoBloqueado extends Error {}
 /** Valida o destino (https, sem credenciais, sem porta diferente de 443 e fora da rede interna). */
 export function destinoPermitido(url: URL) {
@@ -60,7 +60,7 @@ export async function politeFetch(url: string, { minMs = 1000, respectRobots = t
         response = await fetch(atual, { headers: { 'User-Agent': AGENT, ...(accept ? { Accept: accept } : {}), ...headers }, redirect: 'manual', signal: AbortSignal.timeout(45000) });
         const destino = response.status >= 300 && response.status < 400 ? response.headers.get('location') : null;
         if (!destino) break;
-        if (saltos >= MAX_REDIRECIONAMENTOS) throw new Error('Redirecionamentos demais: ' + target.host);
+        if (saltos >= MAX_REDIRECIONAMENTOS) throw new DestinoBloqueado('Redirecionamentos demais: ' + target.host);
         atual = new URL(destino, atual); destinoPermitido(atual); await response.body?.cancel();
       }
       if (response.status === 429 || response.status >= 500) { last = new Error(`HTTP ${response.status} em ${target.host}`); await delay(pausa(2000 * (attempt + 1) * (response.status === 429 ? 5 : 1))); continue; }

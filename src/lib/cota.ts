@@ -37,10 +37,11 @@ const chaveDe = (tipo: string, dia: string, alvo = '') => `sindi:cota:${tipo}:${
 
 // Contagem em memória (sem Redis): só vale para este processo e é descartada quando o dia muda.
 const memoria = new Map<string, number>(); let diaDaMemoria = '';
-const MAXIMO_NA_MEMORIA = 100_000;
+/** Teto de IPs distintos contados em memória; acima dele novos IPs são recusados em vez de a memória crescer sem limite. `SINDI_COTA_MAX_CHAVES` ajusta (os testes usam um valor baixo). */
+const maximoNaMemoria = () => { const n = Number(process.env.SINDI_COTA_MAX_CHAVES); return Number.isInteger(n) && n > 0 ? n : 100_000; };
 function contarNaMemoria(chave: string, dia: string) {
   if (diaDaMemoria !== dia) { memoria.clear(); diaDaMemoria = dia; }
-  if (!memoria.has(chave) && memoria.size >= MAXIMO_NA_MEMORIA) return Number.MAX_SAFE_INTEGER;
+  if (!memoria.has(chave) && memoria.size >= maximoNaMemoria()) return Number.MAX_SAFE_INTEGER;
   const n = (memoria.get(chave) ?? 0) + 1; memoria.set(chave, n); return n;
 }
 const SCRIPT = `local n=redis.call('INCR',KEYS[1]); if n==1 then redis.call('EXPIRE',KEYS[1],ARGV[1]) end; return n`;

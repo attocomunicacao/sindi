@@ -7,7 +7,8 @@ import { useEffect, useState } from 'react';
  * início = as quatro figuras do logotipo; orçamento = moeda e barras; painel = quatro painéis; biblioteca = livros; uso = medidor.
  * Em toda troca (e na entrada) o glifo antigo cai e o novo sobe, com a mesma animação (globals.css, .sindi-mark). O balão é fixo, sem animação de contorno.
  */
-export type Pagina = 'inicio' | 'orcamento' | 'painel' | 'base' | 'uso';
+import type { Pagina } from '@/lib/paginas';
+export type { Pagina };
 
 const INK = 'var(--color-slate-800)'; const RED = 'var(--color-brand-red)'; const GOLD = 'var(--color-amber-400)'; const TRILHA = 'var(--color-slate-300)';
 const contorno = { fill: 'none', stroke: INK, strokeWidth: 1.4, strokeLinejoin: 'round' as const };

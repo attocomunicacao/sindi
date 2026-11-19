@@ -14,7 +14,4 @@ export function limitarPorMinuto(request: Request, nome: string, maximo: number,
   janela.usados++; janelas.set(chave, janela);
   return { ok: janela.usados <= maximo, reiniciaEmSegundos: Math.max(1, Math.ceil((60_000 - (agora - janela.inicio)) / 1000)) };
 }
-export function respostaDeLimite(reiniciaEmSegundos: number) {
-  return new Response('Muitos pedidos em pouco tempo. Tente novamente em instantes.', { status: 429, headers: { 'Retry-After': String(reiniciaEmSegundos), 'Cache-Control': 'no-store' } });
-}
 export function reiniciarLimitesNaMemoria() { janelas.clear(); }

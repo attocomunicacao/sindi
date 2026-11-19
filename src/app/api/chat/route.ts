@@ -6,14 +6,14 @@ import { retrieveKnowledge } from '@/lib/knowledge/retrieve';
 import { obrigacaoLegalDeContratacao, casoJuridicoIndividual, contemDadosSensiveis, foraDoEscopo, lacunaConhecida, notaDaSituacao, redigirDadosSensiveis, semFonteSemChute, sourceChoices, sourceReferences, trechoDeContato, verificarFatos, type Situacao } from '@/lib/knowledge/grounded';
 import { sufficientEvidence } from '@/lib/knowledge/core';
 import type { Passage } from '@/lib/knowledge/core';
-import { allowedChatOrigin } from '@/lib/origin';
+import { erroJson, guardaDeEscrita } from '@/lib/http/guarda';
 import { escolherConector, type Conector } from '@/lib/cerebro/conectores';
 import { exemplos, mensagemDoPedido, sistema, type Mensagem } from '@/lib/cerebro/instrucoes';
 import { abrirGeracao, cacheLigado, chaveDaResposta, esperarIgual, guardarResposta, respostaGuardada } from '@/lib/cache-respostas';
 import { timingSafeEqual } from 'node:crypto';
 export const runtime = 'nodejs';
 export const maxDuration = 300;
-function error(message: string, status: number) { return Response.json({ error: message }, { status, headers: { 'Cache-Control': 'no-store' } }); }
+const error = erroJson;
 type Conhecimento = Awaited<ReturnType<typeof retrieveKnowledge>>;
 async function referenceWithinBudget(question: string, language: string, conector: Conector | undefined): Promise<Pick<Conhecimento, 'passages' | 'semResposta' | 'lista' | 'relatorio'>> {
   let timer: ReturnType<typeof setTimeout> | undefined;
@@ -59,18 +59,9 @@ type Uso = { inputTokens?: number; outputTokens?: number; totalTokens?: number }
 const somar = (a: Uso | undefined, b: Uso): Uso => ({ inputTokens: (a?.inputTokens ?? 0) + (b.inputTokens ?? 0), outputTokens: (a?.outputTokens ?? 0) + (b.outputTokens ?? 0), totalTokens: (a?.totalTokens ?? 0) + (b.totalTokens ?? 0) });
 
 export async function POST(request: Request) {
-  const expectedHost = request.headers.get('host') || new URL(request.url).host;
-  if (!allowedChatOrigin(request.headers.get('origin'), expectedHost, process.env.SINDI_PUBLIC_ORIGIN, Boolean(process.env.VERCEL))) return error('Origem não permitida.', 403);
-  if (!request.headers.get('content-type')?.includes('application/json')) return error('Formato inválido.', 415);
-  let body;
-  try {
-    const reader = request.body?.getReader();
-    if (!reader) return error('Mensagem inválida.', 400);
-    let size = 0;
-    const chunks: Uint8Array[] = [];
-    while (true) { const { value, done } = await reader.read(); if (done) break; size += value.length; if (size > 1000000) { await reader.cancel(); return error('Conversa muito longa.', 413); } chunks.push(value); }
-    body = JSON.parse(Buffer.concat(chunks).toString('utf8'));
-  } catch { return error('Mensagem inválida.', 400); }
+  const guarda = await guardaDeEscrita(request, { nome: 'chat', limiteBytes: 1_000_000, textos: { grande: 'Conversa muito longa.', invalido: 'Mensagem inválida.' } });
+  if ('resposta' in guarda) return guarda.resposta;
+  const body = guarda.json;
   const parsed = chatSchema.safeParse(body);
   if (!parsed.success) return error('Revise a mensagem e tente novamente.', 400);
   const language: string = 'pt';

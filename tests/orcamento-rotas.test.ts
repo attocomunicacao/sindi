@@ -59,7 +59,7 @@ test('POST /api/orcamento/pdf: tipo inválido é recusado, e os dois PDFs saem c
 });
 
 test('GET /api/orcamento/catalogo e a página usam a mesma fonte, com salário mínimo e data da tabela', async () => {
-  const dados = await (await catalogo()).json();
+  const dados = await (await catalogo(new Request('http://localhost/api/orcamento/catalogo'))).json();
   assert.deepEqual(dados, JSON.parse(JSON.stringify(catalogoPublico())));
   assert.equal(dados.salarioMinimo, 1212); assert.match(dados.referencia.extraidoEm, /^\d{4}-\d{2}-\d{2}$/);
   assert.ok(dados.funcoes.length > 5 && dados.funcoes.every((f: { salario: number }) => f.salario > 0));

@@ -5,7 +5,7 @@ import { lerRequisicao } from '@/lib/orcamento/requisicao';
 export const runtime = 'nodejs';
 
 export async function POST(request: Request) {
-  const lida = await lerRequisicao(request);
+  const lida = await lerRequisicao(request, { nome: 'orcamento-calcular', limitePorMinuto: 60 });
   if ('resposta' in lida) return lida.resposta;
   const r = calcularOrcamento(lida.corpo);
   if (!r.postos.length) return Response.json({ error: 'Nenhum posto válido.' }, { status: 400 });

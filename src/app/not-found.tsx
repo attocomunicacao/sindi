@@ -1,4 +1,5 @@
 import Link from 'next/link';
+import { rotaDe } from '@/lib/paginas';
 
 export const metadata = { title: 'Página não encontrada | SINDI' };
 /** 404 próprio: a página padrão do Next é estilizada com atributos style, que a CSP (sem style-src-attr) bloqueia. Vale para endereços inexistentes e para notFound(). */
@@ -9,8 +10,8 @@ export default function NaoEncontrada() {
     <h1 className="mt-1 text-3xl font-semibold tracking-tight text-slate-900 sm:text-4xl">Página não encontrada</h1>
     <p className="mt-3 max-w-2xl text-base leading-7 text-slate-600">O endereço pode ter mudado ou o documento não está mais no acervo.</p>
     <div className="mt-8 flex flex-wrap gap-x-6 gap-y-3 text-sm">
-      <Link href="/" className="font-medium text-slate-900 underline decoration-amber-400 decoration-2 underline-offset-4 hover:decoration-slate-900">Conversar com a SINDI</Link>
-      <Link href="/base" className="font-medium text-slate-900 underline decoration-amber-400 decoration-2 underline-offset-4 hover:decoration-slate-900">Abrir a biblioteca</Link>
+      <Link href={rotaDe('inicio')} className="font-medium text-slate-900 underline decoration-amber-400 decoration-2 underline-offset-4 hover:decoration-slate-900">Conversar com a SINDI</Link>
+      <Link href={rotaDe('base')} className="font-medium text-slate-900 underline decoration-amber-400 decoration-2 underline-offset-4 hover:decoration-slate-900">Abrir a biblioteca</Link>
     </div>
   </main>;
 }

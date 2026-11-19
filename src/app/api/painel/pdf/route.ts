@@ -1,7 +1,7 @@
 import { readPainel } from '@/lib/dados/painel';
 import { montarDashboard } from '@/lib/dados/dashboard';
 import { dashboardPdf } from '@/lib/dados/dashboard-pdf';
-import { limitarPorMinuto, respostaDeLimite } from '@/lib/limite';
+import { erroJson, guardaDeLeitura, respostaPdf } from '@/lib/http/guarda';
 
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
@@ -10,14 +10,13 @@ export const dynamic = 'force-dynamic';
 // O PDF fica pronto por 5 minutos: o mesmo conteúdo para todos, sem refazê-lo a cada pedido.
 let pronto: { quando: number; bytes: Uint8Array } | undefined;
 export async function GET(request: Request) {
-  const limite = limitarPorMinuto(request, 'painel-pdf', 20); if (!limite.ok) return respostaDeLimite(limite.reiniciaEmSegundos);
+  const limite = guardaDeLeitura(request, 'painel-pdf', 20); if (limite) return limite;
   try {
     if (!pronto || Date.now() - pronto.quando > 5 * 60_000) {
       const dashboard = montarDashboard(readPainel());
-      if (!dashboard) return new Response('Painel sem dados.', { status: 503, headers: { 'Cache-Control': 'no-store' } });
+      if (!dashboard) return erroJson('Painel sem dados.', 503);
       pronto = { quando: Date.now(), bytes: await dashboardPdf(dashboard) };
     }
-    const bytes = pronto.bytes;
-    return new Response(Buffer.from(bytes), { headers: { 'Content-Type': 'application/pdf', 'Content-Disposition': 'attachment; filename="painel-sindi.pdf"', 'Cache-Control': 'no-store', 'X-Content-Type-Options': 'nosniff' } });
-  } catch { return new Response('Não foi possível gerar o PDF.', { status: 500, headers: { 'Cache-Control': 'no-store' } }); }
+    return respostaPdf(pronto.bytes, 'painel-sindi.pdf');
+  } catch { return erroJson('Não foi possível gerar o PDF.', 500); }
 }

@@ -4,7 +4,11 @@ export type KnowledgeDocument = {
   kind: 'html' | 'pdf'; status: 'active' | 'removed'; links: string[];
 };
 export type KnowledgeSnapshot = { updatedAt: string; documents: KnowledgeDocument[] };
-export type Passage = { url: string; title: string; content: string; fetchedAt: string; pinned?: boolean };
+export type Passage = {
+  url: string; title: string; content: string; fetchedAt: string; pinned?: boolean;
+  /** Fonte produzida por uma ferramenta (src/lib/ferramentas): a orientação dela diz ao modelo como apresentar o resultado. */
+  ferramenta?: { id: string; orientacao: string };
+};
 export const SITE = 'https://www.sindeprestem.com.br';
 export function normalize(value: string) { return value.normalize('NFD').replace(/\p{Diacritic}/gu, '').toLowerCase(); }
 export function chunks(content: string, size = 1200, overlap = 150): string[] {

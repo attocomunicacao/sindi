@@ -85,13 +85,13 @@ test('message quota: per-person limit answers 429 with Retry-After, and the warm
   } finally { globalThis.fetch = originalFetch; process.env = saved; reiniciarCotaNaMemoria(); }
 });
 test('an answer cut by the token limit ends at the last complete sentence, without an empty list item or a dangling heading', async () => {
-  const { ateAUltimaFrase } = await import('../src/app/api/chat/route');
+  const { ateAUltimaFrase } = await import('../src/lib/chat/prompt');
   assert.equal(ateAUltimaFrase('1. Funções.\n2. Turnos.\nPara estruturar a proposta:\n1. Apresentação.\n2. Escopo.\n3.'), '1. Funções.\n2. Turnos.\nPara estruturar a proposta:\n1. Apresentação.\n2. Escopo.');
   assert.equal(ateAUltimaFrase('Primeira frase completa. Segunda frase também completa.\nPara estruturar:'), 'Primeira frase completa. Segunda frase também completa.');
   assert.equal(ateAUltimaFrase('O contrato é escrito e fica com a tomadora. Ele contém o prazo e o va'), 'O contrato é escrito e fica com a tomadora.');
 });
 test('answers drop "[placeholder]" fields unless the user asked for a template, and repeated list numbers are merged', async () => {
-  const { limparResposta } = await import('../src/app/api/chat/route');
+  const { limparResposta } = await import('../src/lib/chat/prompt');
   assert.equal(limparResposta('O prazo é de 180 dias [nome do cliente], prorrogável.', false), 'O prazo é de 180 dias, prorrogável.');
   assert.equal(limparResposta('Assunto: Apresentação da [nome da empresa]', true), 'Assunto: Apresentação da [nome da empresa]');
   assert.equal(limparResposta('1. 1. Qual sua experiência?\n2. 2. Qual sua disponibilidade?'), '1. Qual sua experiência?\n2. Qual sua disponibilidade?');

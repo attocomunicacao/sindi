@@ -44,17 +44,21 @@ test('retrieval excludes removed sources, handles English contact queries and tr
   assert.match(searchSnapshot(snapshot, 'endereço')[0].content, /Rua Nova/);
 });
 
-import { calculoDoOrcamento, contactFromSource } from '../src/lib/knowledge/retrieve';
+import { contactFromSource } from '../src/lib/knowledge/retrieve';
+import { calculoDoOrcamento } from '../src/lib/orcamento/ferramenta';
+import { executarFerramentas } from '../src/lib/ferramentas/registro';
 import { casoJuridicoIndividual } from '../src/lib/knowledge/grounded';
 test('the contact file of the brain is generated from the official page text', () => {
   const contact = 'Setor Administrativo\n\n(11) 3215-8250\n\nsindeprestem@x.br\n\nLigarE-mail\n\nRodapé institucional: Segunda a Sexta das 08:30 Às 17:30';
   const text = contactFromSource(contact, 'pt') || '';
   assert.match(text, /\(11\) 3215-8250/); assert.doesNotMatch(text, /LigarE-mail/); assert.match(text, /08:30/);
 });
-test('the budget calculation is evidence for the model, with the tool link, and no other question produces a ready-made text', () => {
-  const orcamento = calculoDoOrcamento('Preciso de um orçamento para 3 auxiliares de limpeza diurno e 3 noturno', 'pt');
+test('the budget calculation is evidence for the model, marked with the tool and its orientation, and no other question produces a ready-made text', async () => {
+  const orcamento = await executarFerramentas('Preciso de um orçamento para 3 auxiliares de limpeza diurno e 3 noturno', { idioma: 'pt' });
   assert.equal(orcamento.length, 1); assert.match(orcamento[0].content, /R\$\s30\.756,86/); assert.match(orcamento[0].url, /^\/orcamento\?postos=/); assert.doesNotMatch(orcamento[0].content, /\]\(/);
-  for (const pergunta of ['Qual o telefone do sindicato?', 'Qual o valor da mensalidade?', 'Quem é o presidente do SINDEPRESTEM?', 'Qual a taxa Selic?', 'O que é a NR-1?']) assert.deepEqual(calculoDoOrcamento(pergunta, 'pt'), [], pergunta);
+  assert.equal(orcamento[0].ferramenta?.id, 'orcamento'); assert.match(orcamento[0].ferramenta?.orientacao ?? '', /números exatos da fonte/); assert.equal(orcamento[0].pinned, true);
+  assert.deepEqual(calculoDoOrcamento('Qual o telefone do sindicato?', 'pt'), undefined);
+  for (const pergunta of ['Qual o telefone do sindicato?', 'Qual o valor da mensalidade?', 'Quem é o presidente do SINDEPRESTEM?', 'Qual a taxa Selic?', 'O que é a NR-1?']) assert.deepEqual(await executarFerramentas(pergunta, { idioma: 'pt' }), []);
 });
 test('individual legal questions are recognized so the model refers them to the legal sector', () => {
   assert.equal(casoJuridicoIndividual('Posso demitir sem justa causa? Qual a multa?'), true);

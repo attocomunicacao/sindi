@@ -5,6 +5,7 @@ import { calcularEncargos } from '../src/lib/orcamento/encargos';
 import { calcularInsumos, calcularOrcamento, HORAS_NOTURNAS_PADRAO } from '../src/lib/orcamento/calculo';
 import { FUNCOES, funcaoPorId } from '../src/lib/orcamento/catalogo';
 import { orcamentoSchema } from '../src/lib/orcamento/schema';
+import tabela from '../src/lib/orcamento/tabela.json';
 import { interpretarPostos, linkFerramenta, orcamentoAnswer } from '../src/lib/orcamento/interpretar';
 import { gerarOrcamentoPdf, gerarRelatorioCustoPdf, referencia } from '../src/lib/orcamento/pdf';
 import { seguro } from '../src/lib/orcamento/pdf-base';
@@ -44,12 +45,46 @@ test('night shift adds 20% of the hourly wage over the night hours plus weekly r
   const custom = calcularOrcamento({ postos: [{ funcaoId: 'auxiliar-de-limpeza', quantidade: 1, turno: 'noturno', horasNoturnas: 100 }] });
   perto(custom.postos[0].porFuncionario.adicionalNoturno, (1384.65 / 220) * 0.2 * 100 * (1 + 8 / 22), 1e-9);
 });
-test('hazard pay, unhealthy-work pay and overtime enter the payroll before charges', () => {
+test('hazard pay and unhealthy-work pay do not add up: the larger one applies (CLT art. 193 §2º), and it is the base of overtime', () => {
+  const salario = 1384.65; const minimo = 1212;
+  // Periculosidade (30% de 1.384,65 = 415,395) contra insalubridade de 20% (242,40): entra a periculosidade e a insalubridade é descartada.
   const r = calcularOrcamento({ postos: [{ funcaoId: 'auxiliar-de-limpeza', quantidade: 1, turno: 'diurno', periculosidade: true, insalubridade: 0.2, horasExtras: { h50: 10 } }] });
-  const f = r.postos[0].porFuncionario;
-  perto(f.periculosidade, 1384.65 * 0.3, 1e-9); perto(f.insalubridade, 1212 * 0.2, 1e-9);
-  perto(f.horasExtras, (1384.65 / 220) * 1.5 * 10 * (1 + 8 / 22), 1e-9);
+  const posto = r.postos[0]; const f = posto.porFuncionario;
+  assert.equal(posto.adicional, 'periculosidade'); assert.equal(posto.adicionalDescartado, 'insalubridade');
+  perto(f.periculosidade, salario * 0.3, 1e-9); perto(f.insalubridade, 0, 1e-9);
+  // As horas extras incidem sobre salário + adicional aplicado, com o divisor da função.
+  perto(f.horasExtras, ((salario + salario * 0.3) / 220) * 1.5 * 10 * (1 + 8 / 22), 1e-9);
   perto(f.encargos, f.folha * r.taxaEncargos, 1e-9);
+  perto(f.folha, f.salario + f.periculosidade + f.insalubridade + f.adicionalNoturno + f.horasExtras, 1e-9);
+  // Insalubridade de 40% (484,80) é maior que a periculosidade: ela é que entra.
+  const forte = calcularOrcamento({ postos: [{ funcaoId: 'auxiliar-de-limpeza', quantidade: 1, turno: 'diurno', periculosidade: true, insalubridade: 0.4 }] }).postos[0];
+  assert.equal(forte.adicional, 'insalubridade'); assert.equal(forte.adicionalDescartado, 'periculosidade'); perto(forte.porFuncionario.insalubridade, minimo * 0.4, 1e-9); perto(forte.porFuncionario.periculosidade, 0, 1e-9);
+  // Só um adicional marcado: nada é descartado. Nenhum: sem adicional.
+  const so = calcularOrcamento({ postos: [{ funcaoId: 'auxiliar-de-limpeza', quantidade: 1, turno: 'diurno', insalubridade: 0.2 }] }).postos[0];
+  assert.equal(so.adicional, 'insalubridade'); assert.equal(so.adicionalDescartado, null);
+  const nenhum = calcularOrcamento({ postos: [{ funcaoId: 'auxiliar-de-limpeza', quantidade: 1, turno: 'diurno' }] }).postos[0];
+  assert.equal(nenhum.adicional, null); assert.equal(nenhum.adicionalDescartado, null);
+});
+test('a night shift over a hazard-pay post is calculated on salary plus the applied additional', () => {
+  const r = calcularOrcamento({ postos: [{ funcaoId: 'auxiliar-de-limpeza', quantidade: 1, turno: 'noturno', periculosidade: true, horasNoturnas: 100 }] });
+  perto(r.postos[0].porFuncionario.adicionalNoturno, ((1384.65 * 1.3) / 220) * 0.2 * 100 * (1 + 8 / 22), 1e-9);
+});
+test('the form can remove an additional that the function brings: periculosidade false and insalubridade 0 are honored; absent values follow the function', () => {
+  const porFuncao = (extra: object) => calcularOrcamento({ postos: [{ quantidade: 1, turno: 'diurno', ...extra } as never] }).postos[0];
+  // "Com periculosidade" já traz 30%; o chat/API sem campos mantém, o formulário com false remove.
+  assert.equal(porFuncao({ funcaoId: 'auxiliar-de-limpeza-periculosidade' }).adicional, 'periculosidade');
+  perto(porFuncao({ funcaoId: 'auxiliar-de-limpeza-periculosidade', periculosidade: false }).porFuncionario.periculosidade, 0, 1e-9);
+  assert.equal(porFuncao({ funcaoId: 'auxiliar-de-limpeza-periculosidade', periculosidade: false }).adicional, null);
+  // Serviços gerais trazem insalubridade de 40% (484,80); 0 remove, ausente mantém.
+  perto(porFuncao({ funcaoId: 'auxiliar-de-servicos-gerais' }).porFuncionario.insalubridade, 1212 * 0.4, 1e-9);
+  perto(porFuncao({ funcaoId: 'auxiliar-de-servicos-gerais', insalubridade: 0 }).porFuncionario.insalubridade, 0, 1e-9);
+  perto(porFuncao({ funcaoId: 'auxiliar-de-servicos-gerais', insalubridade: 0.2 }).porFuncionario.insalubridade, 1212 * 0.2, 1e-9);
+});
+test('the payroll-charge constants come from the table, so changing the table changes the result', () => {
+  const base = calcularEncargos();
+  const p = structuredClone(tabela.encargos.parametros); p.multaFgts.percentual = 0.5; p.contribuicaoLc110Art1.percentual = 0.2;
+  const alterado = calcularEncargos(p);
+  assert.ok(alterado.total > base.total);
 });
 test('supplies follow the spreadsheet: consumables are quantity × price, equipment is depreciated plus maintenance', () => {
   const [quimico, equipamento] = calcularInsumos([{ categoria: 'quimicos', id: 'detergente-power-det-10', quantidade: 2 }, { categoria: 'equipamentosLimpeza', id: 'aspirador-po-agua-nt27-1', quantidade: 1 }, { categoria: 'quimicos', id: 'nao-existe', quantidade: 1 }]);
@@ -69,6 +104,11 @@ test('only functions with a salary in the table can be quoted; night shift is re
   assert.equal(orcamentoSchema.safeParse({ postos: [{ funcaoId: 'zelador', quantidade: 0, turno: 'diurno' }] }).success, false);
   assert.equal(orcamentoSchema.safeParse({ postos: [{ funcaoId: 'zelador', ...base }], iss: 0.5 }).success, false);
   assert.equal(orcamentoSchema.safeParse({ postos: [] }).success, false);
+  // Horas extras somadas acima de 100/mês e posto repetido são recusados; a mesma função com outro turno ou adicional é aceita.
+  assert.equal(orcamentoSchema.safeParse({ postos: [{ funcaoId: 'zelador', ...base, horasExtras: { h50: 60, h100: 60 } }] }).success, false);
+  assert.equal(orcamentoSchema.safeParse({ postos: [{ funcaoId: 'zelador', ...base, horasExtras: { h50: 60, h100: 40 } }] }).success, true);
+  assert.equal(orcamentoSchema.safeParse({ postos: [{ funcaoId: 'zelador', ...base }, { funcaoId: 'zelador', ...base }] }).success, false);
+  assert.equal(orcamentoSchema.safeParse({ postos: [{ funcaoId: 'zelador', ...base }, { funcaoId: 'zelador', ...base, turno: 'noturno' }, { funcaoId: 'zelador', ...base, insalubridade: 0.2 }] }).success, true);
   const limpo = orcamentoSchema.parse({ postos: [{ funcaoId: 'zelador', ...base }], cliente: { empresa: '  Acme\n\tLtda  ' } });
   assert.equal(limpo.cliente?.empresa, 'Acme Ltda');
 });

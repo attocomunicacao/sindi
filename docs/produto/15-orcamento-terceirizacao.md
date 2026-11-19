@@ -5,7 +5,7 @@ Ferramenta da SINDI (`/orcamento`) para o empresário que contrata mão de obra 
 ## Base de cálculo
 A tabela de preços e a lógica vêm da planilha de referência (abas Resumo, Inserção de dados e Encargos Sociais). `scripts/dados/extrair-tabela-orcamento.py` gera `src/lib/orcamento/tabela.json`; `src/lib/orcamento/calculo.ts` e `encargos.ts` reimplementam as fórmulas.
 
-Custo por funcionário/mês = salário + periculosidade (30%) + insalubridade (% do salário mínimo) + adicional noturno (20% do salário-hora × horas noturnas, mais DSR 8/22) + horas extras
+Custo por funcionário/mês = salário + adicional único, o maior entre periculosidade (30% do salário) e insalubridade (% do salário mínimo), pois não se acumulam (CLT, art. 193, § 2º) + adicional noturno (20% do salário-hora × horas noturnas, mais DSR 8/22) + horas extras (o salário-hora de ambos é salário + adicional aplicado, dividido pelo divisor da função)
 → **encargos sociais** (84,2359% da folha: grupos A 36,8%, B 26,91%, C 10,64%, D 9,89%, com base legal)
 → + benefícios (cesta básica, vale-refeição, vale-transporte líquido de 6%, assistência social familiar, seguro de vida) + PCMSO/PPR + uniformes + EPIs (+ insumos e equipamentos opcionais).
 Preço = custo ÷ (1 − (BDI 3% + lucro 3% + ISS + PIS + COFINS + CSLL + IRPJ)): tributos e margem incidem sobre o faturamento, como no Resumo da planilha.

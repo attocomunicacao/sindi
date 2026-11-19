@@ -10,7 +10,8 @@ export async function GET(request: Request, { params }: { params: Promise<{ id: 
   if (!/^\d{1,9}$/.test(texto) || Number(texto) < 1) return erroJson('Documento inválido.', 400);
   const limite = guardaDeLeitura(request, 'biblioteca-pdf', 30); if (limite) return limite;
   const id = Number(texto);
-  const documento = lerDocumento(id);
+  // `r` é o código do endereço do documento (vem do link da página): se o id passou a apontar para outro documento, não abre o PDF errado.
+  const documento = lerDocumento(id, new URL(request.url).searchParams.get('r') ?? undefined);
   const url = documento && pdfPermitido(documento.fonteOriginal);
   if (!documento || !url) return erroJson('Documento não encontrado.', 404);
   try {

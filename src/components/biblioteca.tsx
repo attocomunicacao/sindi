@@ -53,12 +53,12 @@ export function CartaoDoItem({ item, rotuloEstante, trecho }: { item: Item; rotu
       {rotuloEstante && <Etiqueta tom="destaque">{rotuloEstante}</Etiqueta>}
       {item.etiquetas.map(e => <Etiqueta key={e}>{e}</Etiqueta>)}
     </div>
-    <h3 className="mt-2 text-base font-semibold leading-snug text-slate-900"><Link href={`/base/documento/${item.id}`} className="hover:underline focus-visible:outline-2 focus-visible:outline-amber-400">{item.titulo}<Pendente /></Link></h3>
+    <h3 className="mt-2 text-base font-semibold leading-snug text-slate-900"><Link href={`/base/documento/${item.id}?r=${item.ref}`} className="hover:underline focus-visible:outline-2 focus-visible:outline-amber-400">{item.titulo}<Pendente /></Link></h3>
     <p className="mt-1 text-xs text-slate-500">{item.origem}{item.publicado ? ` · publicado em ${data(item.publicado)}` : ''} · coletado em {data(item.coletado)}</p>
     {trecho?.length ? <p className="mt-2 line-clamp-3 text-sm leading-6 text-slate-600">{trecho.map((p, i) => p.destaque ? <mark key={i} className="bg-amber-200 px-0.5 text-slate-900">{p.texto}</mark> : <span key={i}>{p.texto}</span>)}</p>
       : item.resumo && <p className="mt-2 line-clamp-3 text-sm leading-6 text-slate-600">{item.resumo}</p>}
     <div className="mt-3 flex flex-wrap gap-5 text-sm">
-      <Link href={`/base/documento/${item.id}`} className="font-medium text-slate-900 underline decoration-amber-400 decoration-2 underline-offset-4 hover:decoration-slate-900">Ler<Pendente /></Link>
+      <Link href={`/base/documento/${item.id}?r=${item.ref}`} className="font-medium text-slate-900 underline decoration-amber-400 decoration-2 underline-offset-4 hover:decoration-slate-900">Ler<Pendente /></Link>
       <a href={linkSeguro(item.url)} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1 text-slate-500 hover:text-slate-900">Fonte oficial <ArrowUpRight size={14} aria-hidden /></a>
     </div>
   </li>;

@@ -47,6 +47,15 @@ export function readPainel(file = dbPath()): Painel {
   } finally { db.close(); }
 }
 
+/** Leitura do painel guardada por 30 s: as rotas e páginas públicas a chamam a cada pedido, e a coleta roda a cada 30 minutos. `readPainel` continua lendo direto do banco. */
+const TTL_DO_PAINEL_MS = 30_000;
+const painelEmCache = new Map<string, { em: number; valor: Painel }>();
+export function readPainelEmCache(file = dbPath(), agora = Date.now()): Painel {
+  const guardado = painelEmCache.get(file); if (guardado && agora - guardado.em < TTL_DO_PAINEL_MS) return guardado.valor;
+  const valor = readPainel(file); painelEmCache.set(file, { em: agora, valor }); return valor;
+}
+export const esquecerPainelEmCache = () => painelEmCache.clear();
+
 const SOURCE_LABELS: Record<string, string> = { camara: 'Câmara dos Deputados', senado: 'Senado Federal', tst: 'TST', wec: 'World Employment Confederation', ibge: 'IBGE', mte: 'Ministério do Trabalho e Emprego', caged: 'Novo CAGED', constituicao: 'Constituição Federal', regimentos: 'Regimentos' };
 /** Trechos das fontes externas coletadas, para o chat citar; só quando a pergunta pede essas fontes. */
 export const EXTERNAL_INTENT = /c[aâ]mara|senado|deputad|senador|projeto de lei|\bpls?\b|\bplp\b|\bpec\b|tramita|congresso|\btst\b|tribunal superior|s[uú]mula|\bibge\b|\bwec\b|world employment|\bmte\b|minist[eé]rio do trabalho|norma regulamentadora|\bnr-?\s?\d|\bcaged\b|constitui[cç][aã]o|regimento/i;

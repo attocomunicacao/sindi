@@ -1,7 +1,8 @@
+import { createHash } from 'node:crypto';
 import { DatabaseSync } from 'node:sqlite';
 import { existsSync } from 'node:fs';
 import { dbPath } from '../dados/db';
-import { readPainel, type PainelIndicator } from '../dados/painel';
+import { readPainelEmCache, type PainelIndicator } from '../dados/painel';
 import { carregarArquivos } from '../cerebro/carregar';
 import { buscarNoCerebro } from '../cerebro/buscar';
 import { ESTANTES, estanteDoDocumento, estantePorId, type Estante } from './estantes';
@@ -15,16 +16,20 @@ export function consultaFts(q: string, operador: 'AND' | 'OR' = 'AND') {
   const termos = (q.normalize('NFD').replace(/\p{Diacritic}/gu, '').toLowerCase().match(/[a-z0-9]{2,}/g) ?? []).slice(0, 8);
   return termos.length ? termos.map(t => `"${t}"*`).join(` ${operador} `) : undefined;
 }
+/** Registra só o tipo do erro (nunca o texto da busca nem o conteúdo): uma falha do banco não pode parecer "nada encontrado" sem deixar rastro. */
+const registrar = (onde: string, erro: unknown) => console.warn(`SINDI biblioteca: falha em ${onde}`, { tipo: erro instanceof Error ? erro.name : 'desconhecido' });
+/** Código curto do endereço de origem do documento. Os ids são o `rowid` do banco, que muda se ele for refeito: o link leva este código e um id que passou a apontar para outro documento deixa de abrir. */
+export const refDoDocumento = (url: string) => createHash('sha1').update(url.split('#')[0]).digest('hex').slice(0, 6);
 const dominio = (url: string) => { try { return new URL(url).hostname.replace(/^www\./, ''); } catch { return ''; } };
 const meta = (texto: string | null): Record<string, unknown> => { try { return texto ? JSON.parse(texto) : {}; } catch { return {}; } };
 
 type Linha = { id: number; title: string; url: string; source: string; published_at: string | null; fetched_at: string; meta: string | null; lead?: string; trecho?: string; section?: string | null; kind?: string | null };
-export type Item = { id: number; titulo: string; url: string; origem: string; publicado?: string; coletado: string; resumo: string; etiquetas: string[]; estante: string };
+export type Item = { id: number; ref: string; titulo: string; url: string; origem: string; publicado?: string; coletado: string; resumo: string; etiquetas: string[]; estante: string };
 const FONTES: Record<string, string> = { sindeprestem: 'SINDEPRESTEM', camara: 'Câmara dos Deputados', senado: 'Senado Federal', tst: 'TST', wec: 'WEC', ibge: 'IBGE', mte: 'Ministério do Trabalho', constituicao: 'Planalto', regimentos: 'Congresso Nacional', caged: 'MTE (Novo CAGED)' };
 function paraItem(l: Linha): Item {
   const m = meta(l.meta); const etiquetas = [m.type, m.category, m.year && m.type ? undefined : m.year, m.situacao].filter((x): x is string => typeof x === 'string' && x.length > 0);
   if (typeof m.year === 'number' && !etiquetas.includes(String(m.year))) etiquetas.push(String(m.year));
-  return { id: l.id, titulo: l.title.replace(/\s+/g, ' ').trim(), url: l.url.split('#')[0] || l.url, origem: FONTES[l.source] ?? dominio(l.url), publicado: l.published_at ?? undefined, coletado: l.fetched_at,
+  return { id: l.id, ref: refDoDocumento(l.url), titulo: l.title.replace(/\s+/g, ' ').trim(), url: l.url.split('#')[0] || l.url, origem: FONTES[l.source] ?? dominio(l.url), publicado: l.published_at ?? undefined, coletado: l.fetched_at,
     resumo: limpar(l.lead ?? '').slice(0, 240), etiquetas, estante: estanteDoDocumento({ source: l.source, section: l.section ?? (m.section as string | undefined), kind: l.kind ?? (m.kind as string | undefined), url: l.url }) };
 }
 const COLUNAS = `d.rowid AS id, d.title, d.url, d.source, d.published_at, d.fetched_at, d.meta, json_extract(d.meta, '$.section') AS section, json_extract(d.meta, '$.kind') AS kind`;
@@ -36,13 +41,13 @@ export function resumoDaBiblioteca(): ResumoDaBiblioteca {
   const arquivos = carregarArquivos().trechos;
   const estantes = ESTANTES.map((estante): ResumoEstante => {
     if (estante.especial === 'cerebro') return { estante, total: arquivos.length, atualizado: arquivos.map(t => t.atualizado).filter(Boolean).sort().at(-1) };
-    if (estante.especial === 'indicadores') { const indicadores = readPainel().indicators; return { estante, total: indicadores.length, atualizado: indicadores.map(i => i.fetchedAt).sort().at(-1) }; }
+    if (estante.especial === 'indicadores') { const indicadores = readPainelEmCache().indicators; return { estante, total: indicadores.length, atualizado: indicadores.map(i => i.fetchedAt).sort().at(-1) }; }
     if (!db || !estante.onde) return { estante, total: 0 };
     try { const r = db.prepare(`SELECT count(*) AS n, max(d.fetched_at) AS u FROM documents d WHERE ${estante.onde}`).get() as { n: number; u: string | null }; return { estante, total: r.n, atualizado: r.u ?? undefined }; } catch { return { estante, total: 0 }; }
   });
   db?.close();
   const documentos = estantes.filter(e => !e.estante.especial).reduce((soma, e) => soma + e.total, 0);
-  return { disponivel: Boolean(abrir()) || estantes.some(e => e.total > 0), estantes, documentos, atualizado: estantes.map(e => e.atualizado).filter(Boolean).sort().at(-1) };
+  return { disponivel: Boolean(db) || estantes.some(e => e.total > 0), estantes, documentos, atualizado: estantes.map(e => e.atualizado).filter(Boolean).sort().at(-1) };
 }
 
 export type Filtros = { q?: string; facetas: Record<string, string>; pagina: number };
@@ -64,7 +69,7 @@ export function listarEstante(estante: Estante, filtros: Filtros): ListaDaEstant
     const facetas = estante.facetas.map(f => ({ id: f.id, rotulo: f.rotulo, opcoes: (db.prepare(`SELECT CAST((${f.expr}) AS TEXT) AS valor, count(*) AS n FROM documents d WHERE ${estante.onde} AND (${f.expr}) IS NOT NULL GROUP BY valor ORDER BY valor ${f.ordem === 'asc' ? 'ASC' : 'DESC'} LIMIT 60`).all() as OpcaoDeFaceta[]) }))
       .filter(f => f.opcoes.length > 1);
     return { itens: linhas.map(paraItem), total, paginas, pagina, facetas };
-  } catch { return vazio; } finally { db.close(); }
+  } catch (erro) { registrar('listar estante', erro); return vazio; } finally { db.close(); }
 }
 
 export type Parte = { texto: string; destaque: boolean };
@@ -90,18 +95,19 @@ export function buscarNaBiblioteca(q: string, estanteId?: string): ResultadoDaBu
     }
     const contagem = new Map<string, number>(); for (const a of achados) contagem.set(a.estante, (contagem.get(a.estante) ?? 0) + 1);
     return { q, achados: (estanteId ? achados.filter(a => a.estante === estanteId) : achados).slice(0, 40), porEstante: [...contagem].map(([id, n]) => ({ id, n })).sort((a, b) => b.n - a.n), cerebro };
-  } catch { return { ...vazio, cerebro }; } finally { db.close(); }
+  } catch (erro) { registrar('busca', erro); return { ...vazio, cerebro }; } finally { db.close(); }
 }
 
 export type Documento = Item & { texto: string; tamanho: number; fonteOriginal: string };
-export function lerDocumento(id: number): Documento | undefined {
+/** Se vier `ref` (código do endereço, de `refDoDocumento`) e ele não for o do documento atual, o id foi reaproveitado por outro documento: devolve `undefined` em vez do documento errado. */
+export function lerDocumento(id: number, ref?: string): Documento | undefined {
   const db = abrir(); if (!db || !Number.isSafeInteger(id)) return undefined;
   try {
     const linha = db.prepare(`SELECT ${COLUNAS}, d.content AS lead FROM documents d WHERE d.rowid = ?`).get(id) as (Linha & { lead: string }) | undefined;
-    if (!linha) return undefined;
+    if (!linha || (ref && ref !== refDoDocumento(linha.url))) return undefined;
     const item = paraItem({ ...linha, lead: linha.lead.slice(0, 700) });
     return { ...item, texto: linha.lead.replace(/Rodapé institucional[\s\S]*$/, '').replace(/\r/g, '').replace(/[ \t]+/g, ' ').replace(/\n{3,}/g, '\n\n').trim(), tamanho: linha.lead.length, fonteOriginal: linha.url.split('#')[0] };
-  } catch { return undefined; } finally { db.close(); }
+  } catch (erro) { registrar('ler documento', erro); return undefined; } finally { db.close(); }
 }
 
 export type Arquivo = { arquivo: string; titulo: string; tipo: 'curado' | 'autogerado'; atualizado?: string; fonte?: string; secoes: { secao: string; texto: string }[] };
@@ -114,5 +120,5 @@ export function cerebroPorArquivo(): Arquivo[] {
   }
   return [...mapa.values()].sort((a, b) => Number(a.tipo === 'autogerado') - Number(b.tipo === 'autogerado') || a.arquivo.localeCompare(b.arquivo));
 }
-export const indicadores = (): PainelIndicator[] => readPainel().indicators;
+export const indicadores = (): PainelIndicator[] => readPainelEmCache().indicators;
 export { estantePorId };

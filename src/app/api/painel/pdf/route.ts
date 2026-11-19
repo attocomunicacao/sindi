@@ -1,4 +1,4 @@
-import { readPainel } from '@/lib/dados/painel';
+import { readPainelEmCache } from '@/lib/dados/painel';
 import { montarDashboard } from '@/lib/dados/dashboard';
 import { dashboardPdf } from '@/lib/dados/dashboard-pdf';
 import { erroJson, guardaDeLeitura, respostaPdf } from '@/lib/http/guarda';
@@ -13,7 +13,7 @@ export async function GET(request: Request) {
   const limite = guardaDeLeitura(request, 'painel-pdf', 20); if (limite) return limite;
   try {
     if (!pronto || Date.now() - pronto.quando > 5 * 60_000) {
-      const dashboard = montarDashboard(readPainel());
+      const dashboard = montarDashboard(readPainelEmCache());
       if (!dashboard) return erroJson('Painel sem dados.', 503);
       pronto = { quando: Date.now(), bytes: await dashboardPdf(dashboard) };
     }

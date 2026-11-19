@@ -19,7 +19,8 @@
     "cerebro:comparar": "tsx scripts/cerebro/comparar-busca.ts",
     "avaliar:treino": "tsx scripts/avaliacao/avaliar-treino.ts",
     "test:coverage": "tsx --test --experimental-test-coverage tests/*.test.ts",
-    "check": "npm run lint && npm run typecheck && npm test"
+    "check": "npm run lint && npm run typecheck && npm test",
+    "verificar:funcional": "tsx scripts/operacao/verificar-funcional.ts"
   },
   "license": "ISC",
   "type": "module",

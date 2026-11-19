@@ -76,7 +76,8 @@ Depois: `npm run cerebro:indexar` e `npm run avaliar:treino`. O mapa das áreas 
 | Comando | Para quê |
 |---|---|
 | `npm run dev` / `build` / `start` | Aplicação |
-| `npm run lint` / `typecheck` / `test` | Verificações (com `npm run build` e `npm audit --audit-level=high`) |
+| `npm run lint` / `typecheck` / `test` / `check` | Verificações (com `npm run build` e `npm audit --audit-level=high`); `check` roda as três |
+| `npm run verificar:funcional` | Percorre páginas, rotas, PDFs e ferramentas no servidor em execução (`-- --chat` inclui uma pergunta real) |
 | `npm run avaliar:treino` | Responde as perguntas de `cerebro/avaliacao/treino-v1.md` no chat em execução: tempo, área, resposta |
 | `npm run cerebro:gerar` / `indexar` / `avaliar` / `comparar` | Resumos automáticos, vetores (usa `GEMINI_API_KEY`), perguntas de ouro, comparação da busca |
 | `npm run dados:sync` / `dados:watch` | Coleta de dados públicos (uma vez / contínua) |

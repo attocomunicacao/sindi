@@ -102,6 +102,24 @@ export function finishRun(db: Db, id: number, result: { fetched: number; changed
     .run(new Date().toISOString(), result.error ? 'error' : 'ok', result.fetched, result.changed, result.error?.slice(0, 300) ?? null, id);
 }
 
+/** Execuções que ficaram "running" porque o processo caiu ou foi encerrado: só existe um escritor por vez, então no início de uma coleta nenhuma delas pode estar de fato rodando. */
+export function abandonarExecucoes(db: Db, agora = new Date().toISOString()) {
+  return Number(db.prepare("UPDATE runs SET finished_at = ?, status = 'error', error = 'interrompida (o processo foi encerrado)' WHERE status = 'running'").run(agora).changes);
+}
+/** Mantém o histórico das execuções por `dias` dias, preservando sempre as `minimo` mais recentes de cada fonte (para o painel saber a última coleta ok). */
+export function podarExecucoes(db: Db, dias = 90, minimo = 50, agora = Date.now()) {
+  const limite = new Date(agora - dias * 86_400_000).toISOString();
+  return Number(db.prepare(`DELETE FROM runs WHERE started_at < ? AND id NOT IN (
+    SELECT id FROM (SELECT id, ROW_NUMBER() OVER (PARTITION BY source ORDER BY id DESC) AS n FROM runs) WHERE n <= ?
+    UNION SELECT MAX(id) FROM runs WHERE status = 'ok' GROUP BY source)`).run(limite, minimo).changes);
+}
+/** Quantas execuções seguidas da fonte terminaram em erro, da mais recente para trás (0 se a última foi ok). */
+export function falhasSeguidas(db: Db, source: string, olhar = 20) {
+  const ultimas = db.prepare("SELECT status FROM runs WHERE source = ? AND status != 'running' ORDER BY id DESC LIMIT ?").all(source, olhar) as { status: string }[];
+  const primeiraOk = ultimas.findIndex(r => r.status === 'ok');
+  return primeiraOk === -1 ? ultimas.length : primeiraOk;
+}
+
 /** Busca de texto integral (BM25) nas fontes externas, usada pelo chat para citar dados oficiais. */
 export function searchDocuments(db: Db, terms: string[], limit = 3, sources?: string[]) {
   const words = terms.map(t => t.replace(/[^\p{L}\p{N}]/gu, '')).filter(t => t.length >= 3);

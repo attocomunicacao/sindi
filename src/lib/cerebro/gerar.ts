@@ -4,6 +4,10 @@ import type { Db } from '../dados/db';
 import { contactFromSource } from '../knowledge/retrieve';
 
 const SITE = 'https://www.sindeprestem.com.br';
+/** Presidente da entidade (gestão 2026–2029). Está aqui, num só lugar, para ser atualizado quando a gestão mudar; o texto gerado cita o nome. */
+export const PRESIDENTE = 'Vander Morales';
+/** Convenções "vigentes" e "recentes" são as do ano anterior em diante: a regra acompanha o calendário em vez de um ano fixo no código. */
+const anoMinimoRecente = (hoje: string) => Number(hoje.slice(0, 4)) - 1;
 const formatarFaixa = (faixa: string) => {
   const m = faixa.match(/^(R\$ [\d.,]+) (R\$ [\d.,]+) (12 Parcelas de R\$ [\d.,]+)$/);
   return m ? `capital social de ${m[1]} até ${m[2]}: ${m[3].replace('Parcelas', 'parcelas')}` : faixa.replace('Parcelas', 'parcelas').replace(/^Empresas sem colaboradores/, 'empresas sem colaboradores:').replace(/^Acima de/, 'capital social acima de');
@@ -16,6 +20,8 @@ type Linha = { title: string; url: string; content: string; published_at: string
 const consulta = (sql: string, ...args: (string | number)[]) => db.prepare(sql).all(...args) as Linha[];
 const base = `SELECT title, url, content, published_at, json_extract(meta,'$.category') AS category, json_extract(meta,'$.year') AS year, json_extract(meta,'$.type') AS type, json_extract(meta,'$.region') AS region FROM documents`;
 const pagina = (caminho: string) => (db.prepare("SELECT content FROM documents WHERE source = 'sindeprestem' AND url LIKE ?").get('%' + caminho) as { content: string } | undefined)?.content.split('Rodapé institucional')[0] ?? '';
+/** Rodapé institucional guardado na página de contato; vazio (e a geração segue) se a página ainda não foi coletada. */
+const rodapeDoContato = () => (db.prepare("SELECT content FROM documents WHERE source='sindeprestem' AND url LIKE '%/contato'").get() as { content: string } | undefined)?.content ?? '';
 const linhasDe = (texto: string) => texto.split('\n').map(l => l.trim()).filter(Boolean);
 const compacto = (texto: string, limite: number) => { const t = texto.replace(/\s+/g, ' ').trim(); return t.length > limite ? t.slice(0, limite).replace(/\s+\S*$/, '') + ' […]' : t; };
 const data = (v: string | null) => v ? new Date(v).toLocaleDateString('pt-BR', { timeZone: 'America/Sao_Paulo' }) : 's/d';
@@ -27,8 +33,8 @@ const sem = (texto: string, ...padroes: RegExp[]) => padroes.reduce((t, p) => t.
 {
   const inst = linhasDe(pagina('/institucional-do-sindeprestem-sindicat'));
   const bloco = (titulo: string) => { const i = inst.findIndex(l => l === titulo); return i >= 0 ? inst[i + 1] : ''; };
-  const contato = contactFromSource(pagina('/contato') + '\nRodapé institucional: ' + (db.prepare("SELECT content FROM documents WHERE source='sindeprestem' AND url LIKE '%/contato'").get() as { content: string }).content.split('Rodapé institucional')[1], 'pt') ?? '';
-  const rodape = (db.prepare("SELECT content FROM documents WHERE source='sindeprestem' AND url LIKE '%/contato'").get() as { content: string }).content;
+  const contato = contactFromSource(pagina('/contato') + '\nRodapé institucional: ' + rodapeDoContato().split('Rodapé institucional')[1], 'pt') ?? '';
+  const rodape = rodapeDoContato();
   const endereco = rodape.match(/(?:Av\.|Avenida|Rua)\s+[^\n]{3,160}?São Paulo\s*[-–,]\s*SP/i)?.[0] ?? '';
   const associe = linhasDe(pagina('/associe'));
   const lista = (de: string, ate: string) => { const a = associe.findIndex(l => l === de); const b = associe.findIndex((l, i) => i > a && l === ate); return associe.slice(a + 1, b > a ? b : a + 14).filter(l => /^[✔✕]/.test(l)).map(l => `- ${l.replace(/^✔\s*/, '').replace(/^✕\s*/, 'Não: ')}`); };
@@ -49,7 +55,7 @@ ${quem}
 - **Valores:** ${bloco('Valores')}
 
 ## Presidente e diretoria
-O presidente é Vander Morales (também presidente da FENASERHTT). A composição completa da diretoria (gestão 2026–2029) está no arquivo curado de diretoria.
+O presidente é ${PRESIDENTE} (também presidente da FENASERHTT). A composição completa da diretoria (gestão 2026–2029) está no arquivo curado de diretoria.
 
 ## Contatos, endereço e horário
 ${contato}
@@ -111,12 +117,12 @@ Boleto bancário: gerado na página de contribuição; pagamento até o vencimen
   const clausula = (texto: string, padrao: RegExp, limite: number) => { const m = texto.match(padrao); return m ? compacto(m[0], limite) : ''; };
   const secoes = categorias.map(categoria => {
     const docs = todas.filter(c => c.category === categoria && c.region !== 'Jundiaí');
-    const vigente = docs.find(d => d.type === 'Convenção coletiva' && (d.year ?? 0) >= 2025 && d.content.length > 2000);
-    const recentes = docs.filter(d => (d.year ?? 0) >= 2025).slice(0, 8);
+    const vigente = docs.find(d => d.type === 'Convenção coletiva' && (d.year ?? 0) >= anoMinimoRecente(hoje) && d.content.length > 2000);
+    const recentes = docs.filter(d => (d.year ?? 0) >= anoMinimoRecente(hoje)).slice(0, 8);
     const salarios = vigente ? clausula(vigente.content, /CL[ÁA]USULA\s+\S+\s*[-–]\s*SAL[ÁA]RIOS?\s+(?:PROFISSIONAIS|NORMATIVO[S]?|BASE)[\s\S]{0,1800}/i, 1100) : '';
     const correcao = vigente ? clausula(vigente.content, /CL[ÁA]USULA\s+\S+\s*[-–]\s*CORRE[ÇC][ÃA]O\s+SALARIAL[\s\S]{0,900}/i, 650) : '';
     return `## ${categoria}
-Documentos recentes (2025 em diante) da categoria **${categoria}**:
+Documentos recentes (${anoMinimoRecente(hoje)} em diante) da categoria **${categoria}**:
 ${recentes.map(d => `- [${d.title}](${d.url})`).join('\n') || '- (nenhum documento recente na página)'}
 ${vigente ? `\nTrecho literal da cláusula de salários em [${vigente.title}](${vigente.url}) (confira o documento e os aditivos):\n> ${salarios || 'cláusula não localizada no texto extraído; consulte o documento.'}\n${correcao ? `\nTrecho literal da cláusula de correção salarial:\n> ${correcao}\n` : ''}` : ''}`;
   });
@@ -161,10 +167,10 @@ ${docs.map(d => { const texto = d.content.replace(/\s+/g, ' ').trim(); const uti
 {
   const artigos = consulta(`${base} WHERE source = 'sindeprestem' AND json_extract(meta,'$.section') = 'artigo' AND url LIKE '%/post/%' AND published_at IS NOT NULL ORDER BY published_at DESC`);
   const noticias = consulta(`${base} WHERE source = 'sindeprestem' AND json_extract(meta,'$.section') = 'noticia' AND url LIKE '%/post/%' AND published_at IS NOT NULL ORDER BY published_at DESC LIMIT 40`);
-  const lead = (c: string) => compacto(sem(c, /Por Vander Morales[^\n]*/g), 330);
+  const lead = (c: string) => compacto(sem(c, new RegExp(`Por ${PRESIDENTE}[^\\n]*`, 'g')), 330);
   gravar('artigos-e-noticias.md', cabecalho('Artigos do presidente e notícias do SINDEPRESTEM', `${SITE}/artigos`, ['artigo', 'artigos', 'vander morales', 'presidente', 'opinião', 'notícia', 'notícias', 'novidades', 'posicionamento', '6x1', 'escala', 'reforma', 'clt', 'nr-1', 'pec do emprego', 'jornada', 'custo brasil', 'inclusão'], 2) +
 `## Artigos assinados pelo presidente (${artigos.length})
-Artigos de Vander Morales, presidente do SINDEPRESTEM, com "análises e reflexões sobre os principais temas em evidência no setor" ([página Artigos](${SITE}/artigos)). Indicam o posicionamento do sindicato sobre cada tema.
+Artigos de ${PRESIDENTE}, presidente do SINDEPRESTEM, com "análises e reflexões sobre os principais temas em evidência no setor" ([página Artigos](${SITE}/artigos)). Indicam o posicionamento do sindicato sobre cada tema.
 
 ${artigos.map(a => `- **${a.title.replace(/^Artigo\s*[-–]\s*/i, '')}** (${data(a.published_at)}) — ${lead(a.content)} [ler](${a.url})`).join('\n')}
 

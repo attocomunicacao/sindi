@@ -1,4 +1,4 @@
-import { getJson } from '../http';
+import { dataIso, getJson, listaOuErro } from '../http';
 import { upsertDocument, type Db } from '../db';
 import { LEGISLATIVE_KEYWORDS, type Collector } from './types';
 
@@ -10,7 +10,7 @@ export function billDocument(d: Detail['dados']) {
   const s = d.statusProposicao; const name = `${d.siglaTipo} ${d.numero}/${d.ano}`;
   const content = [`${name} — ${d.ementa}`, d.keywords ? `Palavras-chave: ${d.keywords}` : '', `Apresentação: ${d.dataApresentacao?.slice(0, 10)}`,
     s ? `Situação: ${s.descricaoSituacao}. Último andamento (${s.dataHora?.slice(0, 10)}, ${s.siglaOrgao}): ${s.descricaoTramitacao}. ${s.despacho || ''}` : ''].filter(Boolean).join('\n');
-  return { name, content, movedAt: s?.dataHora ? new Date(s.dataHora + ':00-03:00').toISOString() : undefined, situacao: s?.descricaoSituacao };
+  return { name, content, movedAt: s?.dataHora ? dataIso(s.dataHora + ':00-03:00') : undefined, situacao: s?.descricaoSituacao };
 }
 /** Já guardadas, as proposições são revisadas da mais antiga para a mais nova, em pequenos lotes. */
 function oldestIds(db: Db, limit: number) {
@@ -25,7 +25,8 @@ export const camara: Collector = {
       const pages = full ? 3 : 1;
       for (let page = 1; page <= pages; page++) {
         const list = await getJson<{ dados: Listed[] }>(`${BASE}/proposicoes?keywords=${encodeURIComponent(keyword)}&ordem=DESC&ordenarPor=id&itens=50&pagina=${page}&dataApresentacaoInicio=2019-01-01`); fetched++;
-        list.dados.forEach(p => ids.add(p.id)); if (list.dados.length < 50) break;
+        const itens = listaOuErro<Listed>(list.dados, 'dadosabertos.camara.leg.br/proposicoes');
+        itens.forEach(p => ids.add(p.id)); if (itens.length < 50) break;
       }
     }
     for (const id of oldestIds(db, 25)) if (id) ids.add(id);
@@ -34,7 +35,7 @@ export const camara: Collector = {
     for (const id of [...fresh.slice(0, full ? 400 : 60), ...refresh.slice(0, 25)]) {
       const detail = await getJson<Detail>(`${BASE}/proposicoes/${id}`); fetched++;
       const bill = billDocument(detail.dados);
-      if (upsertDocument(db, { source: 'camara', url: `https://www.camara.leg.br/proposicoesWeb/fichadetramitacao?idProposicao=${id}`, title: bill.name, content: bill.content, publishedAt: new Date(detail.dados.dataApresentacao).toISOString(), meta: { movedAt: bill.movedAt, situacao: bill.situacao } })) changed++;
+      if (upsertDocument(db, { source: 'camara', url: `https://www.camara.leg.br/proposicoesWeb/fichadetramitacao?idProposicao=${id}`, title: bill.name, content: bill.content, publishedAt: dataIso(detail.dados.dataApresentacao), meta: { movedAt: bill.movedAt, situacao: bill.situacao } })) changed++;
     }
     return { fetched, changed };
   },

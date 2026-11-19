@@ -68,6 +68,16 @@ export async function politeFetch(url: string, { minMs = 1000, respectRobots = t
   }
   throw last instanceof Error ? last : new Error('Falha de rede');
 }
+/** Garante que o campo de uma resposta externa é uma lista; senão a coleta falha com um erro claro, em vez de um TypeError no meio do lote. */
+export function listaOuErro<T = unknown>(valor: unknown, onde: string): T[] {
+  if (!Array.isArray(valor)) throw new Error(`Resposta inesperada de ${onde}`);
+  return valor as T[];
+}
+/** Data ISO de um texto de data de fonte externa, ou `undefined` se não for uma data válida (new Date inválido lançaria RangeError no toISOString). */
+export function dataIso(texto: string | number | undefined | null): string | undefined {
+  if (texto === undefined || texto === null || texto === '') return undefined;
+  const d = new Date(texto); return Number.isNaN(d.getTime()) ? undefined : d.toISOString();
+}
 export async function getJson<T = unknown>(url: string, options: FetchOptions = {}): Promise<T> {
   const response = await politeFetch(url, { minMs: 400, respectRobots: false, accept: 'application/json', ...options });
   if (!response.ok) throw new Error(`HTTP ${response.status} em ${new URL(url).host}`);

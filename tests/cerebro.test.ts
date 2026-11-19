@@ -215,21 +215,21 @@ test('auto-generated files are published only when valid and are rolled back whe
 test('hybrid search finds a passage by meaning when the words do not match, and falls back to words without embeddings', async () => {
   const { buscarHibrido } = await import('../src/lib/cerebro/buscar');
   const { cosseno, indexarCerebro, idDoTrecho } = await import('../src/lib/cerebro/embeddings');
-  const pasta = mkdtempSync(path.join(tmpdir(), 'sindi-cerebro-emb-')); const antes = { dados: process.env.SINDI_DATA_DIR, fetch: globalThis.fetch };
-  process.env.SINDI_DATA_DIR = pasta;
+  const pasta = mkdtempSync(path.join(tmpdir(), 'sindi-cerebro-emb-')); const antes = { dados: process.env.SINDI_DATA_DIR, fetch: globalThis.fetch, chave: process.env.GEMINI_API_KEY };
+  process.env.SINDI_DATA_DIR = pasta; process.env.GEMINI_API_KEY = 'chave-de-teste';
   const trechos = dividirEmTrechos(`## Telefone e horário de atendimento\nLigue para (11) 3215-8250 de segunda a sexta.\n\n## Contribuição associativa\nVence todo dia 15 conforme o capital social.`, 'faq.md', { gatilhos: [], tipo: 'curado', prioridade: 1, direta: false, semantica: true });
   // Embeddings de mentira: um eixo para "contato" e outro para "dinheiro".
   const eixo = (texto: string) => { const t = texto.toLowerCase(); return [/telefone|ligue|falar|contato|atend/.test(t) ? 1 : 0, /contribui|capital|pagam|mensal|pagar/.test(t) ? 1 : 0, 0.05]; };
-  globalThis.fetch = (async (_url: unknown, init?: RequestInit) => { const { input } = JSON.parse(String(init?.body)) as { input: string[] }; return Response.json({ embeddings: input.map(eixo) }); }) as typeof fetch;
+  globalThis.fetch = (async (_url: unknown, init?: RequestInit) => { const { requests } = JSON.parse(String(init?.body)) as { requests: { content: { parts: { text: string }[] } }[] }; return Response.json({ embeddings: requests.map(r => ({ values: eixo(r.content.parts[0].text) })) }); }) as typeof fetch;
   try {
     assert.ok(Math.abs(cosseno([1, 0], [1, 0]) - 1) < 1e-9); assert.equal(cosseno([1, 0], [0, 1]), 0); assert.equal(idDoTrecho(trechos[0]), idDoTrecho(trechos[0]));
     assert.equal((await indexarCerebro(trechos)).novos, 2); assert.equal((await indexarCerebro(trechos)).novos, 0);
     // "Como faço para falar com vocês?" não compartilha palavras úteis com o texto, mas tem o mesmo significado de contato.
     const achado = await buscarHibrido('Como faço para falar com vocês?', 1, trechos, 0.5);
     assert.equal(achado[0]?.trecho.secao, 'Telefone e horário de atendimento');
-    globalThis.fetch = (async () => { throw new Error('Ollama fora do ar'); }) as typeof fetch;
+    globalThis.fetch = (async () => { throw new Error('Provedor de embeddings fora do ar'); }) as typeof fetch;
     assert.equal((await buscarHibrido('contribuição associativa vence quando', 1, trechos, 0.5))[0]?.trecho.secao, 'Contribuição associativa');
-  } finally { globalThis.fetch = antes.fetch; if (antes.dados === undefined) delete process.env.SINDI_DATA_DIR; else process.env.SINDI_DATA_DIR = antes.dados; rmSync(pasta, { recursive: true, force: true }); }
+  } finally { globalThis.fetch = antes.fetch; if (antes.chave === undefined) delete process.env.GEMINI_API_KEY; else process.env.GEMINI_API_KEY = antes.chave; if (antes.dados === undefined) delete process.env.SINDI_DATA_DIR; else process.env.SINDI_DATA_DIR = antes.dados; rmSync(pasta, { recursive: true, force: true }); }
 });
 
 test('the fact checker blocks e-mails, sites, phones, amounts and laws that are not in the sources', async () => {

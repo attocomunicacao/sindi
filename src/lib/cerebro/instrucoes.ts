@@ -7,8 +7,8 @@ import { pastaCerebro, regrasDoCerebro } from './carregar';
  * O que "ensina" o modelo pequeno, sem treinar pesos: as regras (`cerebro/instrucoes/identidade-e-regras.md`), exemplos de pergunta e resposta
  * (`cerebro/instrucoes/exemplos.md`) e, a cada pergunta, a orientação do conector da área com as fontes da biblioteca.
  *
- * Regras e exemplos são idênticos em todas as conversas e vêm primeiro: o Ollama reaproveita do cache o que já leu (prefixo igual), então só as fontes e a
- * pergunta são lidas a cada resposta. Em CPU, ler o prompt é o que mais demora; por isso nada que mude por pergunta pode vir antes deles.
+ * Regras e exemplos são idênticos em todas as conversas e vêm primeiro: o prefixo é igual e fica estável (o que ajuda o cache do provedor), então só as fontes e a
+ * pergunta mudam a cada resposta; por isso nada que mude por pergunta pode vir antes deles.
  */
 export type Mensagem = { role: 'system' | 'user' | 'assistant'; content: string };
 

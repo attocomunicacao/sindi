@@ -1,5 +1,6 @@
 import { mkdir, readFile, writeFile, rename } from 'node:fs/promises';
 import path from 'node:path';
+import { redis, redisConfigurado as shared } from './redis';
 
 export type UsageDay = { date: string; requests: number; successes: number; errors: number; inputTokens: number; outputTokens: number; totalTokens: number; measured: number; durationMs: number };
 type Event = { success: boolean; durationMs: number; usage?: { inputTokens?: number; outputTokens?: number; totalTokens?: number } };
@@ -12,14 +13,6 @@ async function localDays(): Promise<UsageDay[]> {
   try { return JSON.parse(await readFile(file, 'utf8')); }
   catch (error) { if ((error as NodeJS.ErrnoException).code === 'ENOENT') return []; throw error; }
 }
-async function redis(command: (string | number)[]) {
-  const response = await fetch(process.env.UPSTASH_REDIS_REST_URL!, { method: 'POST', headers: { Authorization: `Bearer ${process.env.UPSTASH_REDIS_REST_TOKEN}`, 'Content-Type': 'application/json' }, body: JSON.stringify(command), cache: 'no-store', signal: AbortSignal.timeout(5000) });
-  if (!response.ok) throw new Error('Metrics unavailable');
-  const payload = await response.json();
-  if (payload.error) throw new Error('Metrics unavailable');
-  return payload.result;
-}
-function shared() { return Boolean(process.env.UPSTASH_REDIS_REST_URL && process.env.UPSTASH_REDIS_REST_TOKEN); }
 const script = `for i=1,#ARGV,2 do redis.call('HINCRBY',KEYS[1],ARGV[i],ARGV[i+1]) end; redis.call('EXPIRE',KEYS[1],86400*35); return 1`;
 export async function recordUsage(event: Event): Promise<boolean> {
   const day = empty(today());

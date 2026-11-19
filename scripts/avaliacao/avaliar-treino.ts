@@ -1,6 +1,6 @@
 // Mede as respostas finais da SINDI para um conjunto de perguntas: tempo até a primeira palavra, tempo total, área (conector), acertos de `espera:`/`nao:` e o texto.
 // Uso: npm run avaliar:treino [-- --arquivo=treino-v1.md] [-- --categoria=rh] [-- --limite=10] [-- --resumo]
-// Exige o chat em execução (http://localhost:3000 ou a porta de PORT; ou --base=URL) e o Ollama ligado. Nada é gravado além do que aparece no terminal.
+// Exige o chat em execução (http://localhost:3000 ou a porta de PORT; ou --base=URL) com GEMINI_API_KEY e a cota desligada (SINDI_COTA_IP_DIA=0 e SINDI_COTA_GLOBAL_DIA=0). Atenção: cada pergunta usa o limite gratuito do Gemini. Nada é gravado além do que aparece no terminal.
 import { carregarCasos } from '../../src/lib/cerebro/avaliar';
 import { escolherConector } from '../../src/lib/cerebro/conectores';
 

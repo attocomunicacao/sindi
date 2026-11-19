@@ -1,13 +1,13 @@
 ﻿# Publica a SINDI a partir deste computador: servidor de produção local + túnel Cloudflare + endereço fixo na Vercel.
 #
-#   Navegador -> https://sindi-prototipo.vercel.app (Vercel, só repassa) -> túnel Cloudflare (saída) -> Next.js em 127.0.0.1:3100 -> Ollama em 127.0.0.1:11434
+#   Navegador -> https://sindi-prototipo.vercel.app (Vercel, só repassa) -> túnel Cloudflare (saída) -> Next.js em 127.0.0.1:3100 -> API do Gemini (saída, com a chave em .env.local)
 #
-# O túnel aponta para a aplicação, nunca para o Ollama. Nenhuma porta é aberta no roteador. O endereço do túnel rápido muda a cada início; este script
+# O túnel aponta para a aplicação. Nenhuma porta é aberta no roteador. O endereço do túnel rápido muda a cada início; este script
 # grava o novo destino em deployment/vercel-proxy/vercel.json e republica o repasse, para que o endereço público continue o mesmo.
 #
-# Uso:   powershell -ExecutionPolicy Bypass -File scripts/operacao/publicar.ps1 [-SemBuild] [-SemVercel] [-SemAquecer] [-Modelo sindi]
+# Uso:   powershell -ExecutionPolicy Bypass -File scripts/operacao/publicar.ps1 [-SemBuild] [-SemVercel] [-Aquecer]
 # Parar: powershell -ExecutionPolicy Bypass -File scripts/operacao/parar.ps1
-param([switch]$SemBuild, [switch]$SemVercel, [switch]$SemAquecer, [string]$Modelo = 'sindi', [string]$Origem = 'https://sindi-prototipo.vercel.app', [int]$Porta = 3100)
+param([switch]$SemBuild, [switch]$SemVercel, [switch]$Aquecer, [string]$Origem = 'https://sindi-prototipo.vercel.app', [int]$Porta = 3100)
 $ErrorActionPreference = 'Stop'
 Set-Location (Split-Path (Split-Path $PSScriptRoot -Parent) -Parent)
 $raiz = (Get-Location).Path
@@ -25,13 +25,9 @@ function Iniciar([string]$programa, [string[]]$argumentos, [string]$saida, [stri
   if ($r.ReturnValue -ne 0) { throw "Não foi possível iniciar $programa (código $($r.ReturnValue))." }
 }
 
-Passo 'Ollama e modelo'
-try { Invoke-RestMethod 'http://127.0.0.1:11434/api/version' -TimeoutSec 5 | Out-Null } catch { throw 'O Ollama não respondeu em 127.0.0.1:11434. Abra o Ollama e rode de novo.' }
-$instalados = (Invoke-RestMethod 'http://127.0.0.1:11434/api/tags').models.name
-if (-not ($instalados -contains "${Modelo}:latest" -or $instalados -contains $Modelo)) {
-  if ($Modelo -ne 'sindi') { throw "O modelo $Modelo não está instalado no Ollama." }
-  npm run modelo:criar; if ($LASTEXITCODE) { throw 'Não foi possível criar o modelo sindi.' }
-}
+Passo 'Chave do serviço de IA'
+# Só confere se existe uma fonte para a chave (variável de ambiente ou .env.local); o conteúdo do arquivo não é lido nem mostrado.
+if (-not $env:GEMINI_API_KEY -and -not (Test-Path '.env.local')) { throw 'Defina GEMINI_API_KEY em .env.local (chave gratuita em https://aistudio.google.com/apikey) e rode de novo.' }
 
 if (-not $SemBuild) { Passo 'Build de produção'; npm run build; if ($LASTEXITCODE) { throw 'O build falhou; nada foi publicado.' } }
 
@@ -44,7 +40,7 @@ $node = (Get-Command node.exe).Source
 # Token de uso único para o aquecimento (não é segredo de terceiros; só separa essas chamadas das métricas públicas).
 $token = -join ((1..48) | ForEach-Object { '{0:x}' -f (Get-Random -Maximum 16) })
 Iniciar $node @('node_modules/next/dist/bin/next', 'start', '--hostname', '127.0.0.1', '--port', "$Porta") (Join-Path $estado 'next.stdout.log') (Join-Path $estado 'next.stderr.log') `
-  @{ SINDI_PUBLIC_ORIGIN = $Origem; OLLAMA_MODEL = $Modelo; NODE_ENV = 'production'; SINDI_AQUECIMENTO_TOKEN = $token }
+  @{ SINDI_PUBLIC_ORIGIN = $Origem; NODE_ENV = 'production'; SINDI_AQUECIMENTO_TOKEN = $token }
 $pronto = $false
 foreach ($i in 1..40) { Start-Sleep -Milliseconds 750; try { if ((Invoke-WebRequest "http://127.0.0.1:$Porta/" -UseBasicParsing -TimeoutSec 5).StatusCode -eq 200) { $pronto = $true; break } } catch { } }
 if (-not $pronto) { throw "O servidor não respondeu na porta $Porta. Veja $estado/next.stderr.log" }
@@ -91,9 +87,10 @@ if (-not $SemVercel) {
   $resposta = Invoke-WebRequest "$Origem/" -UseBasicParsing -TimeoutSec 30
   Write-Host "Endereço público: $Origem (HTTP $($resposta.StatusCode))" -ForegroundColor Green
 } else { Write-Host "Endereço temporário: $endereco" -ForegroundColor Green }
-if (-not $SemAquecer) {
+# Opcional: cada pergunta preparada gasta o limite gratuito da API de IA e a memória de respostas some a cada reinício.
+if ($Aquecer) {
   Passo 'Preparando as respostas das perguntas frequentes (em segundo plano)'
   Iniciar $node @('--import', 'tsx', 'scripts/operacao/aquecer.ts', "--base=http://127.0.0.1:$Porta") (Join-Path $estado 'aquecer.log') (Join-Path $estado 'aquecer.erros.log') @{ SINDI_AQUECIMENTO_TOKEN = $token }
-  Write-Host "Andamento em .data/operacao/aquecer.log (cerca de 20 a 30 minutos). Enquanto isso, a SINDI já responde normalmente."
+  Write-Host "Andamento em .data/operacao/aquecer.log (uma pergunta a cada poucos segundos). Enquanto isso, a SINDI já responde normalmente."
 }
-Write-Host "`nMantenha este computador ligado, sem suspender, com o Ollama aberto. Para encerrar: scripts/operacao/parar.ps1"
+Write-Host "`nMantenha este computador ligado, sem suspender. Para encerrar: scripts/operacao/parar.ps1"

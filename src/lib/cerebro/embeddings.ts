@@ -4,7 +4,10 @@ import path from 'node:path';
 import { dataDir } from '../dados/db';
 import { trechosDoCerebro, type Trecho } from './carregar';
 
-export const MODELO_EMBEDDING = process.env.OLLAMA_EMBED_MODEL || 'nomic-embed-text';
+const NOME_DO_MODELO = process.env.GEMINI_EMBED_MODEL || 'gemini-embedding-001';
+/** Vetores de 768 dimensões (o modelo permite reduzir): índice menor e busca mais rápida. O nome no índice inclui o tamanho, então mudar qualquer um reindexa. */
+const DIMENSOES = 768;
+export const MODELO_EMBEDDING = `${NOME_DO_MODELO}:${DIMENSOES}`;
 export const arquivoDeVetores = () => path.join(dataDir(), 'cerebro-vetores.json');
 type Indice = { modelo: string; vetores: Record<string, { hash: string; vetor: number[] }> };
 
@@ -14,16 +17,24 @@ export const idDoTrecho = (t: Trecho) => `${t.arquivo}#${t.secao}#${createHash('
 export const textoParaVetor = (t: Trecho) => `${t.secao}\n${t.texto}`.slice(0, 700);
 export const hashDoTrecho = (t: Trecho) => createHash('sha256').update(textoParaVetor(t)).digest('hex').slice(0, 16);
 
-/** Modelos de embedding de busca (nomic) esperam prefixos de tarefa: "search_document:" no que é guardado e "search_query:" na pergunta. */
+/**
+ * Vetores pela API do Gemini (nível gratuito). A tarefa informa ao modelo se o texto é um documento guardado ou uma pergunta. Na indexação (documento) um limite
+ * momentâneo do provedor (HTTP 429) é esperado e repetido algumas vezes; na pergunta não há repetição, pois o chat não pode esperar (cai na busca por palavras).
+ */
 export async function embeddings(textos: string[], tipo: 'documento' | 'consulta', tempoMs = 60000): Promise<number[][]> {
-  const base = new URL(process.env.OLLAMA_BASE_URL || 'http://127.0.0.1:11434');
-  const prefixo = tipo === 'documento' ? 'search_document: ' : 'search_query: ';
-  const resposta = await fetch(new URL('/api/embed', base), { method: 'POST', headers: { 'Content-Type': 'application/json', ...(process.env.OLLAMA_ACCESS_TOKEN ? { Authorization: `Bearer ${process.env.OLLAMA_ACCESS_TOKEN}` } : {}) },
-    body: JSON.stringify({ model: MODELO_EMBEDDING, input: textos.map(t => prefixo + t), keep_alive: '60m' }), signal: AbortSignal.timeout(tempoMs), cache: 'no-store' });
-  if (!resposta.ok) throw new Error(`Ollama embeddings HTTP ${resposta.status}`);
-  const dados = await resposta.json() as { embeddings?: number[][] };
-  if (!dados.embeddings || dados.embeddings.length !== textos.length) throw new Error('Resposta de embeddings incompleta');
-  return dados.embeddings;
+  const chave = process.env.GEMINI_API_KEY; if (!chave) throw new Error('GEMINI_API_KEY ausente');
+  if (!/^[a-z0-9][a-z0-9._-]*$/i.test(NOME_DO_MODELO)) throw new Error('GEMINI_EMBED_MODEL inválido');
+  const taskType = tipo === 'documento' ? 'RETRIEVAL_DOCUMENT' : 'RETRIEVAL_QUERY';
+  const corpo = JSON.stringify({ requests: textos.map(texto => ({ model: `models/${NOME_DO_MODELO}`, content: { parts: [{ text: texto }] }, taskType, outputDimensionality: DIMENSOES })) });
+  const tentativas = tipo === 'documento' ? 4 : 1;
+  for (let tentativa = 1; ; tentativa++) {
+    const resposta = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${NOME_DO_MODELO}:batchEmbedContents`, { method: 'POST', headers: { 'Content-Type': 'application/json', 'x-goog-api-key': chave }, body: corpo, signal: AbortSignal.timeout(tempoMs), cache: 'no-store' });
+    if (resposta.status === 429 && tentativa < tentativas) { await new Promise(r => setTimeout(r, 5000 * tentativa)); continue; }
+    if (!resposta.ok) throw new Error(`Embeddings HTTP ${resposta.status}`);
+    const dados = await resposta.json() as { embeddings?: { values?: number[] }[] };
+    if (!dados.embeddings || dados.embeddings.length !== textos.length || dados.embeddings.some(e => !Array.isArray(e.values))) throw new Error('Resposta de embeddings incompleta');
+    return dados.embeddings.map(e => e.values!);
+  }
 }
 export function cosseno(a: number[], b: number[]) {
   let produto = 0; let na = 0; let nb = 0;
@@ -56,7 +67,7 @@ export async function indexarCerebro(trechos: Trecho[] = trechosDoCerebro(), log
   return { total: vigentes.size, novos: pendentes.length };
 }
 export type Semantico = { trecho: Trecho; similaridade: number };
-/** Trechos mais parecidos em significado com a pergunta. Sem índice ou sem Ollama, devolve vazio (a busca por palavras continua valendo). */
+/** Trechos mais parecidos em significado com a pergunta. Sem índice ou sem resposta do provedor, devolve vazio (a busca por palavras continua valendo). */
 export async function buscarSemantico(pergunta: string, limite = 5, trechos: Trecho[] = trechosDoCerebro(), tempoMs = 2500): Promise<Semantico[]> {
   const indice = indiceEmMemoria(); if (!Object.keys(indice.vetores).length) return [];
   try {

@@ -3,6 +3,7 @@ import { test, afterEach } from 'node:test';
 import assert from 'node:assert/strict';
 import { cleanup, fireEvent, render, screen, waitFor } from '@testing-library/react';
 import Home from '../src/app/page';
+import { NOVA_CONVERSA } from '../src/components/site-header';
 
 const original = globalThis.fetch;
 afterEach(() => { cleanup(); globalThis.fetch = original; });
@@ -81,4 +82,12 @@ test('chat: Esc ou o botão Parar interrompem a resposta e, sem texto recebido, 
   render(<Home />); perguntar('Pergunta longa');
   const parar = await screen.findByLabelText('Parar resposta'); fireEvent.click(parar);
   await aguardarFim(); assert.equal(caixa().value, 'Pergunta longa'); assert.equal(screen.queryByRole('alert'), null, 'parar não é erro');
+});
+
+test('chat: "Nova conversa" limpa também o texto escondido que o leitor de tela recebeu (não fica a resposta anterior no documento)', async () => {
+  servir(() => ndjson({ type: 'done', text: 'Resposta antiga.' }));
+  render(<Home />); perguntar('Oi'); await screen.findAllByText(/Resposta antiga\./);
+  assert.match(screen.getByRole('status', { hidden: true, name: '' }).textContent ?? '', /SINDI respondeu: Resposta antiga\./);
+  fireEvent(window, new window.Event(NOVA_CONVERSA));
+  await waitFor(() => assert.equal(screen.queryAllByText(/Resposta antiga\./).length, 0));
 });

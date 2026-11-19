@@ -13,15 +13,36 @@ async function throttle(host: string, minMs: number) {
   spacing.set(host, Math.max(spacing.get(host) ?? 0, Date.now()) + minMs);
   if (wait) await delay(wait);
 }
+/** Endereço que um coletor nunca deve acessar: IP literal, localhost, nomes sem domínio e sufixos internos. Protege contra um redirecionamento de fonte comprometida para a rede interna. */
+export function hostInterno(host: string): boolean {
+  const nome = host.toLowerCase().replace(/^\[|\]$/g, '').replace(/\.$/, '');
+  return !nome.includes('.') || nome.includes(':') || /^\d{1,3}(\.\d{1,3}){3}$/.test(nome) || /^\d+$/.test(nome) || /\.(local|localhost|internal|lan|home|corp|intranet)$/.test(nome);
+}
+/** Destino recusado pela validação: não adianta tentar de novo. */
+export class DestinoBloqueado extends Error {}
+/** Valida o destino (https, sem credenciais, sem porta diferente de 443 e fora da rede interna). */
+export function destinoPermitido(url: URL) {
+  if (url.protocol !== 'https:' || url.username || url.password) throw new DestinoBloqueado('Somente HTTPS sem credenciais: ' + url.host);
+  if (url.port && url.port !== '443') throw new DestinoBloqueado('Porta não permitida: ' + url.host);
+  if (hostInterno(url.hostname)) throw new DestinoBloqueado('Endereço interno bloqueado: ' + url.hostname);
+}
+const MAX_REDIRECIONAMENTOS = 4;
+/** O corpo é lido com teto de tamanho mesmo sem content-length: passou do limite, a leitura falha. */
+function comTeto(response: Response): Response {
+  if (!response.body) return response;
+  let total = 0;
+  const corpo = response.body.pipeThrough(new TransformStream<Uint8Array, Uint8Array>({ transform(pedaco, controle) { total += pedaco.length; if (total > MAX_BYTES) controle.error(new Error('Resposta grande demais')); else controle.enqueue(pedaco); } }));
+  return new Response(corpo, { status: response.status, statusText: response.statusText, headers: response.headers });
+}
 export type FetchOptions = { minMs?: number; respectRobots?: boolean; accept?: string; headers?: Record<string, string> };
 
 export async function politeFetch(url: string, { minMs = 1000, respectRobots = true, accept, headers = {} }: FetchOptions = {}): Promise<Response> {
   const target = new URL(url);
-  if (target.protocol !== 'https:' || target.username || target.password) throw new Error('Somente HTTPS sem credenciais: ' + target.host);
+  destinoPermitido(target);
   if (respectRobots) {
     if (!robots.has(target.origin)) {
       try {
-        const response = await fetch(`${target.origin}/robots.txt`, { headers: { 'User-Agent': AGENT }, signal: AbortSignal.timeout(20000) });
+        const response = await fetch(`${target.origin}/robots.txt`, { headers: { 'User-Agent': AGENT }, redirect: 'error', signal: AbortSignal.timeout(20000) });
         robots.set(target.origin, response.ok ? robotsParser(`${target.origin}/robots.txt`, await response.text()) : null);
       } catch { robots.set(target.origin, null); }
     }
@@ -31,11 +52,19 @@ export async function politeFetch(url: string, { minMs = 1000, respectRobots = t
   for (let attempt = 0; attempt < 3; attempt++) {
     await throttle(target.host, minMs);
     try {
-      const response = await fetch(url, { headers: { 'User-Agent': AGENT, ...(accept ? { Accept: accept } : {}), ...headers }, signal: AbortSignal.timeout(45000) });
+      // Redirecionamentos são seguidos à mão, e cada destino passa pela mesma validação do endereço inicial.
+      let atual = new URL(url); let response: Response;
+      for (let saltos = 0; ; saltos++) {
+        response = await fetch(atual, { headers: { 'User-Agent': AGENT, ...(accept ? { Accept: accept } : {}), ...headers }, redirect: 'manual', signal: AbortSignal.timeout(45000) });
+        const destino = response.status >= 300 && response.status < 400 ? response.headers.get('location') : null;
+        if (!destino) break;
+        if (saltos >= MAX_REDIRECIONAMENTOS) throw new Error('Redirecionamentos demais: ' + target.host);
+        atual = new URL(destino, atual); destinoPermitido(atual); await response.body?.cancel();
+      }
       if (response.status === 429 || response.status >= 500) { last = new Error(`HTTP ${response.status}`); await delay(2000 * (attempt + 1) * (response.status === 429 ? 5 : 1)); continue; }
-      if (Number(response.headers.get('content-length') || 0) > MAX_BYTES) throw new Error('Resposta grande demais');
-      return response;
-    } catch (cause) { last = cause; await delay(1000 * (attempt + 1)); }
+      if (Number(response.headers.get('content-length') || 0) > MAX_BYTES) { await response.body?.cancel(); throw new Error('Resposta grande demais'); }
+      return comTeto(response);
+    } catch (cause) { if (cause instanceof DestinoBloqueado) throw cause; last = cause; await delay(1000 * (attempt + 1)); }
   }
   throw last instanceof Error ? last : new Error('Falha de rede');
 }

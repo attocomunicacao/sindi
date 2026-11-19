@@ -1,4 +1,5 @@
 'use client';
+import { linkSeguro } from '@/lib/url-segura';
 import { useEffect, useState } from 'react';
 import { ArrowDown, ArrowUp, Minus } from 'lucide-react';
 import { isPercent } from '@/lib/dados/format';
@@ -42,7 +43,7 @@ export function IndicatorStrip() {
   // Sempre presente e com altura fixa (uma linha), para o conteúdo não pular quando os dados chegam; em telas estreitas a linha rola na horizontal em vez de quebrar.
   return <section aria-label="Indicadores econômicos" className="no-print h-12 border-b border-slate-200 bg-surface/70">
     <div className="gutter relative mx-auto flex h-full max-w-6xl items-center gap-x-6 overflow-x-auto overscroll-x-contain [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
-      {itens.map(item => <a key={item.id} href={item.url} target="_blank" rel="noreferrer" className="flex shrink-0 items-baseline gap-2 whitespace-nowrap rounded py-1 hover:underline focus-visible:outline-2 focus-visible:outline-amber-400" title={`${item.label} — ${item.period}. Fonte: ${SOURCE_NAMES[item.source] ?? item.source}`}>
+      {itens.map(item => <a key={item.id} href={linkSeguro(item.url)} target="_blank" rel="noreferrer" className="flex shrink-0 items-baseline gap-2 whitespace-nowrap rounded py-1 hover:underline focus-visible:outline-2 focus-visible:outline-amber-400" title={`${item.label} — ${item.period}. Fonte: ${SOURCE_NAMES[item.source] ?? item.source}`}>
         <span className="text-sm text-slate-600">{ROTULO_NA_FAIXA[item.id] ?? stripLabel(item)}</span>
         <strong className="text-base font-semibold tabular-nums text-slate-900">{short(item)}</strong>
         <Variacao item={item} />
@@ -57,16 +58,16 @@ export function PainelFull() {
     <p className="text-sm text-slate-500">Dados públicos de fontes oficiais, coletados a cada 30 minutos neste computador. Última coleta bem-sucedida: {dateTime(data.updatedAt)}. Indicadores como IPCA e PNAD são divulgados mensalmente; a coleta frequente só captura novidades.</p>
     {(() => { const dashboard = montarDashboard(data); return dashboard ? <PainelIndicadores dados={dashboard} /> : null; })()}
     <section aria-labelledby="sindicato"><h2 id="sindicato" className="mb-3 text-lg font-semibold">Notícias do SINDEPRESTEM</h2>
-      <ul className="divide-y divide-slate-200 rounded-2xl border border-slate-200 bg-surface">{data.sindicato.noticias.map(item => <li key={item.url} className="p-4"><a href={item.url} target="_blank" rel="noreferrer" className="hover:underline">{item.title}</a>
+      <ul className="divide-y divide-slate-200 rounded-2xl border border-slate-200 bg-surface">{data.sindicato.noticias.map(item => <li key={item.url} className="p-4"><a href={linkSeguro(item.url)} target="_blank" rel="noreferrer" className="hover:underline">{item.title}</a>
         <p className="mt-1 text-xs text-slate-500">{date(item.publishedAt)}</p></li>)}</ul>
       {data.sindicato.artigos.length > 0 && <><h3 className="mb-2 mt-5 text-sm font-semibold text-slate-600">Artigos recentes</h3>
-        <ul className="divide-y divide-slate-200 rounded-2xl border border-slate-200 bg-surface">{data.sindicato.artigos.map(item => <li key={item.url} className="p-4"><a href={item.url} target="_blank" rel="noreferrer" className="hover:underline">{item.title}</a>
+        <ul className="divide-y divide-slate-200 rounded-2xl border border-slate-200 bg-surface">{data.sindicato.artigos.map(item => <li key={item.url} className="p-4"><a href={linkSeguro(item.url)} target="_blank" rel="noreferrer" className="hover:underline">{item.title}</a>
           <p className="mt-1 text-xs text-slate-500">{date(item.publishedAt)}</p></li>)}</ul></>}</section>
     <section aria-labelledby="legislativo"><h2 id="legislativo" className="mb-3 text-lg font-semibold">Projetos em pauta no Congresso</h2>
-      <ul className="divide-y divide-slate-200 rounded-2xl border border-slate-200 bg-surface">{data.bills.map(bill => <li key={bill.url} className="p-4"><a href={bill.url} target="_blank" rel="noreferrer" className="font-medium hover:underline">{bill.title} <span className="font-normal text-slate-500">· {SOURCE_NAMES[bill.source]}</span></a>
+      <ul className="divide-y divide-slate-200 rounded-2xl border border-slate-200 bg-surface">{data.bills.map(bill => <li key={bill.url} className="p-4"><a href={linkSeguro(bill.url)} target="_blank" rel="noreferrer" className="font-medium hover:underline">{bill.title} <span className="font-normal text-slate-500">· {SOURCE_NAMES[bill.source]}</span></a>
         <p className="mt-1 text-sm text-slate-600">{bill.summary}</p><p className="mt-1 text-xs text-slate-500">{bill.situacao ? `${bill.situacao} · ` : ''}Última movimentação: {date(bill.movedAt)}</p></li>)}</ul></section>
     <section aria-labelledby="noticias"><h2 id="noticias" className="mb-3 text-lg font-semibold">Notícias das fontes</h2>
-      <ul className="divide-y divide-slate-200 rounded-2xl border border-slate-200 bg-surface">{data.news.map(item => <li key={item.url} className="p-4"><a href={item.url} target="_blank" rel="noreferrer" className="hover:underline">{item.title}</a>
+      <ul className="divide-y divide-slate-200 rounded-2xl border border-slate-200 bg-surface">{data.news.map(item => <li key={item.url} className="p-4"><a href={linkSeguro(item.url)} target="_blank" rel="noreferrer" className="hover:underline">{item.title}</a>
         <p className="mt-1 text-xs text-slate-500">{SOURCE_NAMES[item.source] ?? item.source} · {date(item.publishedAt)}</p></li>)}</ul></section>
     <section aria-labelledby="fontes"><h2 id="fontes" className="mb-3 text-lg font-semibold">Situação das fontes</h2>
       <ul className="grid gap-2 text-sm sm:grid-cols-2">{data.sources.map(s => <li key={s.source} className="flex flex-wrap justify-between gap-x-3 gap-y-0.5 rounded-lg bg-slate-100 px-3 py-2"><span>{SOURCE_NAMES[s.source] ?? s.source}</span><span className={`text-right ${s.status === 'ok' ? 'text-slate-600' : 'text-amber-800'}`}>{s.status === 'ok' ? `atualizado ${dateTime(s.lastOk)}` : `falha na última coleta (último sucesso ${dateTime(s.lastOk)})`}</span></li>)}</ul></section>

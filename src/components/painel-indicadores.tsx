@@ -1,3 +1,4 @@
+import { linkSeguro } from '@/lib/url-segura';
 import { ArrowDownRight, ArrowUpRight, Download, Minus } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import type { Dashboard, Kpi, Par, Serie } from '@/lib/dados/dashboard';
@@ -64,7 +65,7 @@ function CartaoTaxa({ p }: { p: Par }) {
       {barra(p.atual, 'fill-amber-400')}<span className="text-right text-lg font-semibold tabular-nums text-slate-900">{p.atualTexto}</span>
       {p.anterior !== null && <>{barra(p.anterior, 'fill-slate-300')}<span className="text-right text-xs tabular-nums text-slate-500">{p.anteriorTexto}</span></>}
     </div>
-    <p className="mt-3 text-xs text-slate-500">Dourado: referência {p.periodo}{p.anterior !== null ? '. Cinza: período anterior.' : '.'} <a href={p.url} target="_blank" rel="noreferrer" className="underline decoration-slate-300 underline-offset-2 hover:text-slate-900">{p.fonte}</a></p>
+    <p className="mt-3 text-xs text-slate-500">Dourado: referência {p.periodo}{p.anterior !== null ? '. Cinza: período anterior.' : '.'} <a href={linkSeguro(p.url)} target="_blank" rel="noreferrer" className="underline decoration-slate-300 underline-offset-2 hover:text-slate-900">{p.fonte}</a></p>
   </article>;
 }
 

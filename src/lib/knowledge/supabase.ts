@@ -1,7 +1,8 @@
 // Server/worker only. Never import this module from a client component.
 export async function supabaseRequest(path: string, body?: unknown, writer = false) {
   const url = process.env.SUPABASE_URL;
-  const key = writer ? process.env.SUPABASE_SECRET_KEY : (process.env.SUPABASE_PUBLISHABLE_KEY || process.env.SUPABASE_SECRET_KEY);
+  // A leitura usa só a chave publicável: a Secret key (que ignora as regras de acesso do banco) fica restrita ao coletor que grava.
+  const key = writer ? process.env.SUPABASE_SECRET_KEY : process.env.SUPABASE_PUBLISHABLE_KEY;
   if (!url || !key) throw new Error('Supabase configuration missing');
   const base = new URL(url);
   if (base.protocol !== 'https:' || !base.hostname.endsWith('.supabase.co')) throw new Error('Invalid Supabase URL');

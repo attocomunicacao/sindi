@@ -1,3 +1,4 @@
+import { linkSeguro } from '@/lib/url-segura';
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import { ArrowUpRight } from 'lucide-react';
@@ -59,7 +60,7 @@ function Indicadores() {
     <h2 className="mt-1 text-sm font-medium leading-snug text-slate-800">{i.label}</h2>
     <p className="mt-3 text-3xl font-semibold tracking-tight text-slate-900">{formatar(i.value, i.unit)}<span className="ml-1.5 text-sm font-normal text-slate-500">{i.unit}</span></p>
     <p className="mt-2 text-xs text-slate-500">Referência {i.period} · coletado em {data(i.fetchedAt)}</p>
-    <a href={i.url} target="_blank" rel="noopener noreferrer" className="mt-3 inline-flex items-center gap-1 text-sm text-slate-600 hover:text-slate-900">Fonte oficial <ArrowUpRight size={14} aria-hidden /></a>
+    <a href={linkSeguro(i.url)} target="_blank" rel="noopener noreferrer" className="mt-3 inline-flex items-center gap-1 text-sm text-slate-600 hover:text-slate-900">Fonte oficial <ArrowUpRight size={14} aria-hidden /></a>
   </li>)}</ul> : <p className="mt-8 border-l-2 border-amber-400 pl-3 text-sm text-slate-600">Os indicadores ainda não foram coletados neste ambiente.</p>;
 }
 
@@ -76,7 +77,7 @@ function Cerebro({ q }: { q?: string }) {
         <span className="text-xs text-slate-500">{v.secoes.length} {v.secoes.length === 1 ? 'seção' : 'seções'}{v.atualizado ? ` · ${data(v.atualizado)}` : ''}</span>
       </summary>
       <div className="space-y-5 border-t border-slate-200 py-5">
-        {v.fonte && <a href={v.fonte} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1 text-sm text-slate-600 hover:text-slate-900">Fonte do volume <ArrowUpRight size={14} aria-hidden /></a>}
+        {v.fonte && <a href={linkSeguro(v.fonte)} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1 text-sm text-slate-600 hover:text-slate-900">Fonte do volume <ArrowUpRight size={14} aria-hidden /></a>}
         {v.secoes.map(s => <section key={s.secao}>
           <h2 className="text-sm font-semibold text-slate-900">{s.secao}</h2>
           <p className="mt-1 whitespace-pre-line text-sm leading-relaxed text-slate-600">{s.texto.length > 1400 ? `${s.texto.slice(0, 1400).replace(/\s+\S*$/, '')} …` : s.texto}</p>

@@ -26,10 +26,14 @@ export async function embeddings(textos: string[], tipo: 'documento' | 'consulta
   if (!/^[a-z0-9][a-z0-9._-]*$/i.test(NOME_DO_MODELO)) throw new Error('GEMINI_EMBED_MODEL inválido');
   const taskType = tipo === 'documento' ? 'RETRIEVAL_DOCUMENT' : 'RETRIEVAL_QUERY';
   const corpo = JSON.stringify({ requests: textos.map(texto => ({ model: `models/${NOME_DO_MODELO}`, content: { parts: [{ text: texto }] }, taskType, outputDimensionality: DIMENSOES })) });
-  const tentativas = tipo === 'documento' ? 4 : 1;
+  const tentativas = tipo === 'documento' ? 6 : 1;
   for (let tentativa = 1; ; tentativa++) {
     const resposta = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${NOME_DO_MODELO}:batchEmbedContents`, { method: 'POST', headers: { 'Content-Type': 'application/json', 'x-goog-api-key': chave }, body: corpo, signal: AbortSignal.timeout(tempoMs), cache: 'no-store' });
-    if (resposta.status === 429 && tentativa < tentativas) { await new Promise(r => setTimeout(r, 5000 * tentativa)); continue; }
+    if (resposta.status === 429 && tentativa < tentativas) {
+      // O nível gratuito limita por minuto (cada texto do lote conta): espera o tempo que o provedor informa ("Please retry in 29.4s") ou, sem ele, um intervalo crescente.
+      const informado = Number(/retry in ([\d.]+)s/i.exec(await resposta.text().catch(() => ''))?.[1]);
+      await new Promise(r => setTimeout(r, Math.min(70000, (Number.isFinite(informado) && informado > 0 ? informado + 2 : 8 * tentativa) * 1000))); continue;
+    }
     if (!resposta.ok) throw new Error(`Embeddings HTTP ${resposta.status}`);
     const dados = await resposta.json() as { embeddings?: { values?: number[] }[] };
     if (!dados.embeddings || dados.embeddings.length !== textos.length || dados.embeddings.some(e => !Array.isArray(e.values))) throw new Error('Resposta de embeddings incompleta');
@@ -55,8 +59,10 @@ export async function indexarCerebro(trechos: Trecho[] = trechosDoCerebro(), log
   const indice = lerIndice(); const vigentes = new Map(trechos.filter(t => t.semantica).map(t => [idDoTrecho(t), t]));
   for (const id of Object.keys(indice.vetores)) if (!vigentes.has(id)) delete indice.vetores[id];
   const pendentes = [...vigentes].filter(([id, t]) => indice.vetores[id]?.hash !== hashDoTrecho(t));
-  for (let i = 0; i < pendentes.length; i += 24) {
-    const lote = pendentes.slice(i, i + 24);
+  // Lotes de 20 com pausa de 15 s entre eles: cerca de 80 textos por minuto, abaixo do limite gratuito de 100 por minuto.
+  for (let i = 0; i < pendentes.length; i += 20) {
+    if (i > 0) await new Promise(r => setTimeout(r, 15000));
+    const lote = pendentes.slice(i, i + 20);
     const vetores = await embeddings(lote.map(([, t]) => textoParaVetor(t)), 'documento');
     lote.forEach(([id, t], k) => { indice.vetores[id] = { hash: hashDoTrecho(t), vetor: vetores[k].map(v => Math.round(v * 1e5) / 1e5) }; });
   }

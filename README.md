@@ -50,7 +50,7 @@ tests/          node:test via tsx
    ```
 3. `npm run dev` e abra http://localhost:3000
 
-Sem `.env.local` valem os padrões de [`.env.example`](.env.example). Nenhuma chave é necessária.
+Sem `.env.local` valem os padrões de [`env.example`](env.example). Nenhuma chave é necessária.
 
 ## Modelos e consumo
 

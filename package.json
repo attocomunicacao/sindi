@@ -19,14 +19,14 @@
     "cerebro:comparar": "tsx scripts/cerebro/comparar-busca.ts",
     "modelo:criar": "tsx scripts/modelo/criar-modelo.ts",
     "modelo:medir": "tsx scripts/modelo/benchmark-ollama.ts",
-    "avaliar:treino": "tsx scripts/avaliacao/avaliar-treino.ts"
+    "avaliar:treino": "tsx scripts/avaliacao/avaliar-treino.ts",
+    "test:coverage": "tsx --test --experimental-test-coverage tests/*.test.ts",
+    "check": "npm run lint && npm run typecheck && npm test"
   },
   "license": "ISC",
   "type": "module",
   "dependencies": {
-    "@ai-sdk/google": "^4.0.93",
     "@radix-ui/react-slot": "^1.4.0",
-    "ai": "^7.0.137",
     "cheerio": "1.2.0",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
@@ -55,5 +55,8 @@
     "tsx": "^4.23.15",
     "typescript": "^6.0.3"
   },
-  "private": true
+  "private": true,
+  "engines": {
+    "node": ">=24"
+  }
 }

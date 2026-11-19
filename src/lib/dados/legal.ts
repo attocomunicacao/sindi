@@ -21,9 +21,12 @@ export function htmlToLines(html: string) {
   $('br').replaceWith('\n'); $('p,li,tr,h1,h2,h3,h4,div,blockquote').append('\n');
   return $('body').text().replace(/[ \t ]+/g, ' ').replace(/ *\n */g, '\n').replace(/\n{2,}/g, '\n').trim();
 }
-export async function pdfToText(data: Uint8Array) {
+/** Texto de um PDF, com teto de páginas e de tempo: um PDF patológico não trava a coleta. */
+export async function pdfToText(data: Uint8Array, { paginas = 400, limiteMs = 90_000 }: { paginas?: number; limiteMs?: number } = {}) {
   const parser = new PDFParse({ data });
-  try { return (await parser.getText()).text.replace(/[ \t ]+/g, ' ').replace(/-\n(?=\p{Ll})/gu, '').trim(); } finally { await parser.destroy(); }
+  let relogio: ReturnType<typeof setTimeout> | undefined;
+  const limite = new Promise<never>((_, rejeitar) => { relogio = setTimeout(() => rejeitar(new Error('PDF demorou demais para ser lido')), limiteMs); });
+  try { return (await Promise.race([parser.getText({ first: paginas }), limite])).text.replace(/[ \t ]+/g, ' ').replace(/-\n(?=\p{Ll})/gu, '').trim(); } finally { clearTimeout(relogio); await parser.destroy().catch(() => {}); }
 }
 
 const START = /^Art\.\s*(\d{1,4})\s*(?:[º°o.]|\s)?\s*(?:-\s*([A-Z]{1,2})\b)?/;

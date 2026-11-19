@@ -1,4 +1,4 @@
-import { getJson } from '../http';
+import { dataIso, getJson, listaOuErro } from '../http';
 import { setIndicator, upsertDocument } from '../db';
 import type { Collector } from './types';
 
@@ -40,9 +40,10 @@ export const ibge: Collector = {
     const pages = full ? 40 : 1;
     for (let page = 1; page <= pages; page++) {
       const news = await getJson<{ items: News[]; totalPages: number }>(`${BASE}/noticias/?qtd=50&page=${page}`); fetched++;
-      for (const n of news.items) {
+      for (const n of listaOuErro<News>(news.items, 'servicodados.ibge.gov.br/noticias')) {
+        if (!n.link || !n.titulo) continue;
         const [d, m, y] = (n.data_publicacao || '').slice(0, 10).split('/');
-        const publishedAt = y ? new Date(`${y}-${m}-${d}T12:00:00Z`).toISOString() : undefined;
+        const publishedAt = y ? dataIso(`${y}-${m}-${d}T12:00:00Z`) : undefined;
         if (upsertDocument(db, { source: 'ibge', url: n.link, title: n.titulo, content: n.introducao || n.titulo, publishedAt, meta: { editorias: n.editorias } })) changed++;
       }
       if (page >= news.totalPages) break;

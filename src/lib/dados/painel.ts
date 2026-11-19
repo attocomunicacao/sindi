@@ -1,12 +1,12 @@
 import { DatabaseSync } from 'node:sqlite';
 import { existsSync } from 'node:fs';
-import { dbPath } from './db';
+import { dbPath, falhasSeguidas } from './db';
 import { isPercent } from './format';
 
 export type PainelIndicator = { id: string; group: string; label: string; value: number; unit: string; period: string; previous: number | null; source: string; url: string; fetchedAt: string };
 export type PainelBill = { source: string; title: string; summary: string; situacao: string | null; movedAt: string | null; url: string };
 export type PainelNews = { source: string; title: string; publishedAt: string | null; url: string };
-export type Painel = { available: boolean; updatedAt: string | null; indicators: PainelIndicator[]; bills: PainelBill[]; news: PainelNews[]; sindicato: { noticias: PainelNews[]; artigos: PainelNews[] }; sources: { source: string; lastOk: string | null; status: string }[]; series: Record<string, { period: string; value: number }[]> };
+export type Painel = { available: boolean; updatedAt: string | null; indicators: PainelIndicator[]; bills: PainelBill[]; news: PainelNews[]; sindicato: { noticias: PainelNews[]; artigos: PainelNews[] }; sources: { source: string; lastOk: string | null; status: string; /** Execuções seguidas em erro, da mais recente para trás. */ failures?: number }[]; series: Record<string, { period: string; value: number }[]> };
 
 /** Ordem de exibição dos indicadores; os demais, se existirem, vêm depois. */
 export const INDICATOR_ORDER = ['bcb.selic-meta', 'ibge.ipca-12m', 'ibge.ipca-mensal', 'ibge.desocupacao', 'caged.saldo', 'caged.saldo-sp', 'caged.saldo-temporario', 'caged.saldo-servicos', 'ibge.servicos'];
@@ -39,6 +39,7 @@ export function readPainel(file = dbPath()): Painel {
     const sindicato = { noticias: posts('noticia', 8), artigos: posts('artigo', 4) };
     const sources = db.prepare(`SELECT source, MAX(CASE WHEN status = 'ok' THEN finished_at END) AS lastOk,
       (SELECT status FROM runs r2 WHERE r2.source = runs.source ORDER BY id DESC LIMIT 1) AS status FROM runs GROUP BY source`).all() as Painel['sources'];
+    for (const s of sources) s.failures = falhasSeguidas(db, s.source);
     const updatedAt = sources.map(s => s.lastOk).filter((v): v is string => Boolean(v)).sort().at(-1) ?? null;
     // Série mensal já guardada pela coleta (hoje, o saldo do Novo CAGED): alimenta os gráficos de evolução do painel.
     const series: Painel['series'] = {};

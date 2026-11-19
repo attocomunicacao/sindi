@@ -29,12 +29,12 @@ const log = (message: string) => console.log(`${new Date().toISOString()} ${mess
 try {
   do {
     log(`Coleta iniciada${full ? ' (completa)' : ''}${only ? ' [' + only.join(',') + ']' : ''}`);
-    await syncAll(db, { only, full: full && !watch, log });
-    log('Planilha atualizada');
+    try { await syncAll(db, { only, full: full && !watch, log }); log('Rodada de coleta concluída'); }
+    catch (cause) { log(`Coleta: erro na rodada (${cause instanceof Error ? cause.message : 'desconhecido'}); a próxima rodada tenta de novo`); }
     // O cérebro autogerado (cerebro/auto) é regenerado a cada 6 horas, com validação e reversão se a avaliação piorar.
     if (!only && due(db, 'cerebro:publicacao', 6 * 60 * 60 * 1000, full)) {
       try { const r = await publicarCerebro(db, log); log(`Cérebro: ${r.motivo}`); setState(db, 'cerebro:publicacao', new Date().toISOString()); }
-      catch (cause) { log(`Cérebro: erro ao regenerar (${cause instanceof Error ? cause.message : 'desconhecido'}); arquivos anteriores mantidos`); }
+      catch (cause) { log(`Cérebro: erro ao regenerar (${cause instanceof Error ? cause.message : 'desconhecido'}); a versão anterior foi mantida`); }
     }
     // Busca por significado: indexa o que mudou no cérebro e mantém o modelo de embeddings carregado (a primeira consulta fria é lenta).
     try { await indexarCerebro(undefined, log); await embeddings(['aquecimento'], 'consulta', 20000); }

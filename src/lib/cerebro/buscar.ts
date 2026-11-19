@@ -34,7 +34,7 @@ export function buscarNoCerebro(pergunta: string, limite = 2, trechos: Trecho[] 
 /** Trechos no formato de evidência do chat; o link de referência é a fonte oficial do arquivo (ou o site do sindicato). */
 export function passagensDoCerebro(pergunta: string, limite = 2): Passage[] {
   return buscarNoCerebro(pergunta, limite).map(({ trecho }) => ({
-    url: trecho.fonte ?? SITE, title: `${trecho.titulo} — ${trecho.secao}`, content: trecho.texto, fetchedAt: trecho.atualizado ?? new Date().toISOString(), pinned: true,
+    url: trecho.fonte ?? SITE, title: `${trecho.titulo} — ${trecho.secao}`, content: trecho.texto, fetchedAt: trecho.atualizado ?? '', pinned: true,
   }));
 }
 
@@ -83,6 +83,6 @@ export async function buscarHibrido(pergunta: string, limite = 2, trechos: Trech
 export async function passagensHibridas(pergunta: string, limite = 2): Promise<Passage[]> {
   // A linha "Variações:" serve à busca; para o modelo é só leitura a mais.
   return (await buscarHibrido(pergunta, limite)).map(({ trecho }) => ({
-    url: trecho.fonte ?? SITE, title: `${trecho.titulo} — ${trecho.secao}`, content: trecho.texto.replace(VARIACOES, '').trim(), fetchedAt: trecho.atualizado ?? new Date().toISOString(), pinned: true,
+    url: trecho.fonte ?? SITE, title: `${trecho.titulo} — ${trecho.secao}`, content: trecho.texto.replace(VARIACOES, '').trim(), fetchedAt: trecho.atualizado ?? '', pinned: true,
   }));
 }

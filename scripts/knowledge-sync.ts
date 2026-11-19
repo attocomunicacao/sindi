@@ -28,9 +28,12 @@ for (const file of ['.env.knowledge', '.env.knowledge.local']) {
 const lockPath = `${directory}/sync.lock`;
 try { const lock = await open(lockPath, 'wx'); await lock.writeFile(String(process.pid)); await lock.close(); }
 catch {
-  const pid = Number(await readFile(lockPath, 'utf8'));
-  try { process.kill(pid, 0); throw new Error('Uma sincronização já está ativa'); }
-  catch (e) { if ((e as NodeJS.ErrnoException).code !== 'ESRCH') throw e; }
+  // Arquivo vazio ou com lixo (queda no meio da gravação) é um lock antigo, não um impeditivo; EPERM significa processo vivo de outro usuário.
+  const pid = Number(await readFile(lockPath, 'utf8').catch(() => ''));
+  if (Number.isInteger(pid) && pid > 0) {
+    try { process.kill(pid, 0); throw new Error('Uma sincronização já está ativa'); }
+    catch (e) { if ((e as NodeJS.ErrnoException).code !== 'ESRCH') throw e; }
+  }
   await unlink(lockPath); const lock = await open(lockPath, 'wx'); await lock.writeFile(String(process.pid)); await lock.close();
 }
 let stopping = false;
@@ -62,6 +65,7 @@ async function download(url: string, headers: Record<string, string> = {}, check
     const target = new URL(response.headers.get('location') || '', url).href;
     if (target === url || (!siteUrl(target) && !pdfUrl(target))) throw new Error('Redirecionamento não permitido');
     // One hop; refusing loops avoids unbounded fetches.
+    await response.body?.cancel().catch(() => {});
     const redirected = await downloadOnce(target, headers);
     return redirected;
   }
@@ -115,6 +119,15 @@ async function atomic(file: string, value: unknown) {
     }
   }
 }
+/** Texto de um PDF com teto de 400 páginas e de 90 s: um PDF patológico não prende um dos quatro workers da varredura. */
+async function textoDoPdf(data: Buffer) {
+  const parser = new PDFParse({ data });
+  let relogio: ReturnType<typeof setTimeout> | undefined;
+  try {
+    const limite = new Promise<never>((_, rejeitar) => { relogio = setTimeout(() => rejeitar(new Error('PDF demorou demais para ser lido')), 90_000); });
+    return (await Promise.race([parser.getText({ first: 400 }), limite])).text.trim();
+  } finally { clearTimeout(relogio); await parser.destroy().catch(() => {}); }
+}
 async function run() {
   const started = new Date().toISOString();
   let previous: KnowledgeSnapshot = { updatedAt: '', documents: [] };
@@ -144,7 +157,8 @@ async function run() {
   }); await saving; }
   async function upload(document: KnowledgeDocument) {
     if (!cloud) return;
-    const signature = `${process.env.SUPABASE_URL}:${document.hash}:${document.checkedAt}:${document.status}`;
+    // O dia da última verificação entra na assinatura: um documento sem mudança é reenviado no máximo uma vez por dia (e não a cada varredura de 15 minutos).
+    const signature = `${process.env.SUPABASE_URL}:${document.hash}:${document.checkedAt.slice(0, 10)}:${document.status}`;
     if (cloudState[document.url] === signature) { uploaded++; return; }
     try {
       await supabaseRequest('rpc/upsert_sindi_document', { document: { ...document, chunks: chunks(document.content) } }, true);
@@ -163,19 +177,18 @@ async function run() {
       }
       try {
         const r = await download(url, old ? { ...(old.etag ? { 'If-None-Match': old.etag } : {}), ...(old.lastModified ? { 'If-Modified-Since': old.lastModified } : {}) } : {});
-        if (r.status === 304 && old) { old.checkedAt = now; unchanged++; await upload(old); for (const link of old.links) if (!scheduled.has(link)) { scheduled.add(link); queue.unshift([link, '']); } continue; }
+        if (r.status === 304 && old) { await r.body?.cancel().catch(() => {}); old.checkedAt = now; unchanged++; await upload(old); for (const link of old.links) if (!scheduled.has(link)) { scheduled.add(link); queue.unshift([link, '']); } continue; }
         if ([404,410].includes(r.status)) {
+          await r.body?.cancel().catch(() => {});
           if (old) { old.status = 'removed'; old.checkedAt = now; await upload(old); }
           failures.push({ url, reason: `HTTP ${r.status}: retirado da busca` }); continue;
         }
-        if (!r.ok) throw new Error(`HTTP ${r.status}`);
+        if (!r.ok) { await r.body?.cancel().catch(() => {}); throw new Error(`HTTP ${r.status}`); }
         const data = await bytes(r); const type = r.headers.get('content-type') || '';
         const pdf = type.includes('application/pdf') || data.subarray(0,5).toString() === '%PDF-';
         let extracted;
         if (pdf) {
-          const parser = new PDFParse({ data });
-          try { extracted = { title: decodeURIComponent(new URL(url).pathname.split('/').pop() || 'Documento PDF'), content: (await parser.getText()).text.trim(), links: [], external: [], publishedAt: undefined }; }
-          finally { await parser.destroy(); }
+          extracted = { title: decodeURIComponent(new URL(url).pathname.split('/').pop() || 'Documento PDF'), content: await textoDoPdf(data), links: [], external: [], publishedAt: undefined };
         } else {
           if (!type.includes('text/html')) throw new Error('Formato não suportado');
           extracted = extractHtml(data.toString('utf8'), url);

@@ -16,6 +16,9 @@ export const idDoTrecho = (t: Trecho) => `${t.arquivo}#${t.secao}#${createHash('
 /** O que vira vetor: o título da seção e o início do texto (o nome do arquivo e o fim de textos longos só diluem o significado). */
 export const textoParaVetor = (t: Trecho) => `${t.secao}\n${t.texto}`.slice(0, 700);
 export const hashDoTrecho = (t: Trecho) => createHash('sha256').update(textoParaVetor(t)).digest('hex').slice(0, 16);
+/** Id e hash de um trecho, calculados uma vez (o trecho é imutável): a busca por significado os consulta para todos os trechos a cada pergunta. */
+const chaves = new WeakMap<Trecho, { id: string; hash: string }>();
+const chavesDe = (t: Trecho) => { let c = chaves.get(t); if (!c) { c = { id: idDoTrecho(t), hash: hashDoTrecho(t) }; chaves.set(t, c); } return c; };
 
 /**
  * Vetores pela API do Gemini (nível gratuito). A tarefa informa ao modelo se o texto é um documento guardado ou uma pergunta. Na indexação (documento) um limite
@@ -51,6 +54,12 @@ function indiceEmMemoria(): Indice {
   try { const arquivo = arquivoDeVetores(); const { mtimeMs } = statSync(arquivo); if (memoria?.mtime === mtimeMs) return memoria.indice; memoria = { mtime: mtimeMs, indice: lerIndice() }; return memoria.indice; } catch { return { modelo: MODELO_EMBEDDING, vetores: {} }; }
 }
 
+function gravarIndice(indice: Indice) {
+  mkdirSync(path.dirname(arquivoDeVetores()), { recursive: true });
+  const temporario = arquivoDeVetores() + '.tmp'; writeFileSync(temporario, JSON.stringify(indice)); renameSync(temporario, arquivoDeVetores());
+  memoria = undefined;
+}
+
 /**
  * Calcula (de forma incremental) os vetores dos trechos do cérebro que ainda não têm vetor ou mudaram, e remove os de trechos que não existem mais.
  * Chamado após cada publicação do cérebro e por `npm run cerebro:indexar`.
@@ -65,10 +74,10 @@ export async function indexarCerebro(trechos: Trecho[] = trechosDoCerebro(), log
     const lote = pendentes.slice(i, i + 20);
     const vetores = await embeddings(lote.map(([, t]) => textoParaVetor(t)), 'documento');
     lote.forEach(([id, t], k) => { indice.vetores[id] = { hash: hashDoTrecho(t), vetor: vetores[k].map(v => Math.round(v * 1e5) / 1e5) }; });
+    // Cada lote é gravado ao terminar: se o seguinte falhar (limite do provedor, rede), o que já foi calculado (e consumiu o limite gratuito) não se perde.
+    gravarIndice(indice);
   }
-  mkdirSync(path.dirname(arquivoDeVetores()), { recursive: true });
-  const temporario = arquivoDeVetores() + '.tmp'; writeFileSync(temporario, JSON.stringify(indice)); renameSync(temporario, arquivoDeVetores());
-  memoria = undefined;
+  gravarIndice(indice);
   log(`Cérebro: ${pendentes.length} trecho(s) indexado(s) de ${vigentes.size}`);
   return { total: vigentes.size, novos: pendentes.length };
 }
@@ -79,7 +88,7 @@ export async function buscarSemantico(pergunta: string, limite = 5, trechos: Tre
   try {
     const [consulta] = await embeddings([pergunta], 'consulta', tempoMs);
     const resultados: Semantico[] = [];
-    for (const trecho of trechos) { if (!trecho.semantica) continue; const v = indice.vetores[idDoTrecho(trecho)]; if (v && v.hash === hashDoTrecho(trecho)) resultados.push({ trecho, similaridade: cosseno(consulta, v.vetor) }); }
+    for (const trecho of trechos) { if (!trecho.semantica) continue; const { id, hash } = chavesDe(trecho); const v = indice.vetores[id]; if (v && v.hash === hash) resultados.push({ trecho, similaridade: cosseno(consulta, v.vetor) }); }
     return resultados.sort((a, b) => b.similaridade - a.similaridade).slice(0, limite);
   } catch { return []; }
 }

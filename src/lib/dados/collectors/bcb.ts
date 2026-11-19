@@ -1,4 +1,4 @@
-import { getJson } from '../http';
+import { getJson, listaOuErro } from '../http';
 import { setIndicator } from '../db';
 import type { Collector } from './types';
 
@@ -20,7 +20,7 @@ export const bcb: Collector = {
     const br = (d: Date) => `${String(d.getUTCDate()).padStart(2, '0')}/${String(d.getUTCMonth() + 1).padStart(2, '0')}/${d.getUTCFullYear()}`;
     const today = new Date(); const since = new Date(today.getTime() - 540 * 86400000);
     const rows = await getJson<{ data: string; valor: string }[]>(`https://api.bcb.gov.br/dados/serie/bcdata.sgs.432/dados?formato=json&dataInicial=${br(since)}&dataFinal=${br(today)}`);
-    const point = parseSgs(rows);
+    const point = parseSgs(listaOuErro(rows, 'api.bcb.gov.br'));
     if (point) setIndicator(db, { id: 'bcb.selic-meta', source: 'bcb', group: 'Juros', label: 'Meta da taxa Selic', unit: '% ao ano', ...point, url: 'https://www.bcb.gov.br/controleinflacao/taxaselic' });
     return { fetched: 1, changed: point ? 1 : 0 };
   },

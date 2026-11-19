@@ -1,12 +1,25 @@
 # Segurança
 
-Atualização autorizada: cotas internas de mensagens removidas. Painel /uso público apenas com agregados de consumo, sem conteúdo, IP ou chave. Métricas persistidas localmente em .data ou em Redis para hospedagem compartilhada. Falha na coleta não bloqueia geração. Validação de entrada e origem permanecem. A cota de mensagens (por IP e global, por dia) protege os limites do provedor; o IP é guardado só como hash, com validade de dois dias.
+## Como reportar uma vulnerabilidade
+**Contato de segurança: pendente.** O dono do repositório ainda precisa designar o canal (por exemplo, um e-mail do SINDEPRESTEM ou os avisos privados de segurança do GitHub em *Security > Report a vulnerability*) e preencher esta seção. Enquanto isso, não abra uma issue pública com detalhes de uma falha.
 
-Segredos ficam em variáveis de ambiente privadas. Conversas existem apenas na aba, mas cada pergunta é enviada à API do Gemini (Google) para gerar a resposta. No nível gratuito o Google pode usar esse conteúdo para melhorar seus produtos. A SINDI remove dados pessoais e segredos antes do envio (`redigirDadosSensiveis`), a tela avisa para não enviar dados pessoais ou confidenciais e a chave (`GEMINI_API_KEY`) existe só no servidor.
+Ao reportar, descreva o que foi encontrado, como reproduzir e o impacto, **sem incluir segredos, dados pessoais nem conteúdo de conversas reais**. A resposta esperada: confirmação em até 5 dias úteis e correção ou plano em até 30 dias, conforme a gravidade (prazos a confirmar pelo dono).
 
-Em incidente: desabilitar o endpoint ou retirar o deploy, revogar chaves comprometidas, gerar substitutas, atualizar variáveis e verificar o uso registrado em /uso. Não incluir segredos no relatório. Canal responsável de segurança ainda deve ser designado pelo SINDEPRESTEM antes da publicação.
+## Escopo
+Está no escopo: o site e a API (chat, orçamento, painel, biblioteca, rotas de PDF), a coleta de dados públicos, a base de conhecimento e a configuração de publicação (túnel, Vercel). Fora do escopo: os serviços de terceiros em si (Google, Vercel, Cloudflare, Supabase, Upstash) e ataques que exijam acesso físico ao computador que hospeda a SINDI.
 
-Limitação: chat público sem autenticação não diferencia colaboradores, associados e visitantes. Não pode fornecer dados internos nem garantir limites por pessoa. Origem validada reduz abuso por navegadores, mas não autentica requisições externas.
+## Resumo do modelo de segurança
+- **Sem login e sem histórico de conversas.** O chat é público; há cota de mensagens por IP e global por dia (`src/lib/cota.ts`) e limite por minuto nas demais rotas. Painel `/uso` público só com agregados (sem conteúdo, IP ou chave); métricas em `.data` ou Redis.
+- **Segredos só no servidor**, em variáveis de ambiente privadas (`.env.local`, nunca versionado). A chave do Gemini nunca vai ao navegador, à URL nem aos logs.
+- **Privacidade da IA:** cada pergunta é enviada à API do Gemini (Google). No nível gratuito o Google pode usar esse conteúdo para melhorar seus produtos. A SINDI remove dados pessoais e segredos antes do envio (`redigirDadosSensiveis`), a tela avisa para não enviar dados pessoais ou confidenciais.
+- **Validação de entrada e de origem** em toda rota (`src/lib/http/guarda.ts`). Uma falha na coleta não bloqueia a geração das respostas.
+
+## Em caso de incidente
+Desabilitar o endpoint ou retirar a publicação, revogar as chaves comprometidas, gerar substitutas, atualizar as variáveis de ambiente e conferir o uso registrado em `/uso`. Não incluir segredos no relatório.
+
+## Limitações conhecidas
+- O chat público sem autenticação não diferencia colaboradores, associados e visitantes: não pode fornecer dados internos nem garantir limites por pessoa. A origem validada reduz o abuso por navegadores, mas não autentica requisições externas; a cota por IP depende do cabeçalho de IP do repasse (`SINDI_IP_HEADER`).
+- Há verificação automática de dependências (`npm audit` no CI) e de padrões inseguros (Semgrep), mas nenhum teste de intrusão externo.
 
 ## Serviço de IA
 A geração e a busca por significado usam a API do Gemini no nível gratuito, sem Ollama nem modelo local. Nenhum plano pago ou faturamento deve ser habilitado sem autorização. Métricas locais funcionam também em npm start; armazenamento efêmero da Vercel continua bloqueado sem Redis, e sem Redis a cota fica na memória de cada processo.

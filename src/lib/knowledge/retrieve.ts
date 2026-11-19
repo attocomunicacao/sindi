@@ -2,7 +2,7 @@ import { readFile } from 'node:fs/promises';
 import path from 'node:path';
 import { normalize, contextText, queryTerms, searchSnapshot, sufficientEvidence, SITE, type KnowledgeSnapshot, type Passage } from './core';
 import { supabaseRequest } from './supabase';
-import { orcamentoAnswer } from '../orcamento/interpretar';
+import { executarFerramentas } from '../ferramentas/registro';
 import { pedidoDeAjuda } from './grounded';
 import { buscarHibrido } from '../cerebro/buscar';
 import { faixasDeContribuicao } from '../cerebro/faixas';
@@ -24,15 +24,16 @@ const ESTANTES_PADRAO = ['artigos', 'noticias', 'cartilhas'];
 /**
  * Consulta a biblioteca para uma pergunta e devolve os trechos que o modelo vai usar para escrever a resposta. Nada daqui é mostrado ao usuário como texto pronto.
  *
- * 1. Cálculo do orçamento e, quando o conector da área reconhece um pedido de relatório ou panorama, o material do relatório (indicadores, publicações, projetos).
+ * 1. Resultado de uma ferramenta do site (hoje, o cálculo do orçamento; ver src/lib/ferramentas) e, quando o conector da área reconhece um pedido de relatório
+ *    ou panorama, o material do relatório (indicadores, publicações, projetos).
  * 2. Documentos e dados estruturados que a pergunta nomeia (NR, artigo, cláusula, indicador, posição do sindicato, lista de documentos): só os trechos que combinam
  *    com a pergunta e só eles, porque misturar outras fontes confunde o modelo pequeno e alonga a leitura.
  * 3. Demais perguntas: o cérebro (busca por palavras e por significado) e a pesquisa nas estantes da biblioteca indicadas pelo conector, ordenados pela cobertura
  *    dos termos da pergunta. Tudo é local (arquivos e SQLite), para a resposta não esperar por rede.
  */
 export async function retrieveKnowledge(question: string, language = 'pt', conector: Conector | undefined = escolherConector(question)) {
-  const orcamento = calculoDoOrcamento(question, language);
-  if (orcamento.length) return { context: contextText(orcamento), sufficient: true, passages: orcamento, semResposta: undefined, lista: false, relatorio: false };
+  const ferramentas = await executarFerramentas(question, { idioma: language, conector });
+  if (ferramentas.length) return { context: contextText(ferramentas), sufficient: true, passages: ferramentas, semResposta: undefined, lista: false, relatorio: false };
   if (pedeRelatorio(conector, question)) {
     const relatorio = materialDoRelatorio(question);
     if (relatorio.length) return { context: contextText(relatorio), sufficient: true, passages: relatorio, semResposta: undefined, lista: false, relatorio: true };
@@ -96,16 +97,6 @@ async function localSearch(question: string): Promise<Passage[]> {
     return searchSnapshot(snapshot, question, 8);
   } catch { return []; }
 }
-/**
- * Cálculo do orçamento de terceirização (uma conta sobre a tabela de referência) como trecho para o modelo: ele apresenta o resultado com palavras próprias,
- * e a verificação de fatos confere que cada valor citado está no cálculo. A referência leva à ferramenta, com os postos já preenchidos.
- */
-export function calculoDoOrcamento(question: string, language: string): Passage[] {
-  const texto = orcamentoAnswer(question, language); if (!texto) return [];
-  const ferramenta = texto.match(/\]\((\/orcamento[^)]*)\)/)?.[1] ?? '/orcamento';
-  return [{ url: ferramenta, title: 'Ferramenta de orçamento de terceirização', content: texto.replace(/\[([^\]]+)\]\([^)]*\)/g, '$1'), fetchedAt: new Date().toISOString(), pinned: true }];
-}
-
 /** Formata a página de contato coletada (usado só para gerar o arquivo de contatos do cérebro, não nas respostas do chat). */
 export function contactFromSource(content: string, language: string) {
   const body = content.split('Rodapé institucional')[0];

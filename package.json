@@ -19,11 +19,12 @@
     "cerebro:comparar": "tsx scripts/cerebro/comparar-busca.ts",
     "avaliar:treino": "tsx scripts/avaliacao/avaliar-treino.ts",
     "test:coverage": "tsx --test --experimental-test-coverage tests/*.test.ts tests/*.test.tsx",
-    "check": "npm run lint && npm run typecheck && npm test",
+    "check": "npm run lint && npm run typecheck && npm test && npm run build",
     "verificar:funcional": "tsx scripts/operacao/verificar-funcional.ts",
-    "test:e2e": "npm run build && playwright test"
+    "test:e2e": "npm run build && playwright test",
+    "test:ci": "tsx --test --experimental-test-coverage --test-coverage-lines=80 --test-coverage-include=\"src/**\" tests/*.test.ts tests/*.test.tsx"
   },
-  "license": "ISC",
+  "license": "UNLICENSED",
   "type": "module",
   "dependencies": {
     "@radix-ui/react-slot": "^1.4.0",
@@ -64,5 +65,6 @@
   "private": true,
   "engines": {
     "node": ">=24"
-  }
+  },
+  "packageManager": "npm@11.19.1"
 }

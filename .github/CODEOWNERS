@@ -1,0 +1,6 @@
+# Quem revisa o quê. Alterar a regra de uma pasta inclui o dono dela nas revisões automaticamente.
+*                         @attocomunicacao
+/src/lib/orcamento/       @attocomunicacao
+/cerebro/                 @attocomunicacao
+/SECURITY.md              @attocomunicacao
+/.github/                 @attocomunicacao

@@ -6,8 +6,20 @@ updates:
       interval: weekly
     open-pull-requests-limit: 5
     groups:
-      minor-and-patch:
+      producao:
+        dependency-type: production
         update-types: [minor, patch]
+      desenvolvimento:
+        dependency-type: development
+        update-types: [minor, patch]
+    # Majors dessas três quebram o ecossistema (o preset do Next e o tsx ainda não acompanham): migrar em PR próprio, de propósito.
+    ignore:
+      - dependency-name: typescript
+        update-types: [version-update:semver-major]
+      - dependency-name: eslint
+        update-types: [version-update:semver-major]
+      - dependency-name: '@types/node'
+        update-types: [version-update:semver-major]
   - package-ecosystem: github-actions
     directory: /
     schedule:

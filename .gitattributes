@@ -1,0 +1,19 @@
+# Fins de linha: o repositório guarda LF e o código de trabalho também, em qualquer sistema (sem os avisos "LF will be replaced by CRLF" no Windows).
+* text=auto eol=lf
+# Scripts do Windows precisam de CRLF.
+*.ps1 text eol=crlf
+*.vbs text eol=crlf
+*.bat text eol=crlf
+*.cmd text eol=crlf
+# Binários: nunca tocar.
+*.png binary
+*.jpg binary
+*.jpeg binary
+*.gif binary
+*.ico binary
+*.webp binary
+*.pdf binary
+*.xlsx binary
+*.sqlite binary
+*.woff binary
+*.woff2 binary

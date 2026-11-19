@@ -78,7 +78,8 @@ test('respostas externas: lista ausente vira erro claro e data inválida vira un
   assert.deepEqual(listaOuErro([1, 2], 'x'), [1, 2]);
   assert.throws(() => listaOuErro(undefined, 'api.exemplo.gov.br'), /Resposta inesperada de api\.exemplo\.gov\.br/);
   assert.throws(() => listaOuErro({ items: [] }, 'x'), /Resposta inesperada/);
-  assert.equal(dataIso('2026-10-13T12:00:00Z'), '2026-10-13T12:00:00.000Z'); assert.equal(dataIso('não é data'), undefined); assert.equal(dataIso(''), undefined); assert.equal(dataIso(undefined), undefined); assert.equal(dataIso('NaN-NaN-NaNT12:00:00Z'), undefined);
+  assert.equal(dataIso('2026-10-13T12:00:00Z'), '2026-10-13T12:00:00.000Z'); assert.equal(dataIso('não é data'), undefined); assert.equal(dataIso('ontem'), undefined, 'o V8 leria "ontem" como uma data qualquer');
+  assert.equal(dataIso('2026-10-01T10:30', { fuso: '-03:00' }), '2026-10-01T13:30:00.000Z'); assert.equal(dataIso('2026-10-01T10:30:45', { fuso: '-03:00' }), '2026-10-01T13:30:45.000Z'); assert.equal(dataIso('2026-10-01T10:30:00Z', { fuso: '-03:00' }), '2026-10-01T10:30:00.000Z', 'data que já tem fuso não muda'); assert.equal(dataIso(123 as never), undefined); assert.equal(dataIso(''), undefined); assert.equal(dataIso(undefined), undefined); assert.equal(dataIso('NaN-NaN-NaNT12:00:00Z'), undefined);
 });
 
 test('PDF: o teto de páginas limita o texto extraído', async () => {

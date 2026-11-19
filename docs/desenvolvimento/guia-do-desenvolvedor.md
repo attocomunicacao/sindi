@@ -75,6 +75,14 @@ Siga esta ordem; o teste `tests/ferramentas.test.ts` confere os itens 2, 3, 5 e 
 - [ ] Se usa o provedor de IA: passa pela cota; o custo em tokens do pedido é conhecido (o nível gratuito é limitado).
 - [ ] `npm run lint && npm run typecheck && npm test && npm run build` e `npm audit --audit-level=high` sem falhas.
 
+### Escrever testes
+
+- **Lógica e rotas**: `tests/<assunto>.test.ts`, com `node:test`. Rotas se chamam direto (`POST(new Request(...))`); copie `tests/orcamento-rotas.test.ts`. Trocar `globalThis.fetch` simula o Gemini e a rede; restaure no `finally`.
+- **Interface**: `tests/<assunto>.test.tsx` com Testing Library. Importe `./setup-dom` **primeiro** (cria o navegador jsdom); `definirAbaOculta` simula a aba em segundo plano. Veja `tests/interface-orcamento.test.tsx`.
+- **Coletores de dados**: `tests/rede-simulada.ts` (`simularRede` com respostas gravadas e `comBanco` com SQLite temporário, sem esperas). Cada coletor leva uma resposta boa, uma vazia, uma malformada e uma com erro HTTP. Chamar uma URL que nenhuma rota cobre falha o teste.
+- **Antes de confiar num teste novo**, quebre o código de propósito e confirme que ele falha (foi assim que os testes de interface foram validados).
+- `npm run test:coverage` mostra a cobertura; ela só mede os arquivos que algum teste carrega.
+
 ## 5. Convenções do projeto
 
 - Respostas da SINDI nunca são texto fixo do servidor: o servidor decide e busca, o modelo escreve, a verificação confere (`AGENTS.md`).

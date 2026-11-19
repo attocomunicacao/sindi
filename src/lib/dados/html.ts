@@ -6,7 +6,8 @@ const CONTAINERS = ['article', '.journal-content-article', '.entry-content', '.p
 /** Aceita ISO ou o formato brasileiro (13/10/26, 13/10/2026). */
 export function parseDate(value?: string) {
   if (!value) return undefined;
-  const br = value.match(/(\d{2})\/(\d{2})\/(\d{2}|\d{4})/);
+  // O ano de quatro dígitos vem antes do de dois: com a ordem inversa, "13/11/2026" era lido como 2020.
+  const br = value.match(/(\d{2})\/(\d{2})\/(\d{4}|\d{2})(?!\d)/);
   if (br) { const year = br[3].length === 2 ? '20' + br[3] : br[3]; const d = new Date(`${year}-${br[2]}-${br[1]}T12:00:00Z`); return Number.isNaN(d.getTime()) ? undefined : d.toISOString(); }
   const d = new Date(value); return Number.isNaN(d.getTime()) ? undefined : d.toISOString();
 }

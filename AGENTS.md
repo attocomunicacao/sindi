@@ -9,6 +9,8 @@
 - Sem logs de conteúdo, sem histórico persistente. Dados pessoais e segredos são removidos antes de ir ao modelo (`redigirDadosSensiveis`), mas no nível gratuito do Gemini o Google pode usar as perguntas para melhorar seus produtos: o usuário foi avisado e a tela pede para não enviar dados pessoais nem confidenciais.
 - Não inventar conhecimento institucional, jurídico ou conteúdo de documentos.
 - Executar lint, typecheck, testes, build e auditoria. Documentar limites de verificação.
+- Toda rota de API usa a guarda de `src/lib/http/guarda.ts` (origem, tipo, limite por minuto, tamanho do corpo, erro em JSON). Ferramentas novas seguem a receita de `docs/desenvolvimento/guia-do-desenvolvedor.md` e entram em `src/lib/ferramentas/registro.ts`; páginas novas entram em `src/lib/paginas.ts`.
+- Depois de subir o servidor, `npm run verificar:funcional` confere páginas, rotas, PDFs e ferramentas registradas.
 - Não publicar sem funcionamento, permissões e segurança verificados.
 - Não habilitar planos pagos ou faturamento sem autorização.
 

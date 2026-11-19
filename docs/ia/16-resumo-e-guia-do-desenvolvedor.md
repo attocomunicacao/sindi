@@ -1,5 +1,7 @@
 # SINDI — Resumo e guia do desenvolvedor
 
+> **Histórico.** O guia vigente é [`../desenvolvimento/guia-do-desenvolvedor.md`](../desenvolvimento/guia-do-desenvolvedor.md). Este documento descreve a versão de 13/10/2026 (Ollama, "sem cota") e não deve ser seguido para mudanças novas.
+
 > **Atualizado por `21-fluxo-e-modelo-reduzido.md`:** o caminho da pergunta (seção 3), os modelos e a estrutura de `cerebro/` e `scripts/` descritos abaixo mudaram em 13/10/2026. Use este guia para as receitas e as armadilhas; para o fluxo atual, o documento 21.
 > Documento de entrada para quem vai mexer no código. Baseado na leitura do repositório em 2026-10-13.
 > **Limite da leitura:** o núcleo (chat, Ollama, cérebro, busca, verificação, proxy, coleta SQLite, publicação do cérebro) foi lido por inteiro. `src/lib/dados/painel.ts`, `src/lib/dados/sindicato.ts`, `src/lib/orcamento/*`, `src/components/*`, os coletores e `scripts/*` foram lidos só por nome, tamanho e pela documentação. Onde isso importa, o texto avisa.

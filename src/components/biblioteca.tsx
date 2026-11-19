@@ -1,3 +1,4 @@
+import { linkSeguro } from '@/lib/url-segura';
 import Link from 'next/link';
 import { ArrowUpRight, ChevronLeft, ChevronRight, Search } from 'lucide-react';
 import type { Item, Parte } from '@/lib/biblioteca/consulta';
@@ -58,7 +59,7 @@ export function CartaoDoItem({ item, rotuloEstante, trecho }: { item: Item; rotu
       : item.resumo && <p className="mt-2 line-clamp-3 text-sm leading-6 text-slate-600">{item.resumo}</p>}
     <div className="mt-3 flex flex-wrap gap-5 text-sm">
       <Link href={`/base/documento/${item.id}`} className="font-medium text-slate-900 underline decoration-amber-400 decoration-2 underline-offset-4 hover:decoration-slate-900">Ler<Pendente /></Link>
-      <a href={item.url} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1 text-slate-500 hover:text-slate-900">Fonte oficial <ArrowUpRight size={14} aria-hidden /></a>
+      <a href={linkSeguro(item.url)} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1 text-slate-500 hover:text-slate-900">Fonte oficial <ArrowUpRight size={14} aria-hidden /></a>
     </div>
   </li>;
 }

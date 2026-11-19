@@ -1,12 +1,16 @@
 import { lerDocumento } from '@/lib/biblioteca/consulta';
 import { obterPdf, pdfPermitido } from '@/lib/biblioteca/pdf';
+import { limitarPorMinuto, respostaDeLimite } from '@/lib/limite';
 
 export const runtime = 'nodejs';
 const erro = (status: number) => new Response(null, { status, headers: { 'Cache-Control': 'no-store' } });
 
 export async function GET(request: Request, { params }: { params: Promise<{ id: string }> }) {
-  const id = Number((await params).id);
-  if (!Number.isSafeInteger(id) || id < 1) return erro(400);
+  const texto = (await params).id;
+  if (!/^\d{1,9}$/.test(texto)) return erro(400);
+  const id = Number(texto);
+  if (id < 1) return erro(400);
+  const limite = limitarPorMinuto(request, 'biblioteca-pdf', 30); if (!limite.ok) return respostaDeLimite(limite.reiniciaEmSegundos);
   const documento = lerDocumento(id);
   const url = documento && pdfPermitido(documento.fonteOriginal);
   if (!documento || !url) return erro(404);

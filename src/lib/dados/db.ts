@@ -2,6 +2,7 @@ import { DatabaseSync } from 'node:sqlite';
 import { createHash } from 'node:crypto';
 import { mkdirSync } from 'node:fs';
 import path from 'node:path';
+import { urlDeDocumentoValida } from '../url-segura';
 
 export type Doc = { source: string; url: string; title: string; content: string; publishedAt?: string; meta?: Record<string, unknown> };
 export type Indicator = { id: string; source: string; group: string; label: string; value: number; unit: string; period: string; previous?: number; url: string };
@@ -35,6 +36,8 @@ const sha = (text: string) => createHash('sha256').update(text).digest('hex');
 
 /** Insere ou atualiza; devolve true somente quando o texto mudou (ou é novo). */
 export function upsertDocument(db: Db, doc: Doc, now = new Date().toISOString()): boolean {
+  // O endereço vem, às vezes, de APIs externas e depois vira link na biblioteca e no chat: só http, https e ftp, sem credenciais.
+  if (!urlDeDocumentoValida(doc.url)) return false;
   const hash = sha(doc.title + '\n' + doc.content);
   const row = db.prepare('SELECT hash FROM documents WHERE url = ?').get(doc.url) as { hash: string } | undefined;
   const meta = doc.meta ? JSON.stringify(doc.meta) : null;

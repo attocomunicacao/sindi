@@ -13,6 +13,19 @@ export function hostLocal(host: string | null): boolean {
   return nome === 'localhost' || nome === '127.0.0.1' || nome === '::1';
 }
 
+/** Cabeçalhos que Cloudflare (túnel), Vercel e demais repasses acrescentam. Um navegador abrindo http://localhost direto no computador nunca os traz. */
+const CABECALHOS_DE_REPASSE = ['x-real-ip', 'forwarded', 'cf-connecting-ip', 'cf-ray', 'x-vercel-forwarded-for', 'x-vercel-id'];
+const LOOPBACK = /^(127(\.\d{1,3}){3}|::1|::ffff:127(\.\d{1,3}){3}|localhost)$/i;
+/**
+ * Pedido feito no próprio computador: Host local e nenhum sinal de repasse. O Host sozinho não basta (um repasse pode reescrevê-lo). O próprio Next acrescenta
+ * `x-forwarded-for` até em acesso local (com o endereço de loopback), por isso esse cabeçalho só indica repasse quando traz um endereço que não é de loopback.
+ */
+export function pedidoLocal(request: Request): boolean {
+  if (!hostLocal(request.headers.get('host')) || process.env.VERCEL || CABECALHOS_DE_REPASSE.some(nome => request.headers.has(nome))) return false;
+  const encaminhado = request.headers.get('x-forwarded-for');
+  return !encaminhado || encaminhado.split(',').every(ip => LOOPBACK.test(ip.trim()));
+}
+
 /** Executa a mesma coleta do comando `npm run dados:sync` (coleta, planilha, cérebro e índice de busca) em segundo plano. */
 export function iniciarAtualizacao(completa: boolean): { ok: boolean; motivo?: string } {
   const e = estado();

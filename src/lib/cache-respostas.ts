@@ -21,4 +21,16 @@ export function guardarResposta(chave: string, texto: string, agora = Date.now()
   respostas.delete(chave); respostas.set(chave, { texto, ate: agora + VALIDADE_MS });
   while (respostas.size > MAXIMO) respostas.delete(respostas.keys().next().value!);
 }
-export function limparRespostasGuardadas() { respostas.clear(); }
+export function limparRespostasGuardadas() { respostas.clear(); emAndamento.clear(); }
+
+// Mesma pergunta, mesmas regras e fontes chegando ao mesmo tempo: só a primeira gera; as outras esperam o resultado e o reaproveitam (e não gastam o limite do provedor).
+const emAndamento = new Map<string, Promise<string | undefined>>();
+/** Resposta que outra requisição está gerando agora, se houver. Resolve com o texto final, ou `undefined` se aquela geração falhou (aí quem esperou gera por conta própria). */
+export const esperarIgual = (chave: string): Promise<string | undefined> | undefined => emAndamento.get(chave);
+/** Registra que esta requisição vai gerar a resposta da chave. Devolve a função que conclui (com o texto, ou sem ele em caso de falha); só a primeira chamada vale. */
+export function abrirGeracao(chave: string): (texto?: string) => void {
+  let concluir!: (texto?: string) => void; let feito = false;
+  const promessa = new Promise<string | undefined>(resolver => { concluir = resolver; });
+  emAndamento.set(chave, promessa);
+  return texto => { if (feito) return; feito = true; if (emAndamento.get(chave) === promessa) emAndamento.delete(chave); concluir(texto); };
+}

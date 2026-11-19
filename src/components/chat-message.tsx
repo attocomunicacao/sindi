@@ -1,3 +1,4 @@
+import { memo } from 'react';
 import Markdown, { defaultUrlTransform } from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 
@@ -8,7 +9,8 @@ function safeUrl(url: string) {
   return /^(https?:\/\/|mailto:)/i.test(safe) || INTERNO.test(safe) ? safe : '';
 }
 
-export function ChatMessage({ content }: { content: string }) {
+// `memo`: durante o stream só a última resposta muda; as anteriores não são interpretadas de novo a cada token.
+export const ChatMessage = memo(function ChatMessage({ content }: { content: string }) {
   return <div className="message text-sm">
     <Markdown remarkPlugins={[remarkGfm]} skipHtml urlTransform={safeUrl} components={{
       a: ({ href, children }) => href
@@ -18,4 +20,4 @@ export function ChatMessage({ content }: { content: string }) {
       img: ({ alt }) => <span>{alt}</span>,
     }}>{content}</Markdown>
   </div>;
-}
+});

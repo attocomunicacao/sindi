@@ -38,10 +38,20 @@ export async function recordUsage(event: Event): Promise<boolean> {
       });
       queue = update.catch(() => {}); await update;
     }
+    leitura = undefined;
     return true;
   } catch { console.warn('SINDI metrics unavailable'); return false; }
 }
+let leitura: { em: number; modo: string; valor: Awaited<ReturnType<typeof lerUso>> } | undefined;
+const modoDeArmazenamento = () => (shared() ? 'compartilhado' : process.env.VERCEL ? 'vercel' : 'local');
+/** A leitura dos 30 dias (30 consultas ao Redis) fica 30 s em memória: o painel público pode ser aberto muitas vezes, e as métricas não precisam ser instantâneas. */
 export async function getUsage() {
+  const modo = modoDeArmazenamento();
+  if (leitura && leitura.modo === modo && Date.now() - leitura.em < 30_000) return leitura.valor;
+  const valor = await lerUso(); leitura = { em: Date.now(), modo, valor }; return valor;
+}
+export function esquecerLeituraDeUso() { leitura = undefined; }
+async function lerUso() {
   const dates = Array.from({ length: 30 }, (_, i) => { const d = new Date(); d.setUTCDate(d.getUTCDate() - (29 - i)); return new Intl.DateTimeFormat('en-CA', { timeZone: 'America/Sao_Paulo', year: 'numeric', month: '2-digit', day: '2-digit' }).format(d); });
   if (shared()) {
     const result = await Promise.all(dates.map(async date => {

@@ -93,3 +93,18 @@ test('concorrência limitada: o segundo pedido espera a vez, quem desiste da fil
     assert.equal((await quarto).text, 'ok'); assert.equal(maximo, 1);
   });
 });
+
+test('o tempo limite da chamada só conta a partir da vez: quem esperou na fila não perde tempo, e uma chamada travada estoura', async () => {
+  await comAmbiente({ GEMINI_API_KEY: 'k', SINDI_CONCORRENCIA: '1', SINDI_TIMEOUT_MS: '300' }, async () => {
+    const ok = () => Response.json({ candidates: [{ content: { parts: [{ text: 'ok' }] }, finishReason: 'STOP' }] });
+    // O primeiro ocupa a vaga por 250 ms; o segundo espera esse tempo e depois ainda tem os 300 ms completos para a própria chamada.
+    globalThis.fetch = async () => { await new Promise(r => setTimeout(r, 250)); return ok(); };
+    const [a, b] = await Promise.all([gerarTexto([], AbortSignal.timeout(5000)), gerarTexto([], AbortSignal.timeout(5000))]);
+    assert.equal(a.text, 'ok'); assert.equal(b.text, 'ok');
+    // Uma chamada que nunca responde é cortada pelo tempo limite e libera a vaga.
+    globalThis.fetch = async (_url, init) => new Promise<Response>((_, rejeitar) => { (init!.signal as AbortSignal).addEventListener('abort', () => rejeitar((init!.signal as AbortSignal).reason), { once: true }); });
+    await assert.rejects(gerarTexto([], AbortSignal.timeout(5000)), { name: 'TimeoutError' });
+    globalThis.fetch = async () => ok();
+    assert.equal((await gerarTexto([], AbortSignal.timeout(5000))).text, 'ok');
+  });
+});

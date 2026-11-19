@@ -9,7 +9,7 @@ import type { Passage } from '@/lib/knowledge/core';
 import { allowedChatOrigin } from '@/lib/origin';
 import { escolherConector, type Conector } from '@/lib/cerebro/conectores';
 import { exemplos, mensagemDoPedido, sistema, type Mensagem } from '@/lib/cerebro/instrucoes';
-import { cacheLigado, chaveDaResposta, guardarResposta, respostaGuardada } from '@/lib/cache-respostas';
+import { abrirGeracao, cacheLigado, chaveDaResposta, esperarIgual, guardarResposta, respostaGuardada } from '@/lib/cache-respostas';
 import { timingSafeEqual } from 'node:crypto';
 export const runtime = 'nodejs';
 export const maxDuration = 300;
@@ -82,6 +82,7 @@ export async function POST(request: Request) {
   const recordUsage: typeof registrarUso = aquecimento ? async () => true : registrarUso;
   const controller = new AbortController();
   async function generate(onDelta?: (text: string) => void, onReset?: () => void) {
+  let concluirGeracao: ((texto?: string) => void) | undefined;
   try {
     const signal = AbortSignal.any([request.signal, controller.signal, AbortSignal.timeout(90000)]);
     const mensagens = parsed.data!.messages; const question = mensagens.at(-1)!.content;
@@ -143,11 +144,15 @@ export async function POST(request: Request) {
     let modelo = modeloRapido() && situacao ? modeloRapido() : modeloPrincipal();
     const chave = cacheLigado() && mensagens.length === 1 && situacao !== 'dados-sensiveis' ? chaveDaResposta(modelo, JSON.stringify(base), primeira.texto) : undefined;
     const guardada = chave ? respostaGuardada(chave) : undefined;
-    if (guardada) {
-      onDelta?.(guardada);
+    // Outra pessoa fazendo agora a mesma pergunta: espera a resposta dela em vez de gerar outra (e gastar outra requisição do limite gratuito).
+    const emCurso = chave && !guardada ? esperarIgual(chave) : undefined;
+    const reaproveitada = guardada ?? (emCurso ? await Promise.race([emCurso, new Promise<never>((_, rejeitar) => { if (signal.aborted) rejeitar(signal.reason); else signal.addEventListener('abort', () => rejeitar(signal.reason), { once: true }); })]) : undefined);
+    if (reaproveitada) {
+      onDelta?.(reaproveitada);
       const metricsRecorded = await recordUsage({ success: true, durationMs: Date.now() - started });
-      return Response.json({ text: guardada, metricsRecorded }, { headers: { 'Cache-Control': 'no-store' } });
+      return Response.json({ text: reaproveitada, metricsRecorded }, { headers: { 'Cache-Control': 'no-store' } });
     }
+    if (chave) concluirGeracao = abrirGeracao(chave);
     // Cota de mensagens: uma por mensagem do usuário, só quando o provedor de IA vai ser usado (resposta guardada não gasta) e nunca no aquecimento do servidor.
     const cota = aquecimento ? undefined : await consumirCota(request);
     if (cota && !cota.ok) return Response.json({ error: mensagemDeCota(cota), restantes: 0 }, { status: 429, headers: { 'Cache-Control': 'no-store', 'Retry-After': String(cota.reiniciaEmSegundos) } });
@@ -167,10 +172,10 @@ export async function POST(request: Request) {
     }
     if (!confiavel) { await recordUsage({ success: false, durationMs: Date.now() - started, usage: uso }); return error('Não foi possível gerar uma resposta confiável. Tente reformular a pergunta.', 502); }
     const references = !writing && texto.trim() && fontesUsadas.length ? sourceReferences(fontesUsadas, language) : '';
-    onDelta?.(references);
+    if (references) onDelta?.(references);
     const metricsRecorded = await recordUsage({ success: Boolean(texto.trim()), durationMs: Date.now() - started, usage: uso });
     if (!texto.trim()) return error('Não foi possível gerar uma resposta. Tente novamente.', 502);
-    if (chave && fontesUsadas === choices) guardarResposta(chave, texto + references);
+    if (chave && fontesUsadas === choices) { guardarResposta(chave, texto + references); concluirGeracao?.(texto + references); }
     return Response.json({ text: texto + references, metricsRecorded, restantes: cota?.restantes }, { headers: { 'Cache-Control': 'no-store' } });
   } catch (cause) {
     await recordUsage({ success: false, durationMs: Date.now() - started });
@@ -178,7 +183,7 @@ export async function POST(request: Request) {
     if (cause instanceof Error && ['TimeoutError', 'AbortError'].includes(cause.name)) return error('O serviço de IA demorou para responder. Tente novamente.', 504);
     console.warn('SINDI AI service failure', { type: cause instanceof Error ? cause.name : 'unknown' });
     return error('Não foi possível falar com o serviço de IA agora. Tente novamente em instantes.', 503);
-  }
+  } finally { concluirGeracao?.(); }
   }
   if (!request.headers.get('accept')?.includes('application/x-ndjson')) return generate();
   const encoder = new TextEncoder(); let cancelled = false;

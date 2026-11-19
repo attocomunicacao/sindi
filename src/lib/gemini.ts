@@ -86,7 +86,9 @@ export async function gerarTexto(messages: Message[], signal: AbortSignal, onDel
     if (!/^[a-z0-9][a-z0-9._-]*$/i.test(nome)) throw new LlmError('Nome de modelo inválido.', 503);
     const streaming = Boolean(onDelta);
     const url = `${API}/models/${nome}:${streaming ? 'streamGenerateContent?alt=sse' : 'generateContent'}`;
-    const response = await fetch(url, { method: 'POST', headers: { 'Content-Type': 'application/json', 'x-goog-api-key': process.env.GEMINI_API_KEY! }, body: JSON.stringify(montarCorpo(messages, opcoes)), cache: 'no-store', signal });
+    // O tempo limite da chamada só começa a contar agora, quando a vez chegou: quem esperou na fila não perde tempo da própria geração.
+    const sinalDaChamada = AbortSignal.any([signal, AbortSignal.timeout(inteiro(process.env.SINDI_TIMEOUT_MS, 45000, 1, 240000))]);
+    const response = await fetch(url, { method: 'POST', headers: { 'Content-Type': 'application/json', 'x-goog-api-key': process.env.GEMINI_API_KEY! }, body: JSON.stringify(montarCorpo(messages, opcoes)), cache: 'no-store', signal: sinalDaChamada });
     if (!response.ok) throw erroHttp(response.status, await response.text().catch(() => ''));
     let content = ''; let finish: string | undefined; let usage: Pedaco['usageMetadata']; let bloqueio: string | undefined;
     const absorver = (pedaco: Pedaco) => {

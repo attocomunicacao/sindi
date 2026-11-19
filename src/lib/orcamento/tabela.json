@@ -100,6 +100,15 @@
    "avisoPrevioTrabalhadoPct": 0.05,
    "demitidosSemJustaCausa": 0.0256,
    "demitidosAte30Dias": 0.03,
+   "multaFgts": {
+    "base": 0.032,
+    "percentual": 0.4
+   },
+   "contribuicaoLc110Art1": {
+    "base": 0.008,
+    "ajuste": 0.0025,
+    "percentual": 0.1
+   },
    "permanenciaMeses": 26.11,
    "maternidadeBase": {
     "dias": 120,

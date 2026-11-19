@@ -5,8 +5,10 @@ import { calcularEncargos, type Encargos } from './encargos';
 export type Turno = 'diurno' | 'noturno';
 export type PostoEntrada = {
   funcaoId: string; quantidade: number; turno: Turno;
-  /** Periculosidade de 30% sobre o salário (a função "com periculosidade" já a inclui). */
-  periculosidade?: boolean; insalubridade?: 0 | 0.1 | 0.2 | 0.4;
+  /** Periculosidade de 30% sobre o salário. `true` força; `false` remove, inclusive a da função "com periculosidade"; ausente segue a função. */
+  periculosidade?: boolean;
+  /** Grau da insalubridade sobre o salário mínimo. `0` remove a da função; ausente segue a função. */
+  insalubridade?: 0 | 0.1 | 0.2 | 0.4;
   /** Horas noturnas por funcionário por mês; padrão de 180 no turno noturno, como no exemplo de portaria da planilha. */
   horasNoturnas?: number; horasExtras?: { h50?: number; h100?: number; h150?: number };
 };
@@ -21,7 +23,10 @@ export type Parcelas = {
   cestaBasica: number; valeRefeicao: number; assistenciaMedica: number; assistenciaSocial: number; seguroVida: number; valeTransporte: number;
   ppr: number; pcmso: number; seac: number; contribuicaoPatronal: number; uniformes: number; epis: number;
 };
+export type TipoAdicional = 'periculosidade' | 'insalubridade';
 export type PostoCalculado = {
+  /** Adicional que entrou na folha (o maior) e o que foi descartado por não se acumular (CLT art. 193 §2º). */
+  adicional: TipoAdicional | null; adicionalDescartado: TipoAdicional | null;
   entrada: PostoEntrada; funcao: Funcao; quantidade: number; porFuncionario: Parcelas; total: Parcelas; custoDireto: number; custoPorFuncionario: number;
   valorMensal: number; valorPorFuncionario: number;
 };
@@ -46,18 +51,29 @@ function custoEpi(funcao: Funcao) {
   const kit = funcao.kit ? (tabela.kitsEpi as Record<string, { valor: number }[]>)[funcao.kit] : undefined;
   return kit ? soma(...kit.map(i => i.valor)) : 0;
 }
-/** Custo mensal de um funcionário no posto, seguindo as fórmulas da aba "Inserção de dados" e do "Resumo" da planilha. */
+/**
+ * Adicionais do posto. Periculosidade e insalubridade não se acumulam (CLT art. 193 §2º: o empregado opta por um): entra o maior, e em empate a periculosidade.
+ * `base` é o salário mais o adicional aplicado, que é sobre o que incidem as horas extras e o adicional noturno.
+ */
+export function adicionaisDoPosto(posto: PostoEntrada, funcao: Funcao) {
+  const percentual = posto.periculosidade === true ? Math.max(funcao.periculosidade, 0.3) : posto.periculosidade === false ? 0 : funcao.periculosidade;
+  const periculosidade = funcao.salario * percentual;
+  const insalubridade = tabela.parametros.salarioMinimo * (posto.insalubridade ?? funcao.insalubridade);
+  const aplicado: TipoAdicional | null = periculosidade <= 0 && insalubridade <= 0 ? null : periculosidade >= insalubridade ? 'periculosidade' : 'insalubridade';
+  const descartado: TipoAdicional | null = periculosidade > 0 && insalubridade > 0 ? (aplicado === 'periculosidade' ? 'insalubridade' : 'periculosidade') : null;
+  const valores = { periculosidade: aplicado === 'periculosidade' ? periculosidade : 0, insalubridade: aplicado === 'insalubridade' ? insalubridade : 0 };
+  return { ...valores, aplicado, descartado, base: funcao.salario + valores.periculosidade + valores.insalubridade };
+}
+/** Custo mensal de um funcionário no posto, seguindo as fórmulas da aba "Inserção de dados" e do "Resumo" da planilha (com o adicional único e a base das horas descritos acima). */
 export function custoPorFuncionario(posto: PostoEntrada, funcao: Funcao, taxaEncargos: number): Parcelas {
   const p = tabela.parametros;
-  const hora = funcao.salario / funcao.divisorHoras;
-  const periculosidade = funcao.salario * (posto.periculosidade ? Math.max(funcao.periculosidade, 0.3) : funcao.periculosidade);
-  const grauInsalubridade = posto.insalubridade ?? funcao.insalubridade;
-  const insalubridade = p.salarioMinimo * grauInsalubridade;
+  const { periculosidade, insalubridade, base } = adicionaisDoPosto(posto, funcao);
+  const hora = base / funcao.divisorHoras;
   const dsr = p.dsr.diasDescanso / p.dsr.diasUteis;
   const horasNoturnas = posto.turno === 'noturno' ? (posto.horasNoturnas ?? HORAS_NOTURNAS_PADRAO) : 0;
   const adicionalNoturno = hora * p.adicionalNoturno * horasNoturnas * (1 + dsr);
   const he = posto.horasExtras ?? {};
-  const valorHe = ((funcao.salario / 220) * 1.5 * (he.h50 ?? 0)) + ((funcao.salario / 220) * 2 * (he.h100 ?? 0)) + ((funcao.salario / 220) * 2.5 * (he.h150 ?? 0));
+  const valorHe = hora * ((1.5 * (he.h50 ?? 0)) + (2 * (he.h100 ?? 0)) + (2.5 * (he.h150 ?? 0)));
   const horasExtras = valorHe * (1 + dsr);
   const folha = funcao.salario + periculosidade + insalubridade + adicionalNoturno + horasExtras;
   const valeTransporte = Math.max(0, p.valeTransporteUnitario * p.viagensPorDia * p.diasValeTransporte - funcao.salario * p.descontoValeTransporte);
@@ -87,7 +103,8 @@ export function calcularOrcamento(entrada: OrcamentoEntrada): Resultado {
   for (const e of entrada.postos) {
     const funcao = funcaoPorId(e.funcaoId); if (!funcao || !(e.quantidade > 0)) continue;
     const porFuncionario = custoPorFuncionario(e, funcao, taxaEncargos); const total = multiplicar(porFuncionario, e.quantidade);
-    postos.push({ entrada: e, funcao, quantidade: e.quantidade, porFuncionario, total, custoDireto: custoDiretoDe(total), custoPorFuncionario: custoDiretoDe(porFuncionario), valorMensal: 0, valorPorFuncionario: 0 });
+    const { aplicado, descartado } = adicionaisDoPosto(e, funcao);
+    postos.push({ adicional: aplicado, adicionalDescartado: descartado, entrada: e, funcao, quantidade: e.quantidade, porFuncionario, total, custoDireto: custoDiretoDe(total), custoPorFuncionario: custoDiretoDe(porFuncionario), valorMensal: 0, valorPorFuncionario: 0 });
     agrupados.push(total);
   }
   const insumos = calcularInsumos(entrada.insumos);

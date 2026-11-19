@@ -12,7 +12,17 @@ export function referencia(entrada: OrcamentoEntrada, cliente: Cliente) {
   return createHash('sha256').update(JSON.stringify({ entrada, cliente })).digest('hex').slice(0, 6).toUpperCase();
 }
 const turno = (p: PostoCalculado) => (p.entrada.turno === 'noturno' ? 'Noturno' : 'Diurno');
-const nomePosto = (p: PostoCalculado) => `${p.funcao.nome}${p.entrada.periculosidade && !/periculosidade/i.test(p.funcao.nome) ? ' (periculosidade)' : ''}`;
+const nomePosto = (p: PostoCalculado) => `${p.funcao.nome}${p.adicional === 'periculosidade' && !/periculosidade/i.test(p.funcao.nome) ? ' (periculosidade)' : p.adicional === 'insalubridade' ? ' (insalubridade)' : ''}`;
+const dataDaTabela = () => tabela.meta.extraidoEm.split('-').reverse().join('/');
+/** Premissas do cálculo que mudam o preço e que quem recebe o documento precisa conhecer; vão nos dois PDFs. */
+export function premissasDoCalculo(r: Resultado) {
+  const descartados = r.postos.filter(p => p.adicionalDescartado).length;
+  return [
+    `Salário mínimo da tabela: ${moeda(tabela.parametros.salarioMinimo)} (posição de ${dataDaTabela()}), usado como base da insalubridade. Confirme o valor vigente antes de contratar.`,
+    `Periculosidade e insalubridade não se acumulam: aplica-se a maior (CLT, art. 193, § 2º).${descartados ? ` Em ${descartados} posto(s) foram marcados os dois adicionais e entrou só o maior.` : ''}`,
+    'Horas extras e adicional noturno incidem sobre o salário somado ao adicional aplicado, com o divisor de horas da função. Premissa a confirmar com o jurídico do SINDEPRESTEM.',
+  ];
+}
 const RODAPE = 'Estimativa gerada pela SINDI (SINDEPRESTEM). Não substitui proposta comercial nem a convenção coletiva vigente.';
 const REFERENCIA_CLIENTE = 'tabela de referência de custos de terceirização';
 
@@ -54,7 +64,8 @@ export async function gerarOrcamentoPdf(entrada: OrcamentoEntrada, r: Resultado,
   const noturnos = r.postos.filter(p => p.entrada.turno === 'noturno');
   doc.marcadores([
     `Base de cálculo: ${REFERENCIA_CLIENTE} (posição de ${tabela.meta.extraidoEm.split('-').reverse().join('/')}). ${tabela.meta.observacao}`,
-    ...(noturnos.length ? [`Turno noturno: ${numero(noturnos[0].entrada.horasNoturnas ?? HORAS_NOTURNAS_PADRAO)} horas noturnas por funcionário por mês, calculadas sobre o salário-hora (salário ÷ 220).`] : []),
+    ...(noturnos.length ? [`Turno noturno: ${numero(noturnos[0].entrada.horasNoturnas ?? HORAS_NOTURNAS_PADRAO)} horas noturnas por funcionário por mês, calculadas sobre o salário-hora (salário mais adicional aplicado, dividido pelo divisor da função).`] : []),
+    ...premissasDoCalculo(r),
     'Valores mensais, sem reajuste. Dissídio, mudanças na convenção coletiva da categoria, alíquota de ISS do município e escopo efetivo podem alterar o preço.',
     'Esta é uma estimativa para planejamento e comparação de propostas. Não é proposta comercial, contrato nem parecer jurídico ou contábil.',
     ...(cliente.observacoes ? [`Observações do solicitante: ${cliente.observacoes}`] : []),
@@ -129,6 +140,6 @@ export async function gerarRelatorioCustoPdf(entrada: OrcamentoEntrada, r: Resul
     ['ISS / PIS / COFINS / CSLL / IRPJ', `${percentual(r.tributos.taxas.ISS)} / ${percentual(p.impostos.pis)} / ${percentual(p.impostos.cofins)} / ${percentual(p.impostos.contribuicaoSocial)} / ${percentual(p.impostos.irpj)}`],
   ]);
   doc.titulo2('Observações sobre a tabela de referência');
-  doc.marcadores([`Fonte: ${tabela.meta.origem}. ${tabela.meta.observacao}`, ...AJUSTES_TABELA, 'O salário mínimo da planilha é usado apenas na insalubridade; as funções de limpeza seguem a convenção coletiva da categoria de asseio e conservação, que não é a do SINDEPRESTEM.'], 8.5);
+  doc.marcadores([`Fonte: ${tabela.meta.origem}. ${tabela.meta.observacao}`, ...premissasDoCalculo(r), ...AJUSTES_TABELA, 'O salário mínimo da planilha é usado apenas na insalubridade; as funções de limpeza seguem a convenção coletiva da categoria de asseio e conservação, que não é a do SINDEPRESTEM.'], 8.5);
   return doc.bytes();
 }

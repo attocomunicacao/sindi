@@ -14,7 +14,9 @@ export function calcularEncargos(parametros: Parametros = tabela.encargos.parame
   const p = parametros;
   const base = tabela.encargos;
   const grupoA = base.grupoA.map(l => ({ nome: l.nome, taxa: l.taxa ?? 0, baseLegal: l.baseLegal ?? undefined }));
-  const fgts = grupoA.find(l => l.nome === 'FGTS')?.taxa ?? 0.08;
+  // Sem a linha de FGTS na tabela não há como calcular os encargos de rescisão: melhor falhar do que usar uma alíquota presumida.
+  const fgts = grupoA.find(l => l.nome === 'FGTS')?.taxa;
+  if (fgts === undefined) throw new Error('Tabela de encargos sem a linha de FGTS.');
   const contribuicaoSocial = grupoA.find(l => l.nome.startsWith('CONTRIBUIÇÃO SOCIAL'))?.taxa ?? 0;
   const totalA = grupoA.reduce((soma, l) => soma + l.taxa, 0);
 
@@ -46,8 +48,9 @@ export function calcularEncargos(parametros: Parametros = tabela.encargos.parame
   const csAviso = indenizado * contribuicaoSocial;
   const reflexos = indenizado / 12 + indenizado / 12 / 3 + (indenizado / 12) * (1 + fgts + contribuicaoSocial);
   const demitidos = p.avisoPrevioIndenizadoPct + p.avisoPrevioTrabalhadoPct;
-  const multaFgts = (0.032 + totalB * fgts * 0.4 + (indenizado + indenizado / 12) * fgts * 0.4) * demitidos;
-  const contribuicaoArt1 = (0.008 + totalB * fgts * 0.1 + (indenizado + 0.0025) * fgts * 0.1) * demitidos;
+  const multa = p.multaFgts; const lc110 = p.contribuicaoLc110Art1;
+  const multaFgts = (multa.base + totalB * fgts * multa.percentual + (indenizado + indenizado / 12) * fgts * multa.percentual) * demitidos;
+  const contribuicaoArt1 = (lc110.base + totalB * fgts * lc110.percentual + (indenizado + lc110.ajuste) * fgts * lc110.percentual) * demitidos;
   const indenizacaoAdicional = (feriasGozadas / base28) * p.demitidosAte30Dias / p.permanenciaMeses * 12;
   const grupoC: LinhaEncargo[] = [
     { nome: 'Aviso prévio indenizado', taxa: indenizado, baseLegal: tabela.encargos.baseLegal['AVISO PRÉVIO INDENIZADO'] }, { nome: 'FGTS sobre aviso prévio', taxa: fgtsAviso, baseLegal: tabela.encargos.baseLegal['FGTS S/ AVISO PRÉVIO'] },

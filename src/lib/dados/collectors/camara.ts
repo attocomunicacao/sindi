@@ -10,7 +10,7 @@ export function billDocument(d: Detail['dados']) {
   const s = d.statusProposicao; const name = `${d.siglaTipo} ${d.numero}/${d.ano}`;
   const content = [`${name} — ${d.ementa}`, d.keywords ? `Palavras-chave: ${d.keywords}` : '', `Apresentação: ${d.dataApresentacao?.slice(0, 10)}`,
     s ? `Situação: ${s.descricaoSituacao}. Último andamento (${s.dataHora?.slice(0, 10)}, ${s.siglaOrgao}): ${s.descricaoTramitacao}. ${s.despacho || ''}` : ''].filter(Boolean).join('\n');
-  return { name, content, movedAt: s?.dataHora ? dataIso(s.dataHora + ':00-03:00') : undefined, situacao: s?.descricaoSituacao };
+  return { name, content, movedAt: dataIso(s?.dataHora, { fuso: '-03:00' }), situacao: s?.descricaoSituacao };
 }
 /** Já guardadas, as proposições são revisadas da mais antiga para a mais nova, em pequenos lotes. */
 function oldestIds(db: Db, limit: number) {
@@ -35,7 +35,7 @@ export const camara: Collector = {
     for (const id of [...fresh.slice(0, full ? 400 : 60), ...refresh.slice(0, 25)]) {
       const detail = await getJson<Detail>(`${BASE}/proposicoes/${id}`); fetched++;
       const bill = billDocument(detail.dados);
-      if (upsertDocument(db, { source: 'camara', url: `https://www.camara.leg.br/proposicoesWeb/fichadetramitacao?idProposicao=${id}`, title: bill.name, content: bill.content, publishedAt: dataIso(detail.dados.dataApresentacao), meta: { movedAt: bill.movedAt, situacao: bill.situacao } })) changed++;
+      if (upsertDocument(db, { source: 'camara', url: `https://www.camara.leg.br/proposicoesWeb/fichadetramitacao?idProposicao=${id}`, title: bill.name, content: bill.content, publishedAt: dataIso(detail.dados.dataApresentacao, { fuso: '-03:00' }), meta: { movedAt: bill.movedAt, situacao: bill.situacao } })) changed++;
     }
     return { fetched, changed };
   },

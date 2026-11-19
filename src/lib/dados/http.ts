@@ -7,11 +7,13 @@ const spacing = new Map<string, number>();
 const robots = new Map<string, ReturnType<typeof robotsParser> | null>();
 const MAX_BYTES = 30 * 1024 * 1024;
 
+/** Só os testes desligam as esperas (SINDI_HTTP_PAUSA_MS=0): em produção o intervalo entre requisições e as pausas das novas tentativas valem sempre. */
+const pausa = (ms: number) => (process.env.SINDI_HTTP_PAUSA_MS === '0' ? 0 : ms);
 /** Intervalo mínimo entre requisições ao mesmo domínio, para não sobrecarregar as fontes. */
 async function throttle(host: string, minMs: number) {
   const wait = Math.max(0, (spacing.get(host) ?? 0) - Date.now());
-  spacing.set(host, Math.max(spacing.get(host) ?? 0, Date.now()) + minMs);
-  if (wait) await delay(wait);
+  spacing.set(host, Math.max(spacing.get(host) ?? 0, Date.now()) + pausa(minMs));
+  if (wait) await delay(pausa(wait));
 }
 /** Endereço que um coletor nunca deve acessar: IP literal, localhost, nomes sem domínio e sufixos internos. Protege contra um redirecionamento de fonte comprometida para a rede interna. */
 export function hostInterno(host: string): boolean {
@@ -61,10 +63,10 @@ export async function politeFetch(url: string, { minMs = 1000, respectRobots = t
         if (saltos >= MAX_REDIRECIONAMENTOS) throw new Error('Redirecionamentos demais: ' + target.host);
         atual = new URL(destino, atual); destinoPermitido(atual); await response.body?.cancel();
       }
-      if (response.status === 429 || response.status >= 500) { last = new Error(`HTTP ${response.status}`); await delay(2000 * (attempt + 1) * (response.status === 429 ? 5 : 1)); continue; }
+      if (response.status === 429 || response.status >= 500) { last = new Error(`HTTP ${response.status} em ${target.host}`); await delay(pausa(2000 * (attempt + 1) * (response.status === 429 ? 5 : 1))); continue; }
       if (Number(response.headers.get('content-length') || 0) > MAX_BYTES) { await response.body?.cancel(); throw new Error('Resposta grande demais'); }
       return comTeto(response);
-    } catch (cause) { if (cause instanceof DestinoBloqueado) throw cause; last = cause; await delay(1000 * (attempt + 1)); }
+    } catch (cause) { if (cause instanceof DestinoBloqueado) throw cause; last = cause; await delay(pausa(1000 * (attempt + 1))); }
   }
   throw last instanceof Error ? last : new Error('Falha de rede');
 }
@@ -73,10 +75,15 @@ export function listaOuErro<T = unknown>(valor: unknown, onde: string): T[] {
   if (!Array.isArray(valor)) throw new Error(`Resposta inesperada de ${onde}`);
   return valor as T[];
 }
-/** Data ISO de um texto de data de fonte externa, ou `undefined` se não for uma data válida (new Date inválido lançaria RangeError no toISOString). */
-export function dataIso(texto: string | number | undefined | null): string | undefined {
-  if (texto === undefined || texto === null || texto === '') return undefined;
-  const d = new Date(texto); return Number.isNaN(d.getTime()) ? undefined : d.toISOString();
+/**
+ * Data ISO de um texto de data de fonte externa, ou `undefined` se não for uma data válida. Só aceita o formato ISO (AAAA-MM-DD...): o leitor de datas do V8
+ * aceita textos como "ontem" e devolve uma data qualquer. Uma data com hora e sem fuso ("2026-10-01T10:30") depende do fuso do computador; `fuso` (ex.: "-03:00") a fixa.
+ */
+export function dataIso(texto: string | undefined | null, { fuso }: { fuso?: string } = {}): string | undefined {
+  if (typeof texto !== 'string') return undefined;
+  let t = texto.trim(); if (!/^\d{4}-\d{2}-\d{2}/.test(t)) return undefined;
+  if (fuso && /T\d{2}:\d{2}(?::\d{2})?$/.test(t)) t = `${/T\d{2}:\d{2}$/.test(t) ? `${t}:00` : t}${fuso}`;
+  const d = new Date(t); return Number.isNaN(d.getTime()) ? undefined : d.toISOString();
 }
 export async function getJson<T = unknown>(url: string, options: FetchOptions = {}): Promise<T> {
   const response = await politeFetch(url, { minMs: 400, respectRobots: false, accept: 'application/json', ...options });

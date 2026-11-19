@@ -17,3 +17,10 @@ A geração e a busca por significado usam a API do Gemini no nível gratuito, s
 - A coleta de dados públicos (`politeFetch`) segue redirecionamentos à mão, validando cada destino (https, sem credenciais, porta 443, fora da rede interna e de IPs literais) e lê o corpo com teto de 30 MB mesmo sem `content-length`. Limite: não há proteção contra DNS que aponte um nome público para um endereço interno.
 - Endereços de documentos coletados só são guardados se forem http, https ou ftp, sem credenciais, e todo link externo da biblioteca e do painel passa por `linkSeguro` (esquemas como `javascript:` viram `#`).
 - A leitura do Supabase usa só a chave publicável; a Secret key fica restrita ao coletor que grava. `/api/knowledge` público devolve apenas `available` e `phase`.
+
+## Testes de ataque
+`tests/ataques.test.ts` e `tests/ataques-interface.test.tsx` tentam, em cada execução, o que um atacante tentaria: corpos gigantes e aninhados, `__proto__`, fuzz do orçamento, texto hostil no PDF, injeção de prompt, dados pessoais e chaves no pedido (e no histórico), logs com segredo, redirecionamentos a endereços internos em qualquer notação, truques de nome de domínio, origem e Host forjados, giro de IP para escapar da cota, cabeçalhos e nonce da CSP, XSS no Markdown e nos links das fontes. O que cada um protege está no nome do teste.
+
+Detecção de dados sensíveis (`redigirDadosSensiveis`): CPF formatado, rotulado ou só com 11 dígitos válidos, documento rotulado, cartão (Luhn), senha/token rotulados e chaves de formato conhecido (Google, OpenAI/Anthropic, GitHub, Slack, AWS, JWT). **Não** detecta e-mail, telefone, endereço nem nome de pessoa: a SINDI não os trata como segredo, e a tela pede para não enviar dados pessoais. As perguntas anteriores também são redigidas antes da busca, inclusive a busca por significado, que usa o provedor de IA.
+
+Limite conhecido (marcado como pendente no teste): um nome de domínio público que o DNS aponte para um endereço interno (ex.: `localtest.me`) não é bloqueado na coleta, porque só o nome é validado, não o endereço resolvido.

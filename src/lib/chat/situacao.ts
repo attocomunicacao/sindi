@@ -1,4 +1,4 @@
-import { casoJuridicoIndividual, contemDadosSensiveis, foraDoEscopo, lacunaConhecida, obrigacaoLegalDeContratacao, semFonteSemChute, sourceChoices, trechoDeContato, type Situacao } from '@/lib/knowledge/grounded';
+import { casoJuridicoIndividual, contemDadosSensiveis, foraDoEscopo, lacunaConhecida, obrigacaoLegalDeContratacao, redigirDadosSensiveis, semFonteSemChute, sourceChoices, trechoDeContato, type Situacao } from '@/lib/knowledge/grounded';
 import { sufficientEvidence } from '@/lib/knowledge/core';
 import type { Passage } from '@/lib/knowledge/core';
 import { retrieveKnowledge } from '@/lib/knowledge/retrieve';
@@ -24,7 +24,8 @@ export async function decidirSituacao({ mensagens, language }: { mensagens: { ro
   const question = mensagens.at(-1)!.content;
   const writing = WRITING.test(question);
   let situacao: Situacao | undefined; let choices: Passage[] = []; let lista = false; let relatorio = false;
-  const anteriores = mensagens.filter(m => m.role === 'user').slice(-3, -1).map(m => m.content);
+  // As perguntas anteriores entram na busca (inclusive na por significado, que vai ao provedor de IA): dados pessoais e segredos já ditos saem delas.
+  const anteriores = mensagens.filter(m => m.role === 'user').slice(-3, -1).map(m => redigirDadosSensiveis(m.content));
   const conector = escolherConector(question, anteriores);
   // Porta de escopo: fora do assunto do setor a SINDI recusa antes de buscar. Uma busca fraca não decide isto, pois acertos de palavras comuns
   // ("São Paulo") e de significado (similaridade alta para tudo) também aparecem em perguntas sem relação. Perguntas de continuação herdam o assunto das anteriores.

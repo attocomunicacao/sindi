@@ -16,3 +16,4 @@ env.knowledge
 env.knowledge.download
 cerebro/auto.anterior/
 supabase/.temp/
+.playwright-mcp/

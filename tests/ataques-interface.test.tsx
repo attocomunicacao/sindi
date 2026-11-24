@@ -2,8 +2,8 @@ import './setup-dom';
 import { test, afterEach } from 'node:test';
 import assert from 'node:assert/strict';
 import { cleanup, render, screen } from '@testing-library/react';
-import { ChatMessage } from '@/components/chat-message';
-import { PainelFull } from '@/components/painel-view';
+import { MensagemDoChat } from '@/componentes/chat/mensagem-do-chat';
+import { PainelCompleto } from '@/componentes/painel/painel-completo';
 import { painelVazio, type Painel } from '@/lib/dados/painel';
 
 afterEach(() => { cleanup(); });
@@ -19,7 +19,7 @@ const ATRIBUTOS_DE_EVENTO = /^on/i;
 
 test('markdown do chat: nenhum elemento ativo, nenhum manipulador de evento e nenhum link com esquema perigoso, para cada carga maliciosa', () => {
   for (const carga of PERIGOSOS) {
-    const { container, unmount } = render(<ChatMessage content={`Resposta: ${carga}\n\nFim.`} />);
+    const { container, unmount } = render(<MensagemDoChat conteudo={`Resposta: ${carga}\n\nFim.`} />);
     for (const proibido of ['script', 'img', 'iframe', 'svg', 'form', 'input', 'meta', 'base', 'object', 'embed', 'style', 'link']) assert.equal(container.querySelectorAll(proibido).length, 0, `<${proibido}> renderizado para ${JSON.stringify(carga)}`);
     for (const elemento of Array.from(container.querySelectorAll('*'))) for (const atributo of Array.from(elemento.attributes)) {
       assert.ok(!ATRIBUTOS_DE_EVENTO.test(atributo.name), `${atributo.name} em <${elemento.tagName}> para ${JSON.stringify(carga)}`);
@@ -35,7 +35,7 @@ test('markdown do chat: nenhum elemento ativo, nenhum manipulador de evento e ne
 });
 
 test('markdown do chat: links legítimos continuam funcionando (https, mailto e caminhos do próprio site), abrindo fora com rel seguro', () => {
-  const { container } = render(<ChatMessage content={'Veja [a convenção](https://www.sindeprestem.com.br/convencao.pdf), escreva para [o jurídico](mailto:juridico@sindeprestem.com.br) ou use [a calculadora](/orcamento?postos=zelador%3A2%3Adiurno).'} />);
+  const { container } = render(<MensagemDoChat conteudo={'Veja [a convenção](https://www.sindeprestem.com.br/convencao.pdf), escreva para [o jurídico](mailto:juridico@sindeprestem.com.br) ou use [a calculadora](/orcamento?postos=zelador%3A2%3Adiurno).'} />);
   const links = Array.from(container.querySelectorAll('a')).map(a => ({ href: a.getAttribute('href'), alvo: a.getAttribute('target') }));
   assert.deepEqual(links, [{ href: 'https://www.sindeprestem.com.br/convencao.pdf', alvo: '_blank' }, { href: 'mailto:juridico@sindeprestem.com.br', alvo: '_blank' }, { href: '/orcamento?postos=zelador%3A2%3Adiurno', alvo: null }]);
 });
@@ -48,7 +48,7 @@ test('painel: endereços perigosos vindos das fontes coletadas viram "#" nos lin
     sindicato: { noticias: [{ source: 'sindeprestem', title: 'Do sindicato', publishedAt: agora, url: 'JaVaScRiPt:alert(1)' }], artigos: [{ source: 'sindeprestem', title: 'Artigo', publishedAt: agora, url: 'https://www.sindeprestem.com.br/post/a' }] } };
   const original = globalThis.fetch; globalThis.fetch = (async () => Response.json(painel)) as typeof fetch;
   try {
-    const { container } = render(<PainelFull />);
+    const { container } = render(<PainelCompleto />);
     await screen.findByText('Notícias do SINDEPRESTEM');
     const href = (texto: string) => (screen.getByText(texto).closest('a') as HTMLAnchorElement).getAttribute('href');
     assert.equal(href('Notícia com link ruim'), '#'); assert.equal(href('PL malicioso'), '#'); assert.equal(href('Do sindicato'), '#'); assert.equal(href('Artigo'), 'https://www.sindeprestem.com.br/post/a');

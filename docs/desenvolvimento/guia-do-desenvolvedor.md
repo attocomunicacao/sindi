@@ -16,7 +16,7 @@ antes de mostrá-la (e-mail, site, telefone, valor, número e lei precisam const
 |---|---|
 | `src/app/` | Páginas (`page.tsx`) e rotas de API (`api/**/route.ts`). Uma rota só exporta os métodos HTTP e a configuração; funções auxiliares ficam em `src/lib` |
 | `src/proxy.ts` | CSP com nonce por requisição (não cobre `/api`) |
-| `src/components/` | Componentes. Os que têm `'use client'` não podem importar módulos que puxam `node:*`, `sqlite` ou `zod` (ver "Armadilhas") |
+| `src/componentes/` | Componentes por assunto: `ui/` (botão, campo, seletor, cartão, aviso, `pagina-ferramenta`), `chat/`, `orcamento/`, `tributos/`, `custos/`, `danfse/`, `painel/`, `cerebro/`, `biblioteca/`, `uso/`, `layout/`. Os que têm `'use client'` não podem importar módulos que puxam `node:*`, `sqlite` ou `zod` (ver "Armadilhas") |
 | `src/lib/chat/` | O chat em etapas: `requisicao` → `situacao` → `prompt` → `respostas` → `geracao` → `stream`. A rota `api/chat/route.ts` só orquestra |
 | `src/lib/ferramentas/` | Contrato `Ferramenta` e registro. O orçamento (`src/lib/orcamento/ferramenta.ts`) é o exemplo |
 | `src/lib/http/guarda.ts` | Proteções de rota: origem, tipo, limite por minuto, tamanho do corpo, erro JSON, PDF |
@@ -55,7 +55,7 @@ Siga esta ordem; o teste `tests/ferramentas.test.ts` confere os itens 2, 3, 5 e 
    - `POST`: `guardaDeEscrita(request, { nome: '<ferramenta>-<acao>', limiteBytes, limitePorMinuto })` (origem, tipo, limite, tamanho e JSON) e depois a validação do schema;
    - `GET`: `guardaDeLeitura(request, '<ferramenta>-<acao>', limite)`;
    - erros com `erroJson`, PDFs com `respostaPdf`. Não registre o conteúdo do pedido em log.
-3. **A página** em `src/app/<ferramenta>/page.tsx`, com `metadata`, e a entrada em `src/lib/paginas.ts` (rota, rótulo, `previa`). Desenhe o glifo em `GLIFOS` (`src/components/sindi-mark.tsx`); sem ele o TypeScript não compila.
+3. **A página** em `src/app/<ferramenta>/page.tsx`, com `metadata` (use `PaginaFerramenta` de `src/componentes/ui/pagina-ferramenta.tsx` para o cabeçalho e o `<main>` padrão), e a entrada em `src/lib/paginas.ts` (rota, rótulo, `previa`). Desenhe o glifo em `GLIFOS` (`src/componentes/layout/marca-sindi.tsx`); sem ele o TypeScript não compila.
 4. **A entrada no chat** (se a SINDI deve responder a esse pedido): `chat.executar(pergunta, { idioma, conector })` devolve `{ passagem, orientacao }` ou `undefined` se a pergunta não é para a ferramenta.
    O resultado vira fonte do modelo e **precisa conter, no texto, todo número que a resposta puder citar** (a verificação de fatos barra o que não estiver lá).
 5. **O registro**: inclua a ferramenta em `FERRAMENTAS` (`src/lib/ferramentas/registro.ts`) com `id`, `pagina`, `api`, `env` e `testes`.

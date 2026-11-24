@@ -3,7 +3,7 @@ import { test, afterEach } from 'node:test';
 import assert from 'node:assert/strict';
 import { cleanup, fireEvent, render, screen, waitFor } from '@testing-library/react';
 import Home from '@/app/page';
-import { NOVA_CONVERSA } from '@/components/site-header';
+import { NOVA_CONVERSA } from '@/componentes/chat/nova-conversa';
 
 const original = globalThis.fetch;
 afterEach(() => { cleanup(); globalThis.fetch = original; });

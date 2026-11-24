@@ -3,7 +3,7 @@
  * Registro das páginas do site. Para acrescentar uma página:
  *  1. criar `src/app/<rota>/page.tsx` com `metadata`;
  *  2. incluí-la aqui (o cabeçalho, o menu, o robots e a marca leem desta lista);
- *  3. desenhar o glifo dela em `GLIFOS` (src/components/sindi-mark.tsx): o TypeScript não compila sem ele.
+ *  3. desenhar o glifo dela em `GLIFOS` (src/componentes/layout/marca-sindi.tsx): o TypeScript não compila sem ele.
  * `menu: false` deixa a página fora do cabeçalho (acesso só pelo endereço); `previa: false` a tira das prévias de link.
  */
 export const PAGINAS = [

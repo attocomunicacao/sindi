@@ -107,7 +107,7 @@ a, button, input, select, textarea { transition: color .2s ease, background-colo
 .anim-fade { animation: fade .6s ease both; }
 .carregando { animation: fade .3s ease .15s both; }
 .barra-carregando { animation: barra-carregando 1.2s cubic-bezier(.4, 0, .2, 1) infinite; }
-/* Navegação pendente (components/pendente.tsx): faixa no topo da janela, fora do fluxo e sem capturar cliques; surge após 150 ms. */
+/* Navegação pendente (componentes/layout/pendente.tsx): faixa no topo da janela, fora do fluxo e sem capturar cliques; surge após 150 ms. */
 .barra-navegacao { position: fixed; inset: 0 0 auto; z-index: 50; height: 2px; overflow: hidden; pointer-events: none; animation: fade .15s ease .15s backwards; }
 .barra-navegacao::after { content: ''; position: absolute; inset-block: 0; width: 33%; background: var(--color-amber-400); animation: barra-carregando 1.2s cubic-bezier(.4, 0, .2, 1) infinite; }
 @keyframes barra-carregando { from { left: -33%; } to { left: 100%; } }

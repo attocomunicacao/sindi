@@ -9,7 +9,7 @@ Siga `docs/desenvolvimento/guia-do-desenvolvedor.md` §4, nesta ordem:
 
 1. Lógica pura em `src/lib/<ferramenta>/` + schema zod da entrada. Sem rede dentro do cálculo.
 2. Rotas em `src/app/api/<ferramenta>/<acao>/route.ts` com `guardaDeEscrita(request, { nome, limiteBytes, limitePorMinuto })` ou `guardaDeLeitura(request, nome, limite)`; erros com `erroJson`, PDFs com `respostaPdf`.
-3. Página `src/app/<rota>/page.tsx` com `metadata`; entrada em `PAGINAS` de `src/lib/paginas.ts` (`menu: false` para página oculta, `previa: false` para não indexar); glifo em `GLIFOS` de `src/components/sindi-mark.tsx` (4 elementos SVG, 80×32).
+3. Página `src/app/<rota>/page.tsx` com `metadata`; entrada em `PAGINAS` de `src/lib/paginas.ts` (`menu: false` para página oculta, `previa: false` para não indexar); glifo em `GLIFOS` de `src/componentes/layout/marca-sindi.tsx` (4 elementos SVG, 80×32).
 4. (Opcional) entrada no chat: `chat.executar(pergunta, { idioma, conector })` devolvendo texto com **todo número** que a resposta possa citar.
 5. Registro em `FERRAMENTAS` (`src/lib/ferramentas/registro.ts`) se for ferramenta.
 6. Variáveis novas documentadas em `env.example`; segredo só no servidor.

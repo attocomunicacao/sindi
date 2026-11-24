@@ -2,14 +2,14 @@ import './setup-dom';
 import { test, afterEach } from 'node:test';
 import assert from 'node:assert/strict';
 import { cleanup, fireEvent, render, screen, within } from '@testing-library/react';
-import { OrcamentoForm } from '@/components/orcamento-form';
-import { TributosCalculadora } from '@/components/tributos-calculadora';
+import { FormularioOrcamento } from '@/componentes/orcamento/formulario-orcamento';
+import { CalculadoraDeTributos } from '@/componentes/tributos/calculadora-de-tributos';
 
 afterEach(() => { cleanup(); window.history.pushState({}, '', '/orcamento'); });
 const normal = (v: string | null) => (v ?? '').replace(/ /g, ' ');
 
 test('calculadora: o exemplo da Receita (2026, base 100.000) mostra CBS 900,00 e IBS 100,00 e a memória de cálculo', () => {
-  render(<TributosCalculadora />);
+  render(<CalculadoraDeTributos />);
   const resultado = screen.getByLabelText('Resultado do regime regular');
   assert.match(normal(resultado.textContent), /R\$ 900,00/); assert.match(normal(resultado.textContent), /R\$ 100,00/);
   assert.ok(within(resultado).getByText('Memória de cálculo'));
@@ -20,7 +20,7 @@ test('calculadora: o exemplo da Receita (2026, base 100.000) mostra CBS 900,00 e
 });
 
 test('calculadora: abas do DAS e da CBS/IBS do Simples, com teclado e erro de entrada em português', () => {
-  render(<TributosCalculadora />);
+  render(<CalculadoraDeTributos />);
   const abas = screen.getAllByRole('tab'); assert.equal(abas.length, 3); assert.equal(abas[0].getAttribute('aria-selected'), 'true');
   fireEvent.keyDown(abas[0], { key: 'ArrowRight' });
   assert.equal(screen.getAllByRole('tab')[1].getAttribute('aria-selected'), 'true');
@@ -36,7 +36,7 @@ test('calculadora: abas do DAS e da CBS/IBS do Simples, com teclado e erro de en
 });
 
 test('orçamento: escolher Reforma Tributária mostra a nota com CBS/IBS e a comparação; Simples sem RBT12 avisa e mantém as regras atuais', async () => {
-  render(<OrcamentoForm />);
+  render(<FormularioOrcamento />);
   await screen.findByText('Posto 1');
   const antes = normal(screen.getByLabelText('Resultado do orçamento').textContent);
   fireEvent.change(screen.getByLabelText('Tributação'), { target: { value: 'reforma' } });

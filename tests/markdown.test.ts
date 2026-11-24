@@ -2,8 +2,8 @@ import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { createElement } from 'react';
 import { renderToStaticMarkup } from 'react-dom/server';
-import { ChatMessage } from '@/components/chat-message';
-const render = (content: string) => renderToStaticMarkup(createElement(ChatMessage, { content }));
+import { MensagemDoChat } from '@/componentes/chat/mensagem-do-chat';
+const render = (content: string) => renderToStaticMarkup(createElement(MensagemDoChat, { conteudo: content }));
 test('formats bold, markdown links and automatic URL links', () => {
   const html = render('**Importante**\n\n[Site](https://www.sindeprestem.com.br/)\n\nhttps://www.sindeprestem.com.br/juridico');
   assert.match(html, /<strong>Importante<\/strong>/);

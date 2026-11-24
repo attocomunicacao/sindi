@@ -2,7 +2,7 @@ import './setup-dom';
 import { test, afterEach } from 'node:test';
 import assert from 'node:assert/strict';
 import { cleanup, fireEvent, render, screen, waitFor, within } from '@testing-library/react';
-import { OrcamentoForm } from '@/components/orcamento-form';
+import { FormularioOrcamento } from '@/componentes/orcamento/formulario-orcamento';
 
 afterEach(() => { cleanup(); window.history.pushState({}, '', '/orcamento'); });
 const dinheiro = /R\$\s?[\d.]+,\d{2}/;
@@ -11,7 +11,7 @@ const selectFuncao = (indice = 0) => screen.getAllByLabelText('Função')[indice
 const opcaoDe = (select: HTMLSelectElement, trecho: string) => Array.from(select.options).find(o => o.text.includes(trecho))!;
 
 test('orçamento: o formulário aparece depois da montagem, já com o resultado e a vigência da tabela em destaque', async () => {
-  render(<OrcamentoForm />);
+  render(<FormularioOrcamento />);
   await aguardarFormulario();
   const resultado = screen.getByLabelText('Resultado do orçamento');
   assert.match(within(resultado).getByText('Valor mensal estimado').nextElementSibling!.textContent ?? '', dinheiro, 'o valor mensal já está calculado, sem ida à rede');
@@ -21,7 +21,7 @@ test('orçamento: o formulário aparece depois da montagem, já com o resultado 
 
 test('orçamento: os postos do link do chat (?postos=...&m2=...) são lidos no navegador', async () => {
   window.history.pushState({}, '', '/orcamento?postos=zelador:3:diurno,porteiro:2:noturno&m2=800');
-  render(<OrcamentoForm />);
+  render(<FormularioOrcamento />);
   await aguardarFormulario();
   assert.equal(screen.getAllByLabelText('Quantidade').map(i => (i as HTMLInputElement).value).join(','), '3,2');
   assert.equal((screen.getByLabelText('Área atendida (m²)') as HTMLInputElement).value, '800');
@@ -30,7 +30,7 @@ test('orçamento: os postos do link do chat (?postos=...&m2=...) são lidos no n
 });
 
 test('orçamento: um posto traz os adicionais da função, e o que está na tela é o que vai ao cálculo', async () => {
-  render(<OrcamentoForm />);
+  render(<FormularioOrcamento />);
   await aguardarFormulario();
   const funcao = selectFuncao();
   // Função "com periculosidade": a caixa já vem marcada. Serviços gerais: insalubridade de 40% já vem escolhida.
@@ -42,7 +42,7 @@ test('orçamento: um posto traz os adicionais da função, e o que está na tela
 });
 
 test('orçamento: com periculosidade e insalubridade marcadas, a tela avisa que só o maior entra e qual', async () => {
-  render(<OrcamentoForm />);
+  render(<FormularioOrcamento />);
   await aguardarFormulario();
   assert.equal(screen.queryByText(/não se acumulam/), null);
   fireEvent.click(screen.getByLabelText(/Periculosidade/));
@@ -56,7 +56,7 @@ test('orçamento: com periculosidade e insalubridade marcadas, a tela avisa que 
 });
 
 test('orçamento: adicionar posto escolhe uma função ainda não usada; postos idênticos geram alerta e travam os PDFs', async () => {
-  render(<OrcamentoForm />);
+  render(<FormularioOrcamento />);
   await aguardarFormulario();
   fireEvent.click(screen.getByRole('button', { name: /Adicionar posto/ }));
   await screen.findByText('Posto 2');
@@ -76,7 +76,7 @@ test('orçamento: o PDF é pedido ao servidor com os valores explícitos da tela
   const original = globalThis.fetch; const chamadas: { url: string; corpo: { postos: Record<string, unknown>[]; cliente: Record<string, string> } }[] = [];
   globalThis.fetch = (async (url: unknown, init?: RequestInit) => { chamadas.push({ url: String(url), corpo: JSON.parse(String(init?.body)) }); return new Response(new Uint8Array([37, 80, 68, 70, 45]), { headers: { 'content-type': 'application/pdf' } }); }) as typeof fetch;
   try {
-    render(<OrcamentoForm />);
+    render(<FormularioOrcamento />);
     await aguardarFormulario();
     fireEvent.change(screen.getByLabelText('Empresa'), { target: { value: 'Acme Ltda' } });
     fireEvent.click(screen.getByRole('button', { name: /Baixar orçamento/ }));
@@ -94,7 +94,7 @@ test('orçamento: erro do servidor ao gerar o PDF aparece na tela, e o botão vo
   const original = globalThis.fetch;
   globalThis.fetch = (async () => Response.json({ error: 'Revise os dados do orçamento: Posto repetido: some as quantidades.' }, { status: 400 })) as typeof fetch;
   try {
-    render(<OrcamentoForm />);
+    render(<FormularioOrcamento />);
     await aguardarFormulario();
     fireEvent.click(screen.getByRole('button', { name: /Baixar orçamento/ }));
     const alerta = await screen.findByText(/Revise os dados do orçamento/);

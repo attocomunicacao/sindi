@@ -10,7 +10,7 @@ import { mkdir, writeFile } from 'node:fs/promises';
 const C = { canvas: '#faf8f5', surface: '#ffffff', ink: '#2d2727', inkDeep: '#1e1a1a', muted: '#685f59', soft: '#8f8780', line: '#e6e0d8', gold: '#ebb92e', red: '#b61323' };
 const FONTE = "'Segoe UI', 'Helvetica Neue', Arial, sans-serif";
 
-// Figuras do logotipo do SINDEPRESTEM, a mesma geometria de src/components/sindi-mark.tsx (caixa de 80×32 dentro do balão de 112×80).
+// Figuras do logotipo do SINDEPRESTEM, a mesma geometria de src/componentes/layout/marca-sindi.tsx (caixa de 80×32 dentro do balão de 112×80).
 const LOGO = [
   { cor: C.ink, cabeca: [125.3, 96.6], corpo: 'M71 226V481H15V581H173V400L358 585H532L173 226Z' },
   { cor: C.red, cabeca: [480.8, 96.6], corpo: 'M435 233V486L533 585V401L720 587H887L533 233Z' },

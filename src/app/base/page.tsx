@@ -1,10 +1,14 @@
 import Link from 'next/link';
-import { CartaoDoItem, Filtro, FormBusca, data, endereco } from '@/components/biblioteca';
+import { CartaoDoItem } from '@/componentes/biblioteca/cartao-do-item';
+import { Filtro } from '@/componentes/biblioteca/filtro';
+import { FormularioDeBusca } from '@/componentes/biblioteca/formulario-de-busca';
+import { data, endereco } from '@/componentes/biblioteca/formatacao';
+import { BarraDeDestaque } from '@/componentes/ui/pagina-ferramenta';
 import { numeroBR } from '@/lib/base/formato';
 import { ALAS, estantePorId, type Ala } from '@/lib/biblioteca/estantes';
 import { buscarNaBiblioteca, resumoDaBiblioteca } from '@/lib/biblioteca/consulta';
 import { statusDoConhecimento } from '@/lib/recuperacao/legado/status';
-import { Pendente } from '@/components/pendente';
+import { Pendente } from '@/componentes/layout/pendente';
 
 export const metadata = { title: 'Biblioteca | SINDI', description: 'Acervo que a SINDI consulta: convenções, jurídico, normas, notícias, indicadores e o conhecimento escrito pela equipe.' };
 type Consulta = { q?: string | string[]; estante?: string | string[] };
@@ -20,12 +24,15 @@ const PASSOS = [
 export default async function BibliotecaPage({ searchParams }: { searchParams: Promise<Consulta> }) {
   const parametros = await searchParams;
   const q = texto(parametros.q); const estanteFiltro = texto(parametros.estante);
-  return <>
-    <main className="anim-rise">{q ? <Resultados q={q} estanteId={estanteFiltro} /> : <Inicio />}</main>
-  </>;
+  return <main className="anim-rise">{q ? <Resultados q={q} estanteId={estanteFiltro} /> : <Inicio />}</main>;
 }
 
-const Titulo = ({ children }: { children: React.ReactNode }) => <><span className="block h-1 w-10 rounded-full bg-amber-400" aria-hidden /><h1 className="mt-5 text-3xl font-semibold tracking-tight text-slate-900 sm:text-4xl">{children}</h1></>;
+function Titulo({ children }: { children: React.ReactNode }) {
+  return <>
+    <BarraDeDestaque />
+    <h1 className="mt-5 text-3xl font-semibold tracking-tight text-slate-900 sm:text-4xl">{children}</h1>
+  </>;
+}
 
 async function Inicio() {
   const resumo = resumoDaBiblioteca(); const status = await statusDoConhecimento();
@@ -35,7 +42,7 @@ async function Inicio() {
     <header>
       <Titulo>Biblioteca</Titulo>
       <p className="mt-3 max-w-2xl text-base leading-7 text-slate-600">Acervo consultado pela SINDI antes de cada resposta, com a fonte sempre indicada.</p>
-      <div className="mt-8"><FormBusca acao="/base" placeholder="Buscar por tema, norma, categoria ou palavra" /></div>
+      <div className="mt-8"><FormularioDeBusca acao="/base" placeholder="Buscar por tema, norma, categoria ou palavra" /></div>
       <p className="mt-5 text-sm text-slate-500">{numeroBR(resumo.documentos)} documentos · {resumo.estantes.length} estantes · última coleta em {data(resumo.atualizado)}</p>
       {!resumo.disponivel && <p role="status" className="mt-5 max-w-2xl border-l-2 border-amber-400 pl-3 text-sm text-slate-600">A coleta de documentos ainda não está disponível neste ambiente. Apenas o conhecimento escrito pela equipe aparece nas estantes.</p>}
     </header>
@@ -99,7 +106,7 @@ async function Resultados({ q, estanteId }: { q: string; estanteId?: string }) {
   return <div className="mx-auto max-w-6xl gutter py-10">
     <nav aria-label="Você está em" className="text-sm text-slate-500"><Link href="/base" className="hover:text-slate-900 hover:underline">Biblioteca<Pendente /></Link> <span aria-hidden>/</span> <span className="text-slate-800">Busca</span></nav>
     <h1 className="mt-4 text-2xl font-semibold text-slate-900">Resultados para “{q}”</h1>
-    <div className="mt-5"><FormBusca acao="/base" valor={q} escondidos={{ estante: filtro }} placeholder="Refinar a busca" tamanho="compacto" /></div>
+    <div className="mt-5"><FormularioDeBusca acao="/base" valor={q} escondidos={{ estante: filtro }} placeholder="Refinar a busca" tamanho="compacto" /></div>
 
     {resultado.porEstante.length > 0 && <div className="mt-6 flex flex-wrap gap-x-5 gap-y-2" aria-label="Filtrar por estante">
       <Filtro href={endereco('/base', { q })} ativo={!filtro}>Todas ({total})</Filtro>

@@ -5,55 +5,113 @@ import { diaDaCota } from '@/lib/infra/cota';
 
 /** Por provedor da cascata: quantas respostas cada um escreveu e quantos tokens gastou (só agregados, sem conteúdo). */
 export type UsoDoProvedor = { requests: number; successes: number; tokens: number };
-export type DiaDeUso = { date: string; requests: number; successes: number; errors: number; inputTokens: number; outputTokens: number; totalTokens: number; measured: number; durationMs: number; provedores?: Record<string, UsoDoProvedor> };
-type EventoDeUso = { success: boolean; durationMs: number; usage?: { inputTokens?: number; outputTokens?: number; totalTokens?: number }; provedor?: string };
+export type DiaDeUso = {
+  date: string;
+  requests: number;
+  successes: number;
+  errors: number;
+  inputTokens: number;
+  outputTokens: number;
+  totalTokens: number;
+  measured: number;
+  durationMs: number;
+  provedores?: Record<string, UsoDoProvedor>;
+};
+type EventoDeUso = {
+  success: boolean;
+  durationMs: number;
+  usage?: { inputTokens?: number; outputTokens?: number; totalTokens?: number };
+  provedor?: string;
+};
 type Escalar = Exclude<keyof DiaDeUso, 'date' | 'provedores'>;
-const ESCALARES: Escalar[] = ['requests', 'successes', 'errors', 'inputTokens', 'outputTokens', 'totalTokens', 'measured', 'durationMs'];
+const ESCALARES: Escalar[] = [
+  'requests',
+  'successes',
+  'errors',
+  'inputTokens',
+  'outputTokens',
+  'totalTokens',
+  'measured',
+  'durationMs',
+];
 const idDoProvedor = (id?: string) => (id && /^[a-z0-9-]{1,20}$/.test(id) ? id : undefined);
 const pasta = path.join(process.cwd(), '.data');
 const arquivo = path.join(pasta, 'usage.json');
 let fila: Promise<unknown> = Promise.resolve();
-function diaVazio(date: string): DiaDeUso { return { date, requests: 0, successes: 0, errors: 0, inputTokens: 0, outputTokens: 0, totalTokens: 0, measured: 0, durationMs: 0 }; }
+function diaVazio(date: string): DiaDeUso {
+  return {
+    date,
+    requests: 0,
+    successes: 0,
+    errors: 0,
+    inputTokens: 0,
+    outputTokens: 0,
+    totalTokens: 0,
+    measured: 0,
+    durationMs: 0,
+  };
+}
 async function diasLocais(): Promise<DiaDeUso[]> {
-  try { return JSON.parse(await readFile(arquivo, 'utf8')); }
-  catch (error) { if ((error as NodeJS.ErrnoException).code === 'ENOENT') return []; throw error; }
+  try {
+    return JSON.parse(await readFile(arquivo, 'utf8'));
+  } catch (error) {
+    if ((error as NodeJS.ErrnoException).code === 'ENOENT') return [];
+    throw error;
+  }
 }
 const roteiroLua = `for i=1,#ARGV,2 do redis.call('HINCRBY',KEYS[1],ARGV[i],ARGV[i+1]) end; redis.call('EXPIRE',KEYS[1],86400*35); return 1`;
 export async function registrarUso(evento: EventoDeUso): Promise<boolean> {
   const dia = diaVazio(diaDaCota());
-  dia.requests = 1; dia.successes = Number(evento.success); dia.errors = Number(!evento.success);
+  dia.requests = 1;
+  dia.successes = Number(evento.success);
+  dia.errors = Number(!evento.success);
   dia.durationMs = Math.round(evento.durationMs);
-  dia.inputTokens = evento.usage?.inputTokens ?? 0; dia.outputTokens = evento.usage?.outputTokens ?? 0;
+  dia.inputTokens = evento.usage?.inputTokens ?? 0;
+  dia.outputTokens = evento.usage?.outputTokens ?? 0;
   dia.totalTokens = evento.usage?.totalTokens ?? dia.inputTokens + dia.outputTokens;
   dia.measured = Number(evento.usage?.totalTokens !== undefined || evento.usage?.inputTokens !== undefined);
   const provedor = idDoProvedor(evento.provedor);
   if (provedor) dia.provedores = { [provedor]: { requests: 1, successes: dia.successes, tokens: dia.totalTokens } };
   try {
     if (compartilhado()) {
-      const pares: (string | number)[] = ESCALARES.flatMap(chave => [chave, dia[chave]]);
-      if (provedor) pares.push(`prov:${provedor}:requests`, 1, `prov:${provedor}:successes`, dia.successes, `prov:${provedor}:tokens`, dia.totalTokens);
+      const pares: (string | number)[] = ESCALARES.flatMap((chave) => [chave, dia[chave]]);
+      if (provedor)
+        pares.push(
+          `prov:${provedor}:requests`,
+          1,
+          `prov:${provedor}:successes`,
+          dia.successes,
+          `prov:${provedor}:tokens`,
+          dia.totalTokens,
+        );
       await redis(['EVAL', roteiroLua, 1, `sindi:usage:${dia.date}`, ...pares]);
     } else {
       if (process.env.VERCEL) return false;
       const atualizacao = fila.then(async () => {
         const dias = await diasLocais();
-        const existente = dias.find(d => d.date === dia.date);
+        const existente = dias.find((d) => d.date === dia.date);
         if (existente) {
           for (const chave of ESCALARES) existente[chave] += dia[chave];
           for (const [id, uso] of Object.entries(dia.provedores ?? {})) {
-            const atual = (existente.provedores ??= {})[id] ??= { requests: 0, successes: 0, tokens: 0 };
-            atual.requests += uso.requests; atual.successes += uso.successes; atual.tokens += uso.tokens;
+            const atual = ((existente.provedores ??= {})[id] ??= { requests: 0, successes: 0, tokens: 0 });
+            atual.requests += uso.requests;
+            atual.successes += uso.successes;
+            atual.tokens += uso.tokens;
           }
         } else dias.push(dia);
         await mkdir(pasta, { recursive: true });
         await writeFile(`${arquivo}.tmp`, JSON.stringify(dias.sort((a, b) => a.date.localeCompare(b.date)).slice(-30)));
         await rename(`${arquivo}.tmp`, arquivo);
       });
-      fila = atualizacao.catch(() => {}); await atualizacao;
+      fila = atualizacao.catch(() => {});
+      await atualizacao;
     }
     leitura = undefined;
     return true;
-  } catch { console.warn('SINDI metrics unavailable'); return false; }
+  } catch {
+    console.warn('SINDI metrics unavailable');
+    return false;
+  }
 }
 let leitura: { em: number; modo: string; valor: Awaited<ReturnType<typeof lerUso>> } | undefined;
 const modoDeArmazenamento = () => (compartilhado() ? 'compartilhado' : process.env.VERCEL ? 'vercel' : 'local');
@@ -61,29 +119,46 @@ const modoDeArmazenamento = () => (compartilhado() ? 'compartilhado' : process.e
 export async function obterUso() {
   const modo = modoDeArmazenamento();
   if (leitura && leitura.modo === modo && Date.now() - leitura.em < 30_000) return leitura.valor;
-  const valor = await lerUso(); leitura = { em: Date.now(), modo, valor }; return valor;
+  const valor = await lerUso();
+  leitura = { em: Date.now(), modo, valor };
+  return valor;
 }
-export function esquecerLeituraDeUso() { leitura = undefined; }
+export function esquecerLeituraDeUso() {
+  leitura = undefined;
+}
 async function lerUso() {
-  const datas = Array.from({ length: 30 }, (_, i) => { const d = new Date(); d.setUTCDate(d.getUTCDate() - (29 - i)); return diaDaCota(d); });
+  const datas = Array.from({ length: 30 }, (_, i) => {
+    const d = new Date();
+    d.setUTCDate(d.getUTCDate() - (29 - i));
+    return diaDaCota(d);
+  });
   if (compartilhado()) {
-    const resultado = await Promise.all(datas.map(async data => {
-      const bruto = await redis(['HGETALL', `sindi:usage:${data}`]);
-      const dia = diaVazio(data);
-      if (!Array.isArray(bruto)) throw new Error('Invalid metrics');
-      for (let i = 0; i < bruto.length; i += 2) {
-        const chave = String(bruto[i]); const valor = Number(bruto[i + 1]) || 0;
-        const prov = chave.match(/^prov:([a-z0-9-]{1,20}):(requests|successes|tokens)$/);
-        if (prov) { ((dia.provedores ??= {})[prov[1]] ??= { requests: 0, successes: 0, tokens: 0 })[prov[2] as keyof UsoDoProvedor] = valor; }
-        else if ((ESCALARES as string[]).includes(chave)) dia[chave as Escalar] = valor;
-      }
-      return dia;
-    }));
+    const resultado = await Promise.all(
+      datas.map(async (data) => {
+        const bruto = await redis(['HGETALL', `sindi:usage:${data}`]);
+        const dia = diaVazio(data);
+        if (!Array.isArray(bruto)) throw new Error('Invalid metrics');
+        for (let i = 0; i < bruto.length; i += 2) {
+          const chave = String(bruto[i]);
+          const valor = Number(bruto[i + 1]) || 0;
+          const prov = chave.match(/^prov:([a-z0-9-]{1,20}):(requests|successes|tokens)$/);
+          if (prov) {
+            ((dia.provedores ??= {})[prov[1]] ??= { requests: 0, successes: 0, tokens: 0 })[
+              prov[2] as keyof UsoDoProvedor
+            ] = valor;
+          } else if ((ESCALARES as string[]).includes(chave)) dia[chave as Escalar] = valor;
+        }
+        return dia;
+      }),
+    );
     return { days: resultado, storage: 'shared', available: true };
   }
   if (process.env.VERCEL) return { days: datas.map(diaVazio), storage: 'unconfigured', available: false };
   await fila;
   const local = await diasLocais();
-  return { days: datas.map(data => local.find(d => d.date === data) || diaVazio(data)), storage: 'local', available: true };
+  return {
+    days: datas.map((data) => local.find((d) => d.date === data) || diaVazio(data)),
+    storage: 'local',
+    available: true,
+  };
 }
-

@@ -10,6 +10,13 @@ export const anexoSchema = z.enum(['III', 'IV', 'V']);
 export const tributacaoSchema = z.discriminatedUnion('modo', [
   z.object({ modo: z.literal('atual') }),
   z.object({ modo: z.literal('reforma'), ano: anoSchema, aliquotas: aliquotasSchema.optional() }),
-  z.object({ modo: z.literal('simples'), anexo: anexoSchema, rbt12: z.number().gt(0).max(4_800_000), folha12: z.number().min(0).max(1e12).optional(), ano: anoSchema.optional(),
-    pCBSSN: pct().optional(), pIBSSN: pct().optional() }),
+  z.object({
+    modo: z.literal('simples'),
+    anexo: anexoSchema,
+    rbt12: z.number().gt(0).max(4_800_000),
+    folha12: z.number().min(0).max(1e12).optional(),
+    ano: anoSchema.optional(),
+    pCBSSN: pct().optional(),
+    pIBSSN: pct().optional(),
+  }),
 ]);

@@ -23,10 +23,12 @@ export type Pagina = (typeof PAGINAS)[number]['id'];
 
 /** Página a que um caminho pertence (`/base/documento/3` é "base"); qualquer outro é "inicio". */
 export function paginaDe(caminho: string): Pagina {
-  return PAGINAS.find(p => p.id !== 'inicio' && (caminho === p.rota || caminho.startsWith(`${p.rota}/`)))?.id ?? 'inicio';
+  return (
+    PAGINAS.find((p) => p.id !== 'inicio' && (caminho === p.rota || caminho.startsWith(`${p.rota}/`)))?.id ?? 'inicio'
+  );
 }
-export const rotaDe = (id: Pagina) => PAGINAS.find(p => p.id === id)!.rota;
+export const rotaDe = (id: Pagina) => PAGINAS.find((p) => p.id === id)!.rota;
 /** Páginas cuja prévia de link (WhatsApp, redes sociais) é permitida; as demais ficam fora para esses rastreadores. */
-export const rotasSemPrevia = () => PAGINAS.filter(p => !p.previa).map(p => p.rota);
+export const rotasSemPrevia = () => PAGINAS.filter((p) => !p.previa).map((p) => p.rota);
 /** Páginas que aparecem no menu do cabeçalho. */
-export const paginasDoMenu = () => PAGINAS.filter(p => p.menu);
+export const paginasDoMenu = () => PAGINAS.filter((p) => p.menu);

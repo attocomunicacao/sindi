@@ -9,15 +9,33 @@ import { BarraDeDestaque, Principal } from '@/componentes/ui/pagina-ferramenta';
  * Nada é registrado aqui (sem logs de conteúdo). O código mostrado é o digest do Next: um hash que localiza o erro no log do servidor, sem detalhes internos.
  */
 export default function ErroDaPagina({ error, retry }: { error: Error & { digest?: string }; retry: () => void }) {
-  return <Principal role="alert" className="max-w-6xl py-12 sm:py-16">
-    <BarraDeDestaque cor="vermelha" />
-    <p className="mt-5 text-sm text-slate-500">Erro inesperado</p>
-    <h1 className="mt-1 text-3xl font-semibold tracking-tight text-slate-900 sm:text-4xl">Algo deu errado nesta página</h1>
-    <p className="mt-3 max-w-2xl text-base leading-7 text-slate-600">Pode ser uma falha temporária. Tente de novo; se continuar, volte ao início e tente mais tarde.</p>
-    <div className="mt-8 flex flex-wrap items-center gap-x-6 gap-y-3">
-      <Botao type="button" onClick={() => retry()}><RotateCcw size={16} aria-hidden />Tentar de novo</Botao>
-      <Link href="/" className="text-sm font-medium text-slate-900 underline decoration-amber-400 decoration-2 underline-offset-4 hover:decoration-slate-900">Voltar ao início</Link>
-    </div>
-    {error.digest && <p className="mt-10 border-t border-slate-200 pt-4 text-xs text-slate-500">Código do erro: <code className="tabular-nums">{error.digest}</code></p>}
-  </Principal>;
+  return (
+    <Principal role="alert" className="max-w-6xl py-12 sm:py-16">
+      <BarraDeDestaque cor="vermelha" />
+      <p className="mt-5 text-sm text-slate-500">Erro inesperado</p>
+      <h1 className="mt-1 text-3xl font-semibold tracking-tight text-slate-900 sm:text-4xl">
+        Algo deu errado nesta página
+      </h1>
+      <p className="mt-3 max-w-2xl text-base leading-7 text-slate-600">
+        Pode ser uma falha temporária. Tente de novo; se continuar, volte ao início e tente mais tarde.
+      </p>
+      <div className="mt-8 flex flex-wrap items-center gap-x-6 gap-y-3">
+        <Botao type="button" onClick={() => retry()}>
+          <RotateCcw size={16} aria-hidden />
+          Tentar de novo
+        </Botao>
+        <Link
+          href="/"
+          className="text-sm font-medium text-slate-900 underline decoration-amber-400 decoration-2 underline-offset-4 hover:decoration-slate-900"
+        >
+          Voltar ao início
+        </Link>
+      </div>
+      {error.digest && (
+        <p className="mt-10 border-t border-slate-200 pt-4 text-xs text-slate-500">
+          Código do erro: <code className="tabular-nums">{error.digest}</code>
+        </p>
+      )}
+    </Principal>
+  );
 }

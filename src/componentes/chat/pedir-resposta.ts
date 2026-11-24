@@ -18,8 +18,13 @@ export async function pedirResposta(conversa: MensagemDaConversa[], interrupcao:
     signal: AbortSignal.any([interrupcao, AbortSignal.timeout(TEMPO_MAXIMO_MS)]),
   });
   if (!resposta.ok) {
-    const dados = await resposta.json().catch(() => ({})) as { error?: string };
-    throw new Error(dados.error || (resposta.status >= 500 ? 'O serviço está indisponível agora. Tente novamente em instantes.' : 'Não foi possível enviar.'));
+    const dados = (await resposta.json().catch(() => ({}))) as { error?: string };
+    throw new Error(
+      dados.error ||
+        (resposta.status >= 500
+          ? 'O serviço está indisponível agora. Tente novamente em instantes.'
+          : 'Não foi possível enviar.'),
+    );
   }
   if (!resposta.body) throw new Error('A resposta não pôde ser recebida.');
   return resposta.body;
@@ -28,5 +33,7 @@ export async function pedirResposta(conversa: MensagemDaConversa[], interrupcao:
 /** Texto do aviso para uma falha da conexão ou do servidor. */
 export function avisoDaFalha(causa: unknown) {
   if (!(causa instanceof Error)) return 'Tente novamente.';
-  return ['TimeoutError', 'AbortError'].includes(causa.name) ? 'O serviço de IA demorou para responder. Tente novamente em instantes.' : causa.message;
+  return ['TimeoutError', 'AbortError'].includes(causa.name)
+    ? 'O serviço de IA demorou para responder. Tente novamente em instantes.'
+    : causa.message;
 }

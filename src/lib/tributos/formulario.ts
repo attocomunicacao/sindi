@@ -14,5 +14,10 @@ export function aliquotasEmTexto(ano: number): AliquotasEmTexto {
 
 /** Resolve o cálculo capturando só erro de entrada; qualquer outro erro continua sendo erro de programa. */
 export function tentar<T>(calcular: () => T): { ok: T } | { falha: string } {
-  try { return { ok: calcular() }; } catch (causa) { if (causa instanceof ErroTributario) return { falha: causa.message }; throw causa; }
+  try {
+    return { ok: calcular() };
+  } catch (causa) {
+    if (causa instanceof ErroTributario) return { falha: causa.message };
+    throw causa;
+  }
 }

@@ -12,18 +12,24 @@ import { conectores, pontuarConectores, type Conector } from '@/lib/cerebro/cone
  */
 export type Especialista = { conector: Conector; papel: 'principal' | 'apoio'; pontos: number };
 
-export function montarOrquestra(pergunta: string, principal: Conector | undefined, todos: Conector[] = conectores()): Especialista[] {
+export function montarOrquestra(
+  pergunta: string,
+  principal: Conector | undefined,
+  todos: Conector[] = conectores(),
+): Especialista[] {
   if (!principal) return [];
   const placar = pontuarConectores(pergunta, todos);
-  const doPrincipal = placar.find(r => r.conector.id === principal.id)?.pontos ?? 0;
+  const doPrincipal = placar.find((r) => r.conector.id === principal.id)?.pontos ?? 0;
   const orquestra: Especialista[] = [{ conector: principal, papel: 'principal', pontos: doPrincipal }];
   const topo = Math.max(doPrincipal, placar[0]?.pontos ?? 0);
-  const apoio = placar.find(r => r.conector.id !== principal.id && r.conector.estantes.length > 0 && r.pontos >= 2 && r.pontos >= topo * 0.75);
+  const apoio = placar.find(
+    (r) => r.conector.id !== principal.id && r.conector.estantes.length > 0 && r.pontos >= 2 && r.pontos >= topo * 0.75,
+  );
   if (apoio) orquestra.push({ conector: apoio.conector, papel: 'apoio', pontos: apoio.pontos });
   return orquestra;
 }
 
 /** Estantes pesquisadas pela orquestra: as do principal primeiro, depois as do apoio, sem repetir (até 6). */
 export function estantesDaOrquestra(orquestra: Especialista[]): string[] {
-  return [...new Set(orquestra.flatMap(e => e.conector.estantes))].slice(0, 6);
+  return [...new Set(orquestra.flatMap((e) => e.conector.estantes))].slice(0, 6);
 }

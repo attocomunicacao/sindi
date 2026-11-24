@@ -3,10 +3,13 @@
  * O cérebro da SINDI como rede: o núcleo (a SINDI), os especialistas (conectores), as estantes da biblioteca, o conhecimento escrito pela equipe,
  * os documentos coletados e as entidades (leis, NRs, projetos) que os ligam. Só títulos, tipos e ligações — nenhum conteúdo integral, mensagem ou IP.
  */
-export type TipoDeNo = 'nucleo' | 'conector' | 'estante' | 'conhecimento' | 'documento' | 'lei' | 'nr' | 'proposicao' | 'sistema';
+export type TipoDeNo =
+  'nucleo' | 'conector' | 'estante' | 'conhecimento' | 'documento' | 'lei' | 'nr' | 'proposicao' | 'sistema';
 export type TipoDeAresta = 'especialista' | 'consulta' | 'gatilho' | 'guarda' | 'cita' | 'liga' | 'parecido' | 'fluxo';
 export type No = {
-  id: string; tipo: TipoDeNo; rotulo: string;
+  id: string;
+  tipo: TipoDeNo;
+  rotulo: string;
   /** Agrupamento para a cor (ala da estante, fonte do documento, tipo da entidade). */
   grupo: string;
   /** Endereço dentro do site (/base/...) para abrir o nó; documentos externos levam ao leitor da biblioteca. */
@@ -14,7 +17,8 @@ export type No = {
   /** Data do documento (ISO), quando houver. */
   data?: string;
   /** Posição pré-calculada (a página só desenha). */
-  x: number; y: number;
+  x: number;
+  y: number;
   /** Número de ligações. */
   grau: number;
 };

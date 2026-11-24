@@ -12,7 +12,9 @@ import { env, inteiro, type Nivel, type Provedor } from '@/lib/ia/tipos';
  * em 30/07/2026 e Cerebras passou a exigir cartão: ficaram de fora.
  */
 const modelo = (principal: string, rapido: string, padraoPrincipal: string, padraoRapido?: string) => (nivel: Nivel) =>
-  nivel === 'rapido' ? env(rapido) || padraoRapido || env(principal) || padraoPrincipal : env(principal) || padraoPrincipal;
+  nivel === 'rapido'
+    ? env(rapido) || padraoRapido || env(principal) || padraoPrincipal
+    : env(principal) || padraoPrincipal;
 const raciocinio = (nome: string) => /gpt-oss/i.test(nome);
 
 const provedorGroq = provedorCompat({
@@ -23,7 +25,7 @@ const provedorGroq = provedorCompat({
   usoNoFluxo: true,
   // gpt-oss raciocina antes de escrever e o raciocínio conta no teto de saída: esforço baixo, raciocínio fora da resposta e folga no teto.
   folga: 400,
-  extras: nome => (raciocinio(nome) ? { reasoning_effort: 'low', include_reasoning: false } : {}),
+  extras: (nome) => (raciocinio(nome) ? { reasoning_effort: 'low', include_reasoning: false } : {}),
 });
 
 const provedorOpenRouter = provedorCompat({
@@ -32,7 +34,8 @@ const provedorOpenRouter = provedorCompat({
   chave: () => env('OPENROUTER_API_KEY'),
   // `openrouter/free` sorteia um modelo gratuito por pedido; para respostas mais estáveis, fixe um `...:free` em OPENROUTER_MODEL.
   modelos: modelo('OPENROUTER_MODEL', 'OPENROUTER_MODEL_RAPIDO', 'openrouter/free'),
-  usoNoFluxo: true, folga: 300,
+  usoNoFluxo: true,
+  folga: 300,
   cabecalhos: () => ({ 'X-Title': 'SINDI' }),
 });
 
@@ -46,19 +49,39 @@ const provedorMistral = provedorCompat({
 const provedorCloudflare = provedorCompat({
   id: 'cloudflare',
   // O número da conta entra na URL: só formato hexadecimal de 32 caracteres, para não montar endereço com texto arbitrário.
-  base: () => { const conta = env('CLOUDFLARE_ACCOUNT_ID'); return conta && /^[a-f0-9]{32}$/i.test(conta) ? `https://api.cloudflare.com/client/v4/accounts/${conta}/ai/v1` : undefined; },
+  base: () => {
+    const conta = env('CLOUDFLARE_ACCOUNT_ID');
+    return conta && /^[a-f0-9]{32}$/i.test(conta)
+      ? `https://api.cloudflare.com/client/v4/accounts/${conta}/ai/v1`
+      : undefined;
+  },
   chave: () => env('CLOUDFLARE_API_TOKEN'),
-  modelos: modelo('CLOUDFLARE_MODEL', 'CLOUDFLARE_MODEL_RAPIDO', '@cf/meta/llama-3.3-70b-instruct-fp8-fast', '@cf/meta/llama-3.1-8b-instruct'),
+  modelos: modelo(
+    'CLOUDFLARE_MODEL',
+    'CLOUDFLARE_MODEL_RAPIDO',
+    '@cf/meta/llama-3.3-70b-instruct-fp8-fast',
+    '@cf/meta/llama-3.1-8b-instruct',
+  ),
 });
 
 /** Só endereços desta máquina: o modelo local nunca vira uma porta para a rede interna (SSRF). */
 export function enderecoDoOllama(valor = env('SINDI_OLLAMA_URL')) {
   if (!valor) return undefined;
-  try { const url = new URL(valor); return /^https?:$/.test(url.protocol) && ['127.0.0.1', 'localhost', '[::1]'].includes(url.hostname) && !url.username && !url.password ? `${url.origin}/v1` : undefined; }
-  catch { return undefined; }
+  try {
+    const url = new URL(valor);
+    return /^https?:$/.test(url.protocol) &&
+      ['127.0.0.1', 'localhost', '[::1]'].includes(url.hostname) &&
+      !url.username &&
+      !url.password
+      ? `${url.origin}/v1`
+      : undefined;
+  } catch {
+    return undefined;
+  }
 }
 const provedorOllama = provedorCompat({
-  id: 'ollama', local: true,
+  id: 'ollama',
+  local: true,
   base: () => enderecoDoOllama(),
   chave: () => undefined,
   modelos: modelo('SINDI_OLLAMA_MODEL', 'SINDI_OLLAMA_MODEL_RAPIDO', 'qwen2.5:3b'),
@@ -68,13 +91,26 @@ const provedorOllama = provedorCompat({
   inatividadeMs: () => inteiro(process.env.SINDI_OLLAMA_INATIVIDADE_MS, 90000, 5000, 300000),
 });
 
-const TODOS: Provedor[] = [provedorGemini, provedorGroq, provedorOpenRouter, provedorMistral, provedorCloudflare, provedorAnthropic, provedorOllama];
+const TODOS: Provedor[] = [
+  provedorGemini,
+  provedorGroq,
+  provedorOpenRouter,
+  provedorMistral,
+  provedorCloudflare,
+  provedorAnthropic,
+  provedorOllama,
+];
 /** Ordem padrão: os gratuitos com mais capacidade primeiro; Anthropic (pago) só com chave; o local sempre por último. */
 const ORDEM_PADRAO = 'gemini,groq,openrouter,mistral,cloudflare,anthropic,ollama';
 
 /** Provedores configurados, na ordem de `SINDI_CASCATA` (ids desconhecidos são ignorados; o local vai sempre ao fim). */
 export function provedoresAtivos(): Provedor[] {
-  const ordem = (process.env.SINDI_CASCATA || ORDEM_PADRAO).split(',').map(s => s.trim().toLowerCase()).filter(Boolean);
-  const escolhidos = [...new Set(ordem)].map(id => TODOS.find(p => p.id === id)).filter((p): p is Provedor => Boolean(p) && p!.configurado());
-  return [...escolhidos.filter(p => !p.local), ...escolhidos.filter(p => p.local)];
+  const ordem = (process.env.SINDI_CASCATA || ORDEM_PADRAO)
+    .split(',')
+    .map((s) => s.trim().toLowerCase())
+    .filter(Boolean);
+  const escolhidos = [...new Set(ordem)]
+    .map((id) => TODOS.find((p) => p.id === id))
+    .filter((p): p is Provedor => Boolean(p) && p!.configurado());
+  return [...escolhidos.filter((p) => !p.local), ...escolhidos.filter((p) => p.local)];
 }

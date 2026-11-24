@@ -13,11 +13,20 @@ export type Entrada = Decimal.Value;
 
 /** Erro de entrada do cálculo tributário (mensagem em português, mostrável ao usuário). */
 export class ErroTributario extends Error {
-  constructor(mensagem: string) { super(mensagem); this.name = 'ErroTributario'; }
+  constructor(mensagem: string) {
+    super(mensagem);
+    this.name = 'ErroTributario';
+  }
 }
 
 export const dec = (v: Entrada): Dec => {
-  try { const d = new D(v); if (!d.isFinite()) throw new Error('não finito'); return d; } catch { throw new ErroTributario('Valor numérico inválido.'); }
+  try {
+    const d = new D(v);
+    if (!d.isFinite()) throw new Error('não finito');
+    return d;
+  } catch {
+    throw new ErroTributario('Valor numérico inválido.');
+  }
 };
 const MODO = Decimal.ROUND_HALF_EVEN;
 /** Valor fiscal: 2 casas, HALF_EVEN. */

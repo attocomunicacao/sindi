@@ -33,17 +33,50 @@ const ITENS: Item[] = [
   ['arq:resposta', 'Resposta com referências', 1080, 0, 'sistema'],
 ];
 const LIGACOES: [string, string][] = [
-  ['arq:pergunta', 'arq:guarda'], ['arq:guarda', 'arq:orquestrador'],
-  ...['sobre', 'legislacao', 'setor', 'comercial', 'rh', 'custos', 'relacionamento'].flatMap(e => [['arq:orquestrador', `arq:esp-${e}`]] as [string, string][]),
-  ...['sobre', 'legislacao', 'setor', 'comercial', 'rh', 'custos', 'relacionamento'].flatMap(e => (e === 'sobre' ? ['cerebro'] : e === 'comercial' || e === 'custos' ? ['cerebro', 'biblioteca', 'ferramentas'] : ['cerebro', 'biblioteca', 'grafo']).map(f => [`arq:esp-${e}`, `arq:${f}`] as [string, string])),
+  ['arq:pergunta', 'arq:guarda'],
+  ['arq:guarda', 'arq:orquestrador'],
+  ...['sobre', 'legislacao', 'setor', 'comercial', 'rh', 'custos', 'relacionamento'].flatMap(
+    (e) => [['arq:orquestrador', `arq:esp-${e}`]] as [string, string][],
+  ),
+  ...['sobre', 'legislacao', 'setor', 'comercial', 'rh', 'custos', 'relacionamento'].flatMap((e) =>
+    (e === 'sobre'
+      ? ['cerebro']
+      : e === 'comercial' || e === 'custos'
+        ? ['cerebro', 'biblioteca', 'ferramentas']
+        : ['cerebro', 'biblioteca', 'grafo']
+    ).map((f) => [`arq:esp-${e}`, `arq:${f}`] as [string, string]),
+  ),
   ['arq:biblioteca', 'arq:grafo'],
-  ...['cerebro', 'biblioteca', 'grafo', 'ferramentas'].map(f => [`arq:${f}`, 'arq:redacao'] as [string, string]),
-  ...['gemini', 'groq', 'openrouter', 'mistral', 'cloudflare', 'anthropic', 'ollama'].flatMap(p => [['arq:redacao', `arq:${p}`], [`arq:${p}`, 'arq:verificador']] as [string, string][]),
-  ['arq:verificador', 'arq:redacao'], ['arq:verificador', 'arq:resposta'],
+  ...['cerebro', 'biblioteca', 'grafo', 'ferramentas'].map((f) => [`arq:${f}`, 'arq:redacao'] as [string, string]),
+  ...['gemini', 'groq', 'openrouter', 'mistral', 'cloudflare', 'anthropic', 'ollama'].flatMap(
+    (p) =>
+      [
+        ['arq:redacao', `arq:${p}`],
+        [`arq:${p}`, 'arq:verificador'],
+      ] as [string, string][],
+  ),
+  ['arq:verificador', 'arq:redacao'],
+  ['arq:verificador', 'arq:resposta'],
 ];
 
 export function grafoDaArquitetura(): { nos: No[]; arestas: Aresta[] } {
   const arestas: Aresta[] = LIGACOES.map(([de, para]) => ({ de, para, tipo: 'fluxo', peso: 1 }));
-  const grau = new Map<string, number>(); for (const a of arestas) { grau.set(a.de, (grau.get(a.de) ?? 0) + 1); grau.set(a.para, (grau.get(a.para) ?? 0) + 1); }
-  return { nos: ITENS.map(([id, rotulo, x, y, tipo = 'sistema', href]) => ({ id, rotulo, x, y, tipo, grupo: 'arquitetura', href, grau: grau.get(id) ?? 0 })), arestas };
+  const grau = new Map<string, number>();
+  for (const a of arestas) {
+    grau.set(a.de, (grau.get(a.de) ?? 0) + 1);
+    grau.set(a.para, (grau.get(a.para) ?? 0) + 1);
+  }
+  return {
+    nos: ITENS.map(([id, rotulo, x, y, tipo = 'sistema', href]) => ({
+      id,
+      rotulo,
+      x,
+      y,
+      tipo,
+      grupo: 'arquitetura',
+      href,
+      grau: grau.get(id) ?? 0,
+    })),
+    arestas,
+  };
 }

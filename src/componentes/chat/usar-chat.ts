@@ -3,7 +3,12 @@ import { useEffect, useRef, useState } from 'react';
 import { LeitorDoChat, textoParaLeitor, type EventoDoChat } from '@/lib/chat/leitor-ndjson';
 import { sortearSugestoes } from '@/lib/sugestoes';
 import { NOVA_CONVERSA } from '@/componentes/chat/nova-conversa';
-import { avisoDaFalha, LIMITE_DA_PERGUNTA, pedirResposta, type MensagemDaConversa } from '@/componentes/chat/pedir-resposta';
+import {
+  avisoDaFalha,
+  LIMITE_DA_PERGUNTA,
+  pedirResposta,
+  type MensagemDaConversa,
+} from '@/componentes/chat/pedir-resposta';
 import { useTeclaEsc } from '@/componentes/ui/usar-tecla-esc';
 
 /** Quanto falta para o fim da página (px) para ainda se considerar que quem lê está acompanhando a resposta. */
@@ -37,15 +42,21 @@ export function useChat() {
   const fimDaConversa = useRef<HTMLDivElement>(null);
   const vazia = mensagens.length === 0;
 
-  // eslint-disable-next-line react-hooks/set-state-in-effect -- sorteio no navegador após a hidratação, para não divergir do HTML do servidor
-  useEffect(() => { if (vazia) setSugestoes(anteriores => sortearSugestoes(anteriores)); }, [vazia]);
+  // Sorteio no navegador após a hidratação, para não divergir do HTML do servidor.
   useEffect(() => {
-    const medir = () => { noFim.current = window.innerHeight + window.scrollY >= document.documentElement.scrollHeight - MARGEM_DO_FIM; };
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- ver o comentário acima
+    if (vazia) setSugestoes((anteriores) => sortearSugestoes(anteriores));
+  }, [vazia]);
+  useEffect(() => {
+    const medir = () => {
+      noFim.current = window.innerHeight + window.scrollY >= document.documentElement.scrollHeight - MARGEM_DO_FIM;
+    };
     window.addEventListener('scroll', medir, { passive: true });
     return () => window.removeEventListener('scroll', medir);
   }, []);
   useEffect(() => {
-    if (mensagens.length && noFim.current) fimDaConversa.current?.scrollIntoView({ block: 'end', behavior: carregando ? 'auto' : 'smooth' });
+    if (mensagens.length && noFim.current)
+      fimDaConversa.current?.scrollIntoView({ block: 'end', behavior: carregando ? 'auto' : 'smooth' });
   }, [mensagens, carregando]);
 
   const parar = () => controle.current?.abort();
@@ -53,7 +64,10 @@ export function useChat() {
   useEffect(() => {
     const limpar = () => {
       if (ocupado.current) return;
-      setMensagens([]); setErro(''); setEntrada(''); setAnuncio('');
+      setMensagens([]);
+      setErro('');
+      setEntrada('');
+      setAnuncio('');
       caixaDeTexto.current?.focus({ preventScroll: true });
     };
     window.addEventListener(NOVA_CONVERSA, limpar);
@@ -68,22 +82,37 @@ export function useChat() {
     let completa = false;
     // Os pedaços chegam a cada token; a tela é atualizada no máximo uma vez por quadro, para o markdown não ser refeito dezenas de vezes por segundo.
     let quadro = 0;
-    const mostrar = () => { quadro = 0; setMensagens([...pendentes, { role: 'assistant', content: resposta }]); };
-    const cancelarQuadro = () => { if (quadro) { cancelAnimationFrame(quadro); quadro = 0; } };
+    const mostrar = () => {
+      quadro = 0;
+      setMensagens([...pendentes, { role: 'assistant', content: resposta }]);
+    };
+    const cancelarQuadro = () => {
+      if (quadro) {
+        cancelAnimationFrame(quadro);
+        quadro = 0;
+      }
+    };
 
     const tratar = (evento: EventoDoChat) => {
       // Erro enviado pelo servidor (cota, resposta reprovada): o texto parcial não é confiável e não fica na conversa.
-      if (evento.type === 'error') { progresso.erroDoServidor = true; throw new Error(evento.error || 'A resposta foi interrompida.'); }
+      if (evento.type === 'error') {
+        progresso.erroDoServidor = true;
+        throw new Error(evento.error || 'A resposta foi interrompida.');
+      }
       if (evento.type === 'reset') {
-        cancelarQuadro(); resposta = ''; progresso.parcial = '';
+        cancelarQuadro();
+        resposta = '';
+        progresso.parcial = '';
         setMensagens([...pendentes, { role: 'assistant', content: '' }]);
       }
       if (evento.type === 'delta') {
-        resposta += evento.text; progresso.parcial = resposta;
+        resposta += evento.text;
+        progresso.parcial = resposta;
         if (!quadro) quadro = requestAnimationFrame(mostrar);
       }
       if (evento.type === 'done') {
-        cancelarQuadro(); completa = true;
+        cancelarQuadro();
+        completa = true;
         setConsumoNaoRegistrado(evento.metricsRecorded === false);
         if (typeof evento.restantes === 'number') setRestantes(evento.restantes);
         setMensagens([...pendentes, { role: 'assistant', content: evento.text }]);
@@ -98,28 +127,57 @@ export function useChat() {
         if (done) break;
       }
       if (leitor.invalidas || !completa) throw new Error('A resposta foi interrompida. Tente novamente.');
-    } finally { cancelarQuadro(); await leitorDoCorpo.cancel().catch(() => {}); leitorDoCorpo.releaseLock(); }
+    } finally {
+      cancelarQuadro();
+      await leitorDoCorpo.cancel().catch(() => {});
+      leitorDoCorpo.releaseLock();
+    }
   }
 
   /** Falha ou interrupção: decide se o texto parcial fica na conversa ou se a pergunta volta para a caixa de texto. */
-  function tratarFalha(causa: unknown, interrupcao: AbortController, anteriores: MensagemDaConversa[], pendentes: MensagemDaConversa[], pergunta: string, progresso: Progresso) {
+  function tratarFalha(
+    causa: unknown,
+    interrupcao: AbortController,
+    anteriores: MensagemDaConversa[],
+    pendentes: MensagemDaConversa[],
+    pergunta: string,
+    progresso: Progresso,
+  ) {
     const temParcial = progresso.parcial.trim() !== '';
     const manterParcial = () => setMensagens([...pendentes, { role: 'assistant', content: progresso.parcial }]);
-    const devolverPergunta = () => { setMensagens(anteriores); setEntrada(pergunta); };
+    const devolverPergunta = () => {
+      setMensagens(anteriores);
+      setEntrada(pergunta);
+    };
     // Interrompida por quem enviou: se já havia texto, ele fica; se nada tinha chegado, a pergunta volta para a caixa de texto, para editar ou descartar.
-    if (interrupcao.signal.aborted) { if (temParcial) manterParcial(); else devolverPergunta(); return; }
+    if (interrupcao.signal.aborted) {
+      if (temParcial) manterParcial();
+      else devolverPergunta();
+      return;
+    }
     const aviso = avisoDaFalha(causa);
     // A conexão caiu no meio da resposta: o que já chegou fica na tela (com o aviso), e a pergunta continua na conversa.
-    if (!progresso.erroDoServidor && temParcial) { manterParcial(); setErro(aviso); return; }
-    devolverPergunta(); setErro(aviso);
+    if (!progresso.erroDoServidor && temParcial) {
+      manterParcial();
+      setErro(aviso);
+      return;
+    }
+    devolverPergunta();
+    setErro(aviso);
   }
 
   async function enviar(texto = entrada) {
     const pergunta = texto.trim();
     if (!pergunta || pergunta.length > LIMITE_DA_PERGUNTA || ocupado.current) return;
 
-    ocupado.current = true; noFim.current = true; setCarregando(true); setErro(''); setEntrada(''); setAnuncio('');
-    const interrupcao = new AbortController(); controle.current = interrupcao;
+    ocupado.current = true;
+    noFim.current = true;
+    setCarregando(true);
+    setErro('');
+    setEntrada('');
+    setAnuncio('');
+    const interrupcao = new AbortController();
+    controle.current = interrupcao;
     const progresso: Progresso = { parcial: '', erroDoServidor: false };
     const anteriores = mensagens;
     const pendentes: MensagemDaConversa[] = [...anteriores, { role: 'user', content: pergunta }];
@@ -129,10 +187,27 @@ export function useChat() {
     } catch (causa) {
       tratarFalha(causa, interrupcao, anteriores, pendentes, pergunta, progresso);
     } finally {
-      ocupado.current = false; controle.current = null; setCarregando(false);
+      ocupado.current = false;
+      controle.current = null;
+      setCarregando(false);
       caixaDeTexto.current?.focus({ preventScroll: true });
     }
   }
 
-  return { mensagens, entrada, setEntrada, carregando, erro, consumoNaoRegistrado, restantes, anuncio, sugestoes, vazia, enviar, parar, caixaDeTexto, fimDaConversa };
+  return {
+    mensagens,
+    entrada,
+    setEntrada,
+    carregando,
+    erro,
+    consumoNaoRegistrado,
+    restantes,
+    anuncio,
+    sugestoes,
+    vazia,
+    enviar,
+    parar,
+    caixaDeTexto,
+    fimDaConversa,
+  };
 }

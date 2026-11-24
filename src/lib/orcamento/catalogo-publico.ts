@@ -9,11 +9,31 @@ import { calcularEncargos } from '@/lib/orcamento/encargos';
  */
 export function catalogoPublico() {
   return {
-    funcoes: FUNCOES.map(f => ({ id: f.id, nome: f.nome, salario: f.salario, permiteNoturno: f.permiteNoturno, periculosidade: f.periculosidade, insalubridade: f.insalubridade })),
+    funcoes: FUNCOES.map((f) => ({
+      id: f.id,
+      nome: f.nome,
+      salario: f.salario,
+      permiteNoturno: f.permiteNoturno,
+      periculosidade: f.periculosidade,
+      insalubridade: f.insalubridade,
+    })),
     sobConsulta: FUNCOES_SOB_CONSULTA,
-    categorias: CATEGORIAS_INSUMO.map(c => ({ id: c.id as string, titulo: c.titulo, tipo: c.tipo, itens: itensDaCategoria(c.id).map(i => ({ id: i.id, nome: i.nome, valor: i.valor })) })),
-    iss: ISS_PERMITIDO, issPadrao: tabela.parametros.impostos.iss, horasNoturnasPadrao: HORAS_NOTURNAS_PADRAO, salarioMinimo: tabela.parametros.salarioMinimo,
-    encargos: calcularEncargos().total, referencia: { origem: 'tabela de referência de custos de terceirização', extraidoEm: tabela.meta.extraidoEm, observacao: tabela.meta.observacao },
+    categorias: CATEGORIAS_INSUMO.map((c) => ({
+      id: c.id as string,
+      titulo: c.titulo,
+      tipo: c.tipo,
+      itens: itensDaCategoria(c.id).map((i) => ({ id: i.id, nome: i.nome, valor: i.valor })),
+    })),
+    iss: ISS_PERMITIDO,
+    issPadrao: tabela.parametros.impostos.iss,
+    horasNoturnasPadrao: HORAS_NOTURNAS_PADRAO,
+    salarioMinimo: tabela.parametros.salarioMinimo,
+    encargos: calcularEncargos().total,
+    referencia: {
+      origem: 'tabela de referência de custos de terceirização',
+      extraidoEm: tabela.meta.extraidoEm,
+      observacao: tabela.meta.observacao,
+    },
   };
 }
 export type CatalogoPublico = ReturnType<typeof catalogoPublico>;

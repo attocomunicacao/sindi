@@ -6,8 +6,13 @@ export const dynamic = 'force-dynamic';
 
 // Somente dados públicos agregados das fontes oficiais; nenhuma mensagem, IP ou credencial.
 export async function GET(request: Request) {
-  const limite = guardaDeLeitura(request, 'painel', 300); if (limite) return limite;
+  const limite = guardaDeLeitura(request, 'painel', 300);
+  if (limite) return limite;
   let body;
-  try { body = lerPainelEmCache(); } catch { body = painelVazio(); }
+  try {
+    body = lerPainelEmCache();
+  } catch {
+    body = painelVazio();
+  }
   return Response.json(body, { headers: { 'Cache-Control': 'no-store', 'X-Content-Type-Options': 'nosniff' } });
 }

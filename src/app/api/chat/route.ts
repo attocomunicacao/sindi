@@ -40,20 +40,25 @@ export async function POST(request: Request) {
       const semCota = await conferirCotaAntes(request, aquecimento);
       if (semCota) return semCota;
       // Dados pessoais e segredos nunca chegam ao modelo: a pergunta e o histórico seguem com o trecho removido.
-      const recentes = mensagensRecentes(mensagens).map(mensagem => ({ ...mensagem, content: redigirDadosSensiveis(mensagem.content) }));
-      const pergunta = recentes.at(-1)!.content; const historico = historicoParaOModelo(recentes.slice(0, -1));
-      const { situacao, escolhidas, lista, relatorio, conector, anteriores, ehRedacao, perguntaAtual } = await decidirSituacao({ mensagens });
+      const recentes = mensagensRecentes(mensagens).map((mensagem) => ({
+        ...mensagem,
+        content: redigirDadosSensiveis(mensagem.content),
+      }));
+      const pergunta = recentes.at(-1)!.content;
+      const historico = historicoParaOModelo(recentes.slice(0, -1));
+      const { situacao, escolhidas, lista, relatorio, conector, anteriores, ehRedacao, perguntaAtual } =
+        await decidirSituacao({ mensagens });
 
       // O que muda a cada pergunta custa tokens do limite gratuito (as regras e os exemplos vêm sempre iguais, primeiro): as fontes têm orçamento de caracteres
       // e a resposta tem limite de palavras, definido pelo conector da área.
-      const base: Mensagem[] = [{ role: 'system', content: sistema() }, ...exemplos(), ...historico as Mensagem[]];
+      const base: Mensagem[] = [{ role: 'system', content: sistema() }, ...exemplos(), ...(historico as Mensagem[])];
       const pedido = construirPedido({ ehRedacao, lista, relatorio, conector, escolhidas, pergunta });
       const tentativas = tentativasDeResposta(situacao, escolhidas);
       const primeira = pedido(tentativas[0].nota, tentativas[0].fontes);
       // Nível por tipo de pedido: o rápido só para o que é curto e roteirizado (saudação, recusa, encaminhamento: o servidor já decidiu o que dizer);
       // o principal para tudo o que exige ler fontes. Medido: nas perguntas sobre a própria SINDI o rápido errou 3 de 10 (chegou a dizer que a SINDI é o sindicato).
       // A cascata escolhe o provedor; a memória de respostas é por nível, então uma resposta já verificada serve qualquer que seja o provedor que a escreveu.
-      const nivel = rapidoLigado() && situacao ? 'rapido' as const : 'principal' as const;
+      const nivel = rapidoLigado() && situacao ? ('rapido' as const) : ('principal' as const);
 
       // Primeira pergunta de uma conversa com as mesmas regras, exemplos e fontes: a resposta já escrita e verificada sai da memória, ou vem de quem está gerando agora.
       const chave = chaveDaGeracao({ mensagens, situacao, modelo: nivel, base, texto: primeira.texto });
@@ -69,22 +74,49 @@ export async function POST(request: Request) {
       if ('resposta' in gasto) return gasto.resposta;
 
       const { texto, uso, fontesUsadas, confiavel, provedor } = await escreverComVerificacao({
-        base, tentativas, pedido, primeira, nivel, signal: sinal, onDelta, onReset, manterColchetes: ehRedacao || PEDE_MODELO.test(perguntaAtual), perguntas: [...anteriores, perguntaAtual].join(' '),
+        base,
+        tentativas,
+        pedido,
+        primeira,
+        nivel,
+        signal: sinal,
+        onDelta,
+        onReset,
+        manterColchetes: ehRedacao || PEDE_MODELO.test(perguntaAtual),
+        perguntas: [...anteriores, perguntaAtual].join(' '),
       });
-      if (!confiavel) { await registrarUso({ success: false, durationMs: Date.now() - inicio, usage: uso, provedor }); return erro('Não foi possível gerar uma resposta confiável. Tente reformular a pergunta.', 502); }
+      if (!confiavel) {
+        await registrarUso({ success: false, durationMs: Date.now() - inicio, usage: uso, provedor });
+        return erro('Não foi possível gerar uma resposta confiável. Tente reformular a pergunta.', 502);
+      }
       const referencias = !ehRedacao && texto.trim() && fontesUsadas.length ? referenciasDasFontes(fontesUsadas) : '';
       if (referencias) onDelta?.(referencias);
-      const metricasRegistradas = await registrarUso({ success: Boolean(texto.trim()), durationMs: Date.now() - inicio, usage: uso, provedor });
+      const metricasRegistradas = await registrarUso({
+        success: Boolean(texto.trim()),
+        durationMs: Date.now() - inicio,
+        usage: uso,
+        provedor,
+      });
       if (!texto.trim()) return erro('Não foi possível gerar uma resposta. Tente novamente.', 502);
-      if (chave && fontesUsadas === escolhidas) { guardarResposta(chave, texto + referencias); concluirGeracao?.(texto + referencias); }
-      return jsonSemCache({ text: texto + referencias, metricsRecorded: metricasRegistradas, restantes: gasto.cota?.restantes });
+      if (chave && fontesUsadas === escolhidas) {
+        guardarResposta(chave, texto + referencias);
+        concluirGeracao?.(texto + referencias);
+      }
+      return jsonSemCache({
+        text: texto + referencias,
+        metricsRecorded: metricasRegistradas,
+        restantes: gasto.cota?.restantes,
+      });
     } catch (causa) {
       await registrarUso({ success: false, durationMs: Date.now() - inicio });
       if (causa instanceof LlmError) return erro(causa.message, causa.status);
-      if (causa instanceof Error && ['TimeoutError', 'AbortError'].includes(causa.name)) return erro('O serviço de IA demorou para responder. Tente novamente.', 504);
+      if (causa instanceof Error && ['TimeoutError', 'AbortError'].includes(causa.name))
+        return erro('O serviço de IA demorou para responder. Tente novamente.', 504);
       console.warn('SINDI AI service failure', { type: causa instanceof Error ? causa.name : 'unknown' });
       return erro(MENSAGEM_NEUTRA, 503);
-    } finally { concluirGeracao?.(); }
+    } finally {
+      concluirGeracao?.();
+    }
   }
   if (!request.headers.get('accept')?.includes('application/x-ndjson')) return gerar();
   return respostaEmFluxo(gerar, controlador);

@@ -17,6 +17,9 @@ export async function POST(request: Request) {
   if ('resposta' in calculo) return calculo.resposta;
   const { resultado } = calculo;
   if (!resultado.postos.length) return erro('Nenhum posto válido.', 400);
-  const bytes = tipo === 'orcamento' ? await gerarOrcamentoPdf(entrada, resultado, cliente) : await gerarRelatorioCustoPdf(entrada, resultado, cliente);
+  const bytes =
+    tipo === 'orcamento'
+      ? await gerarOrcamentoPdf(entrada, resultado, cliente)
+      : await gerarRelatorioCustoPdf(entrada, resultado, cliente);
   return respostaPdf(bytes, ARQUIVOS[tipo]);
 }

@@ -15,40 +15,99 @@ import { exportarObsidian } from '@/lib/grafo/obsidian';
 import { arquivoDoGrafo } from '@/lib/grafo/consulta';
 
 const args = process.argv.slice(2);
-const watch = args.includes('--watch'); const full = args.includes('--full');
-const only = args.find(a => a.startsWith('--only='))?.slice(7).split(',').filter(Boolean);
+const watch = args.includes('--watch');
+const full = args.includes('--full');
+const only = args
+  .find((a) => a.startsWith('--only='))
+  ?.slice(7)
+  .split(',')
+  .filter(Boolean);
 const intervalMinutes = Number(process.env.DADOS_INTERVAL_MINUTES || 30);
 await mkdir(pastaDosDados(), { recursive: true });
 // Um único processo escritor por vez.
 const lock = path.join(pastaDosDados(), 'sync.lock');
-try { const f = await open(lock, 'wx'); await f.writeFile(String(process.pid)); await f.close(); }
-catch {
+try {
+  const f = await open(lock, 'wx');
+  await f.writeFile(String(process.pid));
+  await f.close();
+} catch {
   const pid = Number(await readFile(lock, 'utf8').catch(() => 0));
-  let alive = false; try { process.kill(pid, 0); alive = true; } catch { /* processo antigo encerrado */ }
-  if (alive) { console.error('Já existe uma coleta ativa (PID ' + pid + ').'); process.exit(1); }
-  await unlink(lock); const f = await open(lock, 'wx'); await f.writeFile(String(process.pid)); await f.close();
+  let alive = false;
+  try {
+    process.kill(pid, 0);
+    alive = true;
+  } catch {
+    /* processo antigo encerrado */
+  }
+  if (alive) {
+    console.error('Já existe uma coleta ativa (PID ' + pid + ').');
+    process.exit(1);
+  }
+  await unlink(lock);
+  const f = await open(lock, 'wx');
+  await f.writeFile(String(process.pid));
+  await f.close();
 }
 let stopping = false;
-const release = async () => { await unlink(lock).catch(() => {}); };
-for (const signal of ['SIGINT', 'SIGTERM'] as const) process.on(signal, () => { stopping = true; void release().then(() => process.exit(0)); });
+const release = async () => {
+  await unlink(lock).catch(() => {});
+};
+for (const signal of ['SIGINT', 'SIGTERM'] as const)
+  process.on(signal, () => {
+    stopping = true;
+    void release().then(() => process.exit(0));
+  });
 const db = abrirBanco();
 const log = (message: string) => console.log(`${new Date().toISOString()} ${message}`);
 try {
   do {
     log(`Coleta iniciada${full ? ' (completa)' : ''}${only ? ' [' + only.join(',') + ']' : ''}`);
-    try { await sincronizarTudo(db, { only, full: full && !watch, log }); log('Rodada de coleta concluída'); }
-    catch (cause) { log(`Coleta: erro na rodada (${cause instanceof Error ? cause.message : 'desconhecido'}); a próxima rodada tenta de novo`); }
+    try {
+      await sincronizarTudo(db, { only, full: full && !watch, log });
+      log('Rodada de coleta concluída');
+    } catch (cause) {
+      log(
+        `Coleta: erro na rodada (${cause instanceof Error ? cause.message : 'desconhecido'}); a próxima rodada tenta de novo`,
+      );
+    }
     // O cérebro autogerado (cerebro/auto) é regenerado a cada 6 horas, com validação e reversão se a avaliação piorar.
     if (!only && vencido(db, 'cerebro:publicacao', 6 * 60 * 60 * 1000, full)) {
-      try { const r = await publicarCerebro(db, log, { gerar: gerarArquivos, avaliar: () => avaliarCasos(carregarCasos()) }); log(`Cérebro: ${r.motivo}`); gravarEstado(db, 'cerebro:publicacao', new Date().toISOString()); }
-      catch (cause) { log(`Cérebro: erro ao regenerar (${cause instanceof Error ? cause.message : 'desconhecido'}); a versão anterior foi mantida`); }
+      try {
+        const r = await publicarCerebro(db, log, {
+          gerar: gerarArquivos,
+          avaliar: () => avaliarCasos(carregarCasos()),
+        });
+        log(`Cérebro: ${r.motivo}`);
+        gravarEstado(db, 'cerebro:publicacao', new Date().toISOString());
+      } catch (cause) {
+        log(
+          `Cérebro: erro ao regenerar (${cause instanceof Error ? cause.message : 'desconhecido'}); a versão anterior foi mantida`,
+        );
+      }
     }
     // Busca por significado: indexa o que mudou no cérebro e mantém o modelo de embeddings carregado (a primeira consulta fria é lenta).
-    try { await indexarCerebro(undefined, log); await embeddings(['aquecimento'], 'consulta', 20000); }
-    catch (cause) { log(`Cérebro: busca por significado indisponível (${cause instanceof Error ? cause.message : 'desconhecido'}); o chat usa a busca por palavras`); }
+    try {
+      await indexarCerebro(undefined, log);
+      await embeddings(['aquecimento'], 'consulta', 20000);
+    } catch (cause) {
+      log(
+        `Cérebro: busca por significado indisponível (${cause instanceof Error ? cause.message : 'desconhecido'}); o chat usa a busca por palavras`,
+      );
+    }
     // Grafo do cérebro (página /cerebro, cofre do Obsidian e expansão da busca do chat): refeito depois de cada coleta, com os documentos novos.
-    try { const g = construirGrafo(); writeFileSync(`${arquivoDoGrafo()}.tmp`, JSON.stringify(g)); renameSync(`${arquivoDoGrafo()}.tmp`, arquivoDoGrafo()); exportarObsidian(g, path.resolve('.data/obsidian/SINDI')); log(`Grafo: ${g.nos.length} nós e ${g.arestas.length} ligações`); }
-    catch (cause) { log(`Grafo: não foi possível gerar (${cause instanceof Error ? cause.message : 'desconhecido'}); o anterior foi mantido`); }
+    try {
+      const g = construirGrafo();
+      writeFileSync(`${arquivoDoGrafo()}.tmp`, JSON.stringify(g));
+      renameSync(`${arquivoDoGrafo()}.tmp`, arquivoDoGrafo());
+      exportarObsidian(g, path.resolve('.data/obsidian/SINDI'));
+      log(`Grafo: ${g.nos.length} nós e ${g.arestas.length} ligações`);
+    } catch (cause) {
+      log(
+        `Grafo: não foi possível gerar (${cause instanceof Error ? cause.message : 'desconhecido'}); o anterior foi mantido`,
+      );
+    }
     if (watch && !stopping) await delay(intervalMinutes * 60 * 1000);
   } while (watch && !stopping);
-} finally { await release(); }
+} finally {
+  await release();
+}

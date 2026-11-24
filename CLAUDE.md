@@ -14,6 +14,7 @@ O guia vigente do código é `docs/desenvolvimento/guia-do-desenvolvedor.md` (ma
 
 - `npm run dev` — um único `next dev` por pasta; `.env.local` só é lido na partida (reinicie ao mudar).
 - `npm run lint` / `npm run typecheck` / `npm test` / `npm run build`; `npm run check` roda os quatro. Fechar com `npm audit --audit-level=high`.
+- `npm run formatar` aplica o Prettier (`.prettierrc.json`: aspas simples, `;`, 120 colunas) em `src`, `tests`, `scripts` e `e2e`; `npm run formatar:verificar` só confere. Prettier move o comentário `eslint-disable-next-line` junto com a quebra de linha: confira que ele continua logo acima da linha que cobre.
 - Um arquivo de teste: `npx tsx --test tests/app/orcamento-rotas.test.ts`. Um caso: acrescente `--test-name-pattern="trecho do nome"`.
 - `npm run test:ci` — testes com cobertura mínima de 80% das linhas em `src/**` (é o que a CI exige).
 - `npm run test:e2e` — build + Playwright (Chromium, desktop e celular) com axe; primeira vez: `npx playwright install chromium`. Um spec: `npx playwright test e2e/<arquivo>.spec.ts` (após `npm run build`).

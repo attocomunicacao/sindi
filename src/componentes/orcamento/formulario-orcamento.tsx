@@ -11,15 +11,35 @@ import { useOrcamento } from '@/componentes/orcamento/usar-orcamento';
 export function FormularioOrcamento() {
   const orcamento = useOrcamento();
   if (!orcamento.postos.length) return <Carregando>Carregando…</Carregando>;
-  return <div className="grid gap-10 lg:grid-cols-[minmax(0,1fr)_360px]">
-    <div className="space-y-12">
-      <SecaoCliente cliente={orcamento.cliente} aoMudarCliente={orcamento.mudarCliente} metros={orcamento.metros} aoMudarMetros={orcamento.setMetros} />
-      <SecaoPostos postos={orcamento.postos} calculo={orcamento.calculo} aoAtualizar={orcamento.atualizarPosto} aoRemover={orcamento.removerPosto}
-        aoAdicionar={orcamento.adicionarPosto} aoUsarExemplo={orcamento.usarExemplo} />
-      <SecaoInsumos insumos={orcamento.insumos} />
-      <SecaoTributacao tributos={orcamento.tributos} iss={orcamento.iss} aoMudarIss={orcamento.setIss} />
+  return (
+    <div className="grid gap-10 lg:grid-cols-[minmax(0,1fr)_360px]">
+      <div className="space-y-12">
+        <SecaoCliente
+          cliente={orcamento.cliente}
+          aoMudarCliente={orcamento.mudarCliente}
+          metros={orcamento.metros}
+          aoMudarMetros={orcamento.setMetros}
+        />
+        <SecaoPostos
+          postos={orcamento.postos}
+          calculo={orcamento.calculo}
+          aoAtualizar={orcamento.atualizarPosto}
+          aoRemover={orcamento.removerPosto}
+          aoAdicionar={orcamento.adicionarPosto}
+          aoUsarExemplo={orcamento.usarExemplo}
+        />
+        <SecaoInsumos insumos={orcamento.insumos} />
+        <SecaoTributacao tributos={orcamento.tributos} iss={orcamento.iss} aoMudarIss={orcamento.setIss} />
+      </div>
+      <ResumoDoOrcamento
+        resultado={orcamento.resultado}
+        calculo={orcamento.calculo}
+        comparacao={orcamento.comparacao}
+        repetido={orcamento.repetido}
+        erro={orcamento.erro}
+        baixando={orcamento.baixando}
+        aoBaixar={orcamento.baixar}
+      />
     </div>
-    <ResumoDoOrcamento resultado={orcamento.resultado} calculo={orcamento.calculo} comparacao={orcamento.comparacao}
-      repetido={orcamento.repetido} erro={orcamento.erro} baixando={orcamento.baixando} aoBaixar={orcamento.baixar} />
-  </div>;
+  );
 }

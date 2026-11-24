@@ -16,14 +16,25 @@ export function usePainel(intervaloMs = CINCO_MINUTOS_MS) {
         const resposta = await fetch('/api/painel', { cache: 'no-store' });
         if (!resposta.ok) throw new Error('painel');
         const lidos = await resposta.json();
-        if (ativo) { setDados(lidos); setFalhou(false); }
-      } catch { if (ativo) setFalhou(true); }
+        if (ativo) {
+          setDados(lidos);
+          setFalhou(false);
+        }
+      } catch {
+        if (ativo) setFalhou(true);
+      }
     };
-    const carregarSeVisivel = () => { if (!document.hidden) void carregar(); };
+    const carregarSeVisivel = () => {
+      if (!document.hidden) void carregar();
+    };
     void carregar();
     const relogio = setInterval(carregarSeVisivel, intervaloMs);
     document.addEventListener('visibilitychange', carregarSeVisivel);
-    return () => { ativo = false; clearInterval(relogio); document.removeEventListener('visibilitychange', carregarSeVisivel); };
+    return () => {
+      ativo = false;
+      clearInterval(relogio);
+      document.removeEventListener('visibilitychange', carregarSeVisivel);
+    };
   }, [intervaloMs, tentativa]);
-  return { dados, falhou, recarregar: () => setTentativa(n => n + 1) };
+  return { dados, falhou, recarregar: () => setTentativa((n) => n + 1) };
 }

@@ -29,5 +29,10 @@ export type Ferramenta = {
    * Entrada no chat: devolve o resultado se a pergunta é um pedido para esta ferramenta, ou `undefined` se não for (o chat segue com as fontes de sempre).
    * Pode ser assíncrona (consulta a serviço externo). Não deve lançar erro por pergunta que não reconhece.
    */
-  chat?: { executar(pergunta: string, contexto: ContextoDaFerramenta): ResultadoDaFerramenta | undefined | Promise<ResultadoDaFerramenta | undefined> };
+  chat?: {
+    executar(
+      pergunta: string,
+      contexto: ContextoDaFerramenta,
+    ): ResultadoDaFerramenta | undefined | Promise<ResultadoDaFerramenta | undefined>;
+  };
 };

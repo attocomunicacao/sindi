@@ -17,7 +17,10 @@ export const GRADE = { esquerda: 0.3, x2: 5.41, x3: 10.51, x4: 15.62, fim: 20.7 
 export const LIMITES_COLUNA = [GRADE.esquerda, GRADE.x2, GRADE.x3, GRADE.x4, GRADE.fim];
 export const colunaX = (i: number) => (i < 0 || i > 3 ? 0 : LIMITES_COLUNA[i] * CM_PT);
 /** Largura, em pontos, de `quantidade` colunas a partir da `inicio`. */
-export const larguraColunas = (inicio: number, quantidade: number) => (inicio < 0 || quantidade <= 0 || inicio + quantidade > 4 ? 0 : (LIMITES_COLUNA[inicio + quantidade] - LIMITES_COLUNA[inicio]) * CM_PT);
+export const larguraColunas = (inicio: number, quantidade: number) =>
+  inicio < 0 || quantidade <= 0 || inicio + quantidade > 4
+    ? 0
+    : (LIMITES_COLUNA[inicio + quantidade] - LIMITES_COLUNA[inicio]) * CM_PT;
 export const COL1_CM = GRADE.x2 - GRADE.esquerda;
 export const corpoEsq = () => GRADE.esquerda * CM_PT;
 export const corpoDir = () => GRADE.fim * CM_PT;
@@ -62,9 +65,29 @@ export const ALTURA_MUNICIPAL_SUPRIMIDO = 0.32;
 export const ALTURA_PARTE = 1.94;
 export const ALTURA_MUNICIPAL = 2.59;
 
-export const ANCORAS = { tomador: 6.92, destinatario: 8.86, intermediario: 10.8, servico: 12.74, municipal: 14.43, federal: 17.02, ibs: 18.32, totais: 20.9, complementar: 22.27 };
+export const ANCORAS = {
+  tomador: 6.92,
+  destinatario: 8.86,
+  intermediario: 10.8,
+  servico: 12.74,
+  municipal: 14.43,
+  federal: 17.02,
+  ibs: 18.32,
+  totais: 20.9,
+  complementar: 22.27,
+};
 
-export type LayoutPagina = { tomador: number; destinatario: number; intermediario: number; servico: number; municipal: number; federal: number; ibs: number; totais: number; complementar: number };
+export type LayoutPagina = {
+  tomador: number;
+  destinatario: number;
+  intermediario: number;
+  servico: number;
+  municipal: number;
+  federal: number;
+  ibs: number;
+  totais: number;
+  complementar: number;
+};
 
 export function montarLayoutPagina(doc: DocumentoDanfse): LayoutPagina {
   const altura = (visivel: boolean) => (visivel ? ALTURA_PARTE : ALTURA_PARTE_SUPRIMIDA);
@@ -86,7 +109,12 @@ export function contarLinhasComplementares(topoConteudo: number, topoLinhaTribut
   return Math.max(1, Math.floor((topoLinhaTributos - topoConteudo - FOLGA_INFO) / PASSO_LINHA_COMPL + 1e-9));
 }
 
-export function calcularAlocacaoTexto(layout: LayoutPagina, canhoto: boolean, linhasDescricao: number, linhasCompl: number) {
+export function calcularAlocacaoTexto(
+  layout: LayoutPagina,
+  canhoto: boolean,
+  linhasDescricao: number,
+  linhasCompl: number,
+) {
   linhasDescricao = Math.max(1, linhasDescricao);
   linhasCompl = Math.max(1, linhasCompl);
   const reserva = Math.min(linhasCompl, MIN_LINHAS_COMPL);
@@ -103,5 +131,9 @@ export function calcularAlocacaoTexto(layout: LayoutPagina, canhoto: boolean, li
   }
   linhasDescricao = Math.max(1, linhasDescricao);
   const deslocamento = (linhasDescricao - 1) * PASSO_LINHA;
-  return { linhasDescricao, linhasComplementares: contarLinhasComplementares(baseConteudo + deslocamento, topoLinha), deslocamento };
+  return {
+    linhasDescricao,
+    linhasComplementares: contarLinhasComplementares(baseConteudo + deslocamento, topoLinha),
+    deslocamento,
+  };
 }

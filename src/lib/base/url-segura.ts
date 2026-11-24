@@ -4,5 +4,7 @@ export function linkSeguro(valor: string | null | undefined): string {
   try {
     const url = new URL(valor);
     return (url.protocol === 'https:' || url.protocol === 'http:') && !url.username && !url.password ? valor : '#';
-  } catch { return '#'; }
+  } catch {
+    return '#';
+  }
 }

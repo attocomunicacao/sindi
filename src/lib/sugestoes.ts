@@ -33,9 +33,16 @@ export const SUGESTOES = [
  * Sorteia `quantidade` perguntas diferentes entre si e, quando há perguntas suficientes, diferentes das mostradas antes: abrir uma conversa nova
  * nunca repete a sugestão anterior. `aleatorio` é injetável para testes.
  */
-export function sortearSugestoes(anteriores: readonly string[] = [], quantidade = 3, aleatorio: () => number = Math.random): string[] {
-  const disponiveis = SUGESTOES.filter(s => !anteriores.includes(s));
+export function sortearSugestoes(
+  anteriores: readonly string[] = [],
+  quantidade = 3,
+  aleatorio: () => number = Math.random,
+): string[] {
+  const disponiveis = SUGESTOES.filter((s) => !anteriores.includes(s));
   const base = [...(disponiveis.length >= quantidade ? disponiveis : SUGESTOES)];
-  for (let i = base.length - 1; i > 0; i--) { const j = Math.floor(aleatorio() * (i + 1)); [base[i], base[j]] = [base[j], base[i]]; }
+  for (let i = base.length - 1; i > 0; i--) {
+    const j = Math.floor(aleatorio() * (i + 1));
+    [base[i], base[j]] = [base[j], base[i]];
+  }
   return base.slice(0, quantidade);
 }

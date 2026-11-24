@@ -11,6 +11,8 @@ export function resolverMunicipio(codigo: string): { nome: string; uf: string } 
   const limpo = codigo.trim();
   if (!/^\d{1,7}$/.test(limpo)) return undefined;
   // O Go converte para inteiro (zeros à esquerda não importam); a tabela usa a chave sem zeros.
-  const achado = Object.prototype.hasOwnProperty.call(MUNICIPIOS, String(Number(limpo))) ? MUNICIPIOS[String(Number(limpo))] : undefined;
+  const achado = Object.prototype.hasOwnProperty.call(MUNICIPIOS, String(Number(limpo)))
+    ? MUNICIPIOS[String(Number(limpo))]
+    : undefined;
   return achado ? { nome: achado[0], uf: achado[1] } : undefined;
 }

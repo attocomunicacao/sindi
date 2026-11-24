@@ -8,8 +8,14 @@ export async function requisitarSupabase(caminho: string, corpo?: unknown, grava
   if (base.protocol !== 'https:' || !base.hostname.endsWith('.supabase.co')) throw new Error('Invalid Supabase URL');
   const resposta = await fetch(new URL(`/rest/v1/${caminho}`, base), {
     method: corpo === undefined ? 'GET' : 'POST',
-    headers: { apikey: chave, ...(chave.startsWith('eyJ') ? { Authorization: `Bearer ${chave}` } : {}), 'Content-Type': 'application/json' },
-    body: corpo === undefined ? undefined : JSON.stringify(corpo), cache: 'no-store', signal: AbortSignal.timeout(15000),
+    headers: {
+      apikey: chave,
+      ...(chave.startsWith('eyJ') ? { Authorization: `Bearer ${chave}` } : {}),
+      'Content-Type': 'application/json',
+    },
+    body: corpo === undefined ? undefined : JSON.stringify(corpo),
+    cache: 'no-store',
+    signal: AbortSignal.timeout(15000),
   });
   if (!resposta.ok) throw new Error(`Supabase HTTP ${resposta.status}`);
   return resposta.status === 204 ? null : resposta.json();

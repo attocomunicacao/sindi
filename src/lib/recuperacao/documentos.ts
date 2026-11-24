@@ -12,13 +12,22 @@ import { trechosDePosicionamento, trechosDoSindicato } from '@/lib/recuperacao/s
  * indicadores, posição do sindicato em artigos e notícias, e listas de documentos do sindicato. Os trechos vão ao modelo, nunca ao usuário: a SINDI explica, não copia.
  * `semResposta` é o aviso quando o documento pedido não consta da coleta. `lista` indica que há vários documentos curtos (mais trechos cabem na evidência).
  */
-export function trechosDeDocumentos(pergunta: string, termos: string[], arquivo = caminhoDoBanco()): TrechosDeDocumentos {
+export function trechosDeDocumentos(
+  pergunta: string,
+  termos: string[],
+  arquivo = caminhoDoBanco(),
+): TrechosDeDocumentos {
   const q = normalizar(pergunta);
-  const nr = trechosDeNR(pergunta, arquivo); if (nr.passages.length || nr.semResposta) return nr;
-  const lei = trechosDeLei(pergunta, termos, arquivo); if (lei.passages.length || lei.semResposta) return lei;
+  const nr = trechosDeNR(pergunta, arquivo);
+  if (nr.passages.length || nr.semResposta) return nr;
+  const lei = trechosDeLei(pergunta, termos, arquivo);
+  if (lei.passages.length || lei.semResposta) return lei;
   if (perguntaDeClausula(q)) return trechosDeClausula(pergunta, arquivo);
-  const indicadores = trechosDeIndicadores(pergunta, arquivo); if (indicadores.length) return { passages: indicadores };
-  const posicao = trechosDePosicionamento(pergunta, arquivo); if (posicao.passages.length || posicao.semResposta) return posicao;
-  const lista = trechosDoSindicato(pergunta, arquivo); if (lista.length) return { passages: lista, lista: true };
+  const indicadores = trechosDeIndicadores(pergunta, arquivo);
+  if (indicadores.length) return { passages: indicadores };
+  const posicao = trechosDePosicionamento(pergunta, arquivo);
+  if (posicao.passages.length || posicao.semResposta) return posicao;
+  const lista = trechosDoSindicato(pergunta, arquivo);
+  if (lista.length) return { passages: lista, lista: true };
   return { passages: [] };
 }

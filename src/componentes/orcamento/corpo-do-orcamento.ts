@@ -4,10 +4,18 @@ import type { Insumo, Posto } from '@/componentes/orcamento/posto';
 export function corpoDoOrcamento(postos: Posto[], insumos: Insumo[], metros: string, iss: number) {
   const metrosQuadrados = Number(metros.replace(',', '.'));
   return {
-    postos: postos.filter(p => p.quantidade > 0).map(p => ({
-      funcaoId: p.funcaoId, quantidade: p.quantidade, turno: p.turno, periculosidade: p.periculosidade, insalubridade: p.insalubridade,
-      ...(p.turno === 'noturno' && p.horasNoturnas !== '' && Number(p.horasNoturnas) >= 0 ? { horasNoturnas: Number(p.horasNoturnas) } : {}),
-    })),
+    postos: postos
+      .filter((p) => p.quantidade > 0)
+      .map((p) => ({
+        funcaoId: p.funcaoId,
+        quantidade: p.quantidade,
+        turno: p.turno,
+        periculosidade: p.periculosidade,
+        insalubridade: p.insalubridade,
+        ...(p.turno === 'noturno' && p.horasNoturnas !== '' && Number(p.horasNoturnas) >= 0
+          ? { horasNoturnas: Number(p.horasNoturnas) }
+          : {}),
+      })),
     iss,
     ...(metrosQuadrados > 0 ? { metrosQuadrados } : {}),
     ...(insumos.length ? { insumos } : {}),

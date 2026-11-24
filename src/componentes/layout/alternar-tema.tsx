@@ -19,20 +19,34 @@ function temaInicial() {
   return window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
 }
 
-export function AlternarTema({ className = 'flex h-9 w-9 items-center justify-center rounded-lg text-slate-500 hover:bg-slate-100 hover:text-slate-900 focus-visible:outline-2 focus-visible:outline-amber-400' }: { className?: string }) {
+export function AlternarTema({
+  className = 'flex h-9 w-9 items-center justify-center rounded-lg text-slate-500 hover:bg-slate-100 hover:text-slate-900 focus-visible:outline-2 focus-visible:outline-amber-400',
+}: {
+  className?: string;
+}) {
   const escuro = useSyncExternalStore(assinar, temaEscuroAtivo, temaEscuroNoServidor);
   useEffect(() => {
     try {
       document.documentElement.dataset.theme = temaInicial();
       window.dispatchEvent(new Event(EVENTO_DO_TEMA));
-    } catch { /* O tema continua funcional sem armazenamento do navegador. */ }
+    } catch {
+      /* O tema continua funcional sem armazenamento do navegador. */
+    }
   }, []);
   const rotulo = escuro ? 'Ativar tema claro' : 'Ativar tema escuro';
   const alternar = () => {
     const tema = escuro ? 'light' : 'dark';
     document.documentElement.dataset.theme = tema;
-    try { localStorage.setItem(CHAVE_DO_TEMA, tema); } catch { /* Preferência opcional. */ }
+    try {
+      localStorage.setItem(CHAVE_DO_TEMA, tema);
+    } catch {
+      /* Preferência opcional. */
+    }
     window.dispatchEvent(new Event(EVENTO_DO_TEMA));
   };
-  return <button type="button" aria-label={rotulo} title={rotulo} className={className} onClick={alternar}>{escuro ? <Sun size={17} /> : <Moon size={17} />}</button>;
+  return (
+    <button type="button" aria-label={rotulo} title={rotulo} className={className} onClick={alternar}>
+      {escuro ? <Sun size={17} /> : <Moon size={17} />}
+    </button>
+  );
 }

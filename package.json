@@ -8,6 +8,8 @@
     "start": "next start",
     "lint": "eslint .",
     "typecheck": "tsc --noEmit",
+    "formatar": "prettier --write \"src/**/*.{ts,tsx}\" \"tests/**/*.{ts,tsx}\" \"scripts/**/*.{ts,mjs}\" \"e2e/**/*.ts\"",
+    "formatar:verificar": "prettier --check \"src/**/*.{ts,tsx}\" \"tests/**/*.{ts,tsx}\" \"scripts/**/*.{ts,mjs}\" \"e2e/**/*.ts\"",
     "test": "tsx --test \"tests/**/*.test.ts\" \"tests/**/*.test.tsx\"",
     "knowledge:sync": "tsx scripts/knowledge-sync.ts",
     "grafo:gerar": "tsx scripts/cerebro/gerar-grafo.ts",
@@ -66,6 +68,7 @@
     "eslint": "^9.39.5",
     "eslint-config-next": "^16.4.0",
     "jsdom": "^31.0.1",
+    "prettier": "3.10.1",
     "tailwindcss": "^4.3.3",
     "tsx": "^4.23.15",
     "typescript": "^6.0.3"

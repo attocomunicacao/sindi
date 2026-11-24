@@ -13,20 +13,30 @@ export function useUso() {
   const [carregando, setCarregando] = useState(false);
 
   async function atualizar() {
-    setCarregando(true); setErro('');
+    setCarregando(true);
+    setErro('');
     try {
       const resposta = await fetch('/api/uso', { cache: 'no-store' });
       const corpo = await resposta.json();
       if (!resposta.ok) throw new Error(corpo.error);
       setDados(corpo);
-    } catch { setErro(MENSAGEM_DE_FALHA); } finally { setCarregando(false); }
+    } catch {
+      setErro(MENSAGEM_DE_FALHA);
+    } finally {
+      setCarregando(false);
+    }
   }
 
   useEffect(() => {
     const controle = new AbortController();
     fetch('/api/uso', { cache: 'no-store', signal: controle.signal })
-      .then(async resposta => { if (!resposta.ok) throw new Error(); setDados(await resposta.json()); })
-      .catch(e => { if (e.name !== 'AbortError') setErro(MENSAGEM_DE_FALHA); });
+      .then(async (resposta) => {
+        if (!resposta.ok) throw new Error();
+        setDados(await resposta.json());
+      })
+      .catch((e) => {
+        if (e.name !== 'AbortError') setErro(MENSAGEM_DE_FALHA);
+      });
     return () => controle.abort();
   }, []);
 

@@ -3,5 +3,7 @@ export function urlDeDocumentoValida(valor: string): boolean {
   try {
     const url = new URL(valor);
     return ['https:', 'http:', 'ftp:'].includes(url.protocol) && !url.username && !url.password && valor.length <= 2048;
-  } catch { return false; }
+  } catch {
+    return false;
+  }
 }

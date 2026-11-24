@@ -10,7 +10,12 @@ export async function GET(request: Request) {
 
 export async function POST(request: Request) {
   if (!pedidoLocal(request)) return erroJson('Disponível apenas no computador que hospeda a SINDI.', 403);
-  const guarda = await guardaDeEscrita(request, { nome: 'atualizar', limitePorMinuto: 6, limiteBytes: 1024, corpo: 'opcional' });
+  const guarda = await guardaDeEscrita(request, {
+    nome: 'atualizar',
+    limitePorMinuto: 6,
+    limiteBytes: 1024,
+    corpo: 'opcional',
+  });
   if ('resposta' in guarda) return guarda.resposta;
   const corpo = (guarda.json ?? {}) as { completa?: unknown };
   const r = iniciarAtualizacao(corpo.completa === true);

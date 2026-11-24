@@ -333,3 +333,17 @@ test('PDFs are generated with accents and unsupported characters, with a stable 
   assert.notEqual(referencia(entrada, cliente), referencia({ ...entrada, metrosQuadrados: 10 }, cliente));
   assert.equal(seguro('Nº 1 — R$ 2,00 … “ok” 😀 ≥ −'), 'Nº 1 — R$ 2,00 … “ok” ? >= -');
 });
+
+test('chat: postos iguais somados acima do limite não derrubam o chat (RangeError vira orientação)', () => {
+  const resposta =
+    orcamentoAnswer('Orçamento para 300 auxiliares de limpeza diurno e 300 auxiliares de limpeza diurno') ?? '';
+  assert.match(resposta, /Não consegui montar esse orçamento/);
+  assert.match(resposta, /\/orcamento/);
+});
+
+test('ISS informado em `impostos` segue a mesma faixa do campo `iss` (2% a 5%; 0 = não informado)', () => {
+  const postos = [{ funcaoId: FUNCOES[0].id, quantidade: 1, turno: 'diurno' as const }];
+  assert.throws(() => calcularOrcamento({ postos, impostos: { iss: 0.4 } }), /ISS deve ficar entre 2% e 5%/);
+  assert.doesNotThrow(() => calcularOrcamento({ postos, impostos: { iss: 0.05 } }));
+  assert.doesNotThrow(() => calcularOrcamento({ postos, impostos: { iss: 0 } }));
+});

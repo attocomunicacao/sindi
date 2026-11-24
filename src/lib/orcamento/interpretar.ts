@@ -129,10 +129,17 @@ export function orcamentoAnswer(pergunta: string): string | undefined {
       ? 'Posso estimar o custo mensal de mão de obra terceirizada. Diga os postos, por exemplo "3 auxiliares de limpeza diurno e 3 noturno", ou abra a [ferramenta de orçamento](/orcamento) para escolher os postos e baixar o PDF.'
       : undefined;
   }
-  const r = calcularOrcamento({
-    postos: interpretado.postos as PostoEntrada[],
-    metrosQuadrados: interpretado.metrosQuadrados,
-  });
+  let r: ReturnType<typeof calcularOrcamento>;
+  try {
+    r = calcularOrcamento({
+      postos: interpretado.postos as PostoEntrada[],
+      metrosQuadrados: interpretado.metrosQuadrados,
+    });
+  } catch (erro) {
+    // Números fora dos limites da ferramenta (postos iguais somados passam de 500, área enorme): o cálculo recusa com RangeError; aqui vira orientação, não erro do chat.
+    if (!(erro instanceof RangeError)) throw erro;
+    return 'Não consegui montar esse orçamento com os números informados: cada posto vai de 1 a 500 funcionários e a área tem um limite. Ajuste os valores na [ferramenta de orçamento](/orcamento).';
+  }
   if (!r.postos.length) return undefined;
   const linhas = r.postos.map(
     (p) =>

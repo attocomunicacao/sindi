@@ -180,3 +180,10 @@ test('exportar e importar: ida e volta; arquivo de outro formato, quebrado ou ho
   assert.equal(await importarConversas(hostil), 0);
   await apagarTodasAsConversas();
 });
+
+test('título importado é redigido antes de cortado: um CPF que atravessa o limite não sobra pela metade', () => {
+  const longo = `${'a'.repeat(54)} 123.456.789-09 e mais texto`;
+  const c = validarConversa({ id: 'x1', titulo: longo, mensagens: [{ role: 'user', content: 'oi' }] });
+  assert.ok(c);
+  assert.doesNotMatch(c!.titulo, /123\.4|456|789/);
+});

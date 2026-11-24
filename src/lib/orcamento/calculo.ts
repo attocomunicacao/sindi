@@ -59,6 +59,10 @@ export function erroDaEntrada(entrada: OrcamentoEntrada): string | undefined {
   }
   if (entrada.iss !== undefined && !ISS_PERMITIDO.some((v) => Math.abs(v - entrada.iss!) < 1e-9))
     return 'O ISS deve ficar entre 2% e 5%.';
+  // O ISS também pode vir em `impostos`: mesma faixa do campo `iss` (0 = não informado), para os dois caminhos recusarem o mesmo valor.
+  const issInformado = entrada.impostos?.iss;
+  if (issInformado !== undefined && issInformado !== 0 && !ISS_PERMITIDO.some((v) => Math.abs(v - issInformado) < 1e-9))
+    return 'O ISS deve ficar entre 2% e 5%.';
   for (const [nome, v] of [
     ['O BDI', entrada.bdi],
     ['O lucro', entrada.lucro],

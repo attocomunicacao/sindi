@@ -70,7 +70,7 @@ export function validarConversa(bruto: unknown): ConversaSalva | undefined {
   const agora = Date.now();
   const titulo =
     typeof c.titulo === 'string' && c.titulo.trim()
-      ? c.titulo.trim().slice(0, LIMITE_DO_TITULO)
+      ? redigirDadosSensiveis(c.titulo.trim()).slice(0, LIMITE_DO_TITULO)
       : tituloDaConversa(mensagens);
   return {
     id: c.id,

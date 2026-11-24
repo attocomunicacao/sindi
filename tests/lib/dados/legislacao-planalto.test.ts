@@ -87,6 +87,21 @@ test('modo sequencial: artigos citados no corpo de uma lei alteradora não abrem
   assert.match(artigos[0].content, /Art\. 4º-A[\s\S]*Art\. 11\./);
 });
 
+test('modo sequencial: artigo ausente (revogado e removido) não faz os seguintes virarem texto do anterior', () => {
+  const texto = [
+    'Art. 1º A Lei passa a vigorar com as alterações:',
+    'Art. 59. Citação da lei alterada, muito além da janela.',
+    'Art. 3º Terceiro artigo da própria lei, com o 2º ausente do texto compilado.',
+    'Art. 4º Quarto artigo da própria lei, com texto suficiente.',
+  ].join('\n');
+  const artigos = dividirArtigos(texto, { sequencial: true });
+  assert.deepEqual(
+    artigos.map((a) => a.key),
+    ['1', '3', '4'],
+  );
+  assert.match(artigos[0].content, /Art\. 59\./);
+});
+
 test('juntarQuebras cola a frase quebrada pelo HTML sem mexer nas alíneas', () => {
   assert.equal(
     juntarQuebras('Art. 2º - Trabalho temporário é aquele\nprestado por pessoa física\na) alínea\n§\n1º - texto'),

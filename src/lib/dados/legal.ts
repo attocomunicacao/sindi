@@ -99,8 +99,11 @@ export function dividirArtigos(
       const numero = achado[1] + (achado[2] ? `-${achado[2]}` : '');
       const chave = (noAdct ? 'adct-' : '') + numero;
       // Lei que altera outra cita, no corpo do próprio artigo, os artigos da norma alterada ("Art. 11-A. ..."). No modo sequencial só abre
-      // artigo novo o próximo número da própria lei (1, 2, 3...); o resto é o texto do artigo em curso.
-      const abre = opcoes.sequencial ? !achado[2] && Number(achado[1]) === ultimoNumero + 1 : !vistos.has(chave);
+      // artigo novo o próximo número da própria lei (1, 2, 3...); o resto é o texto do artigo em curso. Tolera um buraco de até 2 números (artigo
+      // revogado e removido do texto compilado): sem isso, todos os artigos seguintes seriam engolidos pelo anterior, em silêncio. Citação de artigo
+      // da lei alterada ("Art. 59", "Art. 134") fica muito além dessa janela.
+      const n = Number(achado[1]);
+      const abre = opcoes.sequencial ? !achado[2] && n > ultimoNumero && n <= ultimoNumero + 3 : !vistos.has(chave);
       if (abre) {
         ultimoNumero = Number(achado[1]);
         fechar();

@@ -4,7 +4,7 @@ import assert from 'node:assert/strict';
 import { cleanup, render, screen } from '@testing-library/react';
 import { ChatMessage } from '@/components/chat-message';
 import { PainelFull } from '@/components/painel-view';
-import { emptyPainel, type Painel } from '@/lib/dados/painel';
+import { painelVazio, type Painel } from '@/lib/dados/painel';
 
 afterEach(() => { cleanup(); });
 
@@ -42,7 +42,7 @@ test('markdown do chat: links legítimos continuam funcionando (https, mailto e 
 
 test('painel: endereços perigosos vindos das fontes coletadas viram "#" nos links de notícias, projetos e artigos', async () => {
   const agora = new Date().toISOString();
-  const painel: Painel = { ...emptyPainel(), available: true, updatedAt: agora, sources: [{ source: 'ibge', lastOk: agora, status: 'ok' }],
+  const painel: Painel = { ...painelVazio(), available: true, updatedAt: agora, sources: [{ source: 'ibge', lastOk: agora, status: 'ok' }],
     news: [{ source: 'ibge', title: 'Notícia com link ruim', publishedAt: agora, url: 'javascript:alert(document.cookie)' }],
     bills: [{ source: 'camara', title: 'PL malicioso', summary: '<img src=x onerror=alert(1)>', situacao: null, movedAt: null, url: 'data:text/html,<script>alert(1)</script>' }],
     sindicato: { noticias: [{ source: 'sindeprestem', title: 'Do sindicato', publishedAt: agora, url: 'JaVaScRiPt:alert(1)' }], artigos: [{ source: 'sindeprestem', title: 'Artigo', publishedAt: agora, url: 'https://www.sindeprestem.com.br/post/a' }] } };

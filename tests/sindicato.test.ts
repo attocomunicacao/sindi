@@ -5,7 +5,9 @@ import { tmpdir } from 'node:os';
 import path from 'node:path';
 import { categoryOf, cleanPdfText, documentEntries, entryTitle, isArticle, isBare, isMonthOnly, kindOf, lawIdentifier, sectionFor, titleFromPdfText, yearOf } from '@/lib/dados/sindicato';
 import { openDb, upsertDocument } from '@/lib/dados/db';
-import { clausePassages, sindicatoPassages, trechosDeDocumentos } from '@/lib/dados/painel';
+import { trechosDeClausula } from '@/lib/recuperacao/convencoes';
+import { trechosDoSindicato } from '@/lib/recuperacao/sindicato';
+import { trechosDeDocumentos } from '@/lib/recuperacao/documentos';
 
 const SITE = 'https://www.sindeprestem.com.br';
 test('site pages and posts are classified by section; articles are the ones signed by the president', () => {
@@ -60,7 +62,7 @@ test('own documents become passages with official titles, grouped, and clause qu
     add(`${SITE}/post/a1`, 'Artigo - Teste', 'artigo', {}, '2026-09-01T10:00:00.000Z');
     db.close();
     // Os documentos viram trechos (título, data, categoria, início do texto) com a URL de cada um; quem escreve a resposta é o modelo.
-    const texto = (pergunta: string) => sindicatoPassages(pergunta, 'pt', file).map(p => `${p.title} | ${p.content} | ${p.url}`).join('\n');
+    const texto = (pergunta: string) => trechosDoSindicato(pergunta, 'pt', file).map(p => `${p.title} | ${p.content} | ${p.url}`).join('\n');
     const portaria = texto('Qual a convenção coletiva da Portaria em 2026?');
     assert.match(portaria, /Portaria - 2025\/2026/); assert.doesNotMatch(portaria, /Geral/); assert.match(portaria, /p25\.pdf/);
     assert.doesNotMatch(texto('Onde encontro as convenções coletivas?'), /CCT PORTARIA — 2020/);
@@ -69,10 +71,10 @@ test('own documents become passages with official titles, grouped, and clause qu
     const news = texto('Quais as últimas notícias do sindicato?');
     assert.ok(news.indexOf('Notícia recente') < news.indexOf('Notícia antiga')); assert.doesNotMatch(news, /Artigo - Teste/);
     assert.match(texto('Quais os últimos artigos do presidente?'), /Artigo - Teste/);
-    // Cláusulas seguem para clausePassages (e o modelo); perguntas gerais e institucionais não viram lista de documentos.
-    assert.deepEqual(sindicatoPassages('Qual o piso salarial na convenção da portaria?', 'pt', file), []);
-    assert.deepEqual(sindicatoPassages('O que é terceirização?', 'pt', file), []);
-    assert.deepEqual(sindicatoPassages('O que é o SINDEPRESTEM?', 'pt', file), []);
+    // Cláusulas seguem para trechosDeClausula (e o modelo); perguntas gerais e institucionais não viram lista de documentos.
+    assert.deepEqual(trechosDoSindicato('Qual o piso salarial na convenção da portaria?', 'pt', file), []);
+    assert.deepEqual(trechosDoSindicato('O que é terceirização?', 'pt', file), []);
+    assert.deepEqual(trechosDoSindicato('O que é o SINDEPRESTEM?', 'pt', file), []);
   } finally { rmSync(directory, { recursive: true, force: true }); }
 });
 test('clause questions return passages of the right agreement for the model, never a finished text', () => {
@@ -84,11 +86,11 @@ test('clause questions return passages of the right agreement for the model, nev
     const body = ['TERMOS GERAIS', ...Array.from({ length: 200 }, (_, i) => `linha de texto ${i}`), 'CLÁUSULA TERCEIRA - SALÁRIOS PROFISSIONAIS', 'PISO SALARIAL', 'Porteiro R$ 1.912,07', 'Zelador R$ 2.018,19', 'Outra cláusula sobre férias.'].join(NL);
     upsertDocument(db, { source: 'sindeprestem', url: `${SITE}/_files/ugd/p26.pdf`, title: 'Convenção Coletiva - Portaria - 2025/2026', content: body, meta: { section: 'convencao', category: 'Portaria', year: 2026, type: 'Convenção coletiva' } });
     db.close();
-    const clause = clausePassages('Qual o piso salarial da convenção coletiva da Portaria 2026?', 'pt', file).passages[0];
+    const clause = trechosDeClausula('Qual o piso salarial da convenção coletiva da Portaria 2026?', 'pt', file).passages[0];
     assert.match(clause?.content ?? '', /R\$ 1\.912,07/); assert.match(clause?.url ?? '', /p26\.pdf/);
     assert.match(trechosDeDocumentos('Qual o piso salarial da convenção da portaria?', [], 'pt', file).passages[0]?.content ?? '', /1\.912,07/);
-    assert.match(clausePassages('Qual o piso da convenção do Poupatempo?', 'pt', file).semResposta ?? '', /Não encontrei a convenção dessa categoria/);
+    assert.match(trechosDeClausula('Qual o piso da convenção do Poupatempo?', 'pt', file).semResposta ?? '', /Não encontrei a convenção dessa categoria/);
     // Sem categoria, o cargo precisa aparecer no trecho: a cláusula de outra categoria não serve de resposta.
-    assert.match(clausePassages('Qual o valor do piso do técnico de segurança do trabalho na convenção?', 'pt', file).semResposta ?? '', /Não consegui confirmar/);
+    assert.match(trechosDeClausula('Qual o valor do piso do técnico de segurança do trabalho na convenção?', 'pt', file).semResposta ?? '', /Não consegui confirmar/);
   } finally { rmSync(directory, { recursive: true, force: true }); }
 });

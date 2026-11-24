@@ -1,12 +1,12 @@
 import { getText } from '@/lib/dados/http';
 import { extractArticle, sitemapEntries } from '@/lib/dados/html';
 import { upsertDocument } from '@/lib/dados/db';
-import type { Collector } from '@/lib/dados/collectors/types';
+import type { Coletor } from '@/lib/dados/coletores/tipos';
 
 /** World Employment Confederation: um sitemap por tipo de conteúdo (WordPress/Yoast). */
 export const WEC_SITEMAPS = ['news', 'press_release', 'publication', 'event', 'opinion_piece'];
 
-export const wec: Collector = {
+export const wec: Coletor = {
   source: 'wec', label: 'World Employment Confederation',
   async run({ db, full }) {
     let fetched = 0; let changed = 0;

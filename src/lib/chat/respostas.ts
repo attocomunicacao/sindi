@@ -1,6 +1,6 @@
 import { abrirGeracao, cacheLigado, chaveDaResposta, esperarIgual, respostaGuardada } from '@/lib/infra/cache-respostas';
 import { consumirCota, cotaDisponivel, mensagemDeCota, type ResultadoCota } from '@/lib/infra/cota';
-import type { Situacao } from '@/lib/knowledge/grounded';
+import type { Situacao } from '@/lib/chat/notas';
 
 /** Chave da memória de respostas: só a primeira pergunta de uma conversa (não depende de histórico) e nunca a que traz dados sensíveis. */
 export function chaveDaGeracao({ mensagens, situacao, modelo, base, texto }: { mensagens: unknown[]; situacao: Situacao | undefined; modelo: string; base: unknown; texto: string }) {

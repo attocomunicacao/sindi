@@ -1,6 +1,6 @@
 import { dataIso, getJson, listaOuErro } from '@/lib/dados/http';
 import { upsertDocument, type Db } from '@/lib/dados/db';
-import { LEGISLATIVE_KEYWORDS, type Collector } from '@/lib/dados/collectors/types';
+import { LEGISLATIVE_KEYWORDS, type Coletor } from '@/lib/dados/coletores/tipos';
 
 const BASE = 'https://dadosabertos.camara.leg.br/api/v2';
 type Listed = { id: number; siglaTipo: string; numero: number; ano: number; ementa: string };
@@ -17,7 +17,7 @@ function oldestIds(db: Db, limit: number) {
   return (db.prepare("SELECT url FROM documents WHERE source = 'camara' ORDER BY fetched_at ASC LIMIT ?").all(limit) as { url: string }[])
     .map(r => Number(new URL(r.url).searchParams.get('idProposicao')));
 }
-export const camara: Collector = {
+export const camara: Coletor = {
   source: 'camara', label: 'Câmara dos Deputados',
   async run({ db, full }) {
     let fetched = 0; let changed = 0; const ids = new Set<number>();

@@ -1,6 +1,6 @@
 import { readFile } from 'node:fs/promises';
 import path from 'node:path';
-export async function knowledgeStatus() {
+export async function statusDoConhecimento() {
   try {
     const status = JSON.parse(await readFile(path.join(process.cwd(), '.data/knowledge/status.json'), 'utf8'));
     return { available: true, phase: status.phase, startedAt: status.startedAt, finishedAt: status.finishedAt,

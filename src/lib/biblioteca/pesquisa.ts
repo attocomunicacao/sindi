@@ -1,9 +1,10 @@
 import { DatabaseSync } from 'node:sqlite';
 import { existsSync } from 'node:fs';
 import { dbPath } from '@/lib/dados/db';
-import { fraseDoIndicador, nrNumber, readPainel, trechosRelevantes } from '@/lib/dados/painel';
+import { fraseDoIndicador } from '@/lib/dados/frase-do-indicador';
+import { normalizar, numeroDaNR, trechosRelevantes } from '@/lib/base/texto';
+import { lerPainel } from '@/lib/dados/painel';
 import type { Passagem } from '@/lib/base/tipos';
-import { normalize } from '@/lib/knowledge/core';
 import { ESTANTES } from '@/lib/biblioteca/estantes';
 
 /**
@@ -18,7 +19,7 @@ const VAZIAS = new Set(('a o as os e de da do das dos em no na nos nas um uma un
   'the and what how is are of to in on for').split(' '));
 /** Termos que distinguem o assunto da pergunta, na ordem em que aparecem (no máximo 8). */
 export function termosDaPesquisa(pergunta: string): string[] {
-  return [...new Set((normalize(pergunta).match(/[a-z0-9]{3,}/g) ?? []).filter(t => !VAZIAS.has(t) && !/^\d{1,3}$/.test(t)))].slice(0, 8);
+  return [...new Set((normalizar(pergunta).match(/[a-z0-9]{3,}/g) ?? []).filter(t => !VAZIAS.has(t) && !/^\d{1,3}$/.test(t)))].slice(0, 8);
 }
 /** Radical para casar singular, plural e gênero ("tributária", "tributário", "tributárias") tanto no índice quanto na conferência de cobertura. */
 export const radical = (termo: string) => termo.length >= 8 ? termo.slice(0, termo.length - 2) : termo.length >= 5 ? termo.replace(/(es|s)$/, '') : termo;
@@ -29,7 +30,7 @@ export const radical = (termo: string) => termo.length >= 8 ? termo.slice(0, ter
  */
 export function cobertura(termos: string[], texto: string, pesos?: number[]): number {
   if (!termos.length) return 0;
-  const alvo = normalize(texto); let achado = 0; let total = 0;
+  const alvo = normalizar(texto); let achado = 0; let total = 0;
   termos.forEach((t, i) => { const peso = pesos?.[i] ?? 1; total += peso; if (alvo.includes(radical(t))) achado += peso; });
   return total ? achado / total : 0;
 }
@@ -78,7 +79,7 @@ export type OpcoesDaPesquisa = { limite?: number; minimo?: number; arquivo?: str
 export function pesquisarNaBiblioteca(pergunta: string, estantes: string[], { limite = 2, minimo = 0.6, arquivo = dbPath(), agora = new Date(), antigos = true }: OpcoesDaPesquisa = {}): Passagem[] {
   const termos = termosDaPesquisa(pergunta);
   // "NR-1" não sobrevive como termo (duas letras e um número): vira uma expressão obrigatória no índice e no texto.
-  const nr = nrNumber(pergunta); const citaNr = nr === undefined ? undefined : new RegExp(`\\bnr[- ]?0?${nr}\\b`);
+  const nr = numeroDaNR(pergunta); const citaNr = nr === undefined ? undefined : new RegExp(`\\bnr[- ]?0?${nr}\\b`);
   const alvos = ESTANTES.filter(e => estantes.includes(e.id) && e.onde);
   if ((!termos.length && nr === undefined) || !alvos.length || !existsSync(arquivo)) return [];
   let db: DatabaseSync;
@@ -103,8 +104,8 @@ export function pesquisarNaBiblioteca(pergunta: string, estantes: string[], { li
         SELECT d.title, d.url, d.content, d.published_at, d.fetched_at, a.rank FROM achados a JOIN documents d ON d.rowid = a.id WHERE ${estante.onde} ${publicacao} ORDER BY a.rank LIMIT 30`).all(consulta) as Linha[];
       linhas.forEach((l, posicao) => {
         const noTitulo = cobertura(termos, l.title, pesos); const geral = coberturaLocal(termos, l.title, l.content, pesos);
-        if (citaNr && !citaNr.test(normalize(`${l.title} ${l.content}`))) return;
-        const titulo = normalize(l.title);
+        if (citaNr && !citaNr.test(normalizar(`${l.title} ${l.content}`))) return;
+        const titulo = normalizar(l.title);
         if (ancoras.length && !ancoras.some(a => titulo.includes(a)) && !(citaNr && citaNr.test(titulo))) return;
         // Com um ou dois termos, todos precisam aparecer; com mais, a maior parte do peso.
         if (termos.length && geral < (termos.length <= 2 ? 0.999 : minimo)) return;
@@ -119,7 +120,7 @@ export function pesquisarNaBiblioteca(pergunta: string, estantes: string[], { li
     const ordenados = candidatos.sort((a, b) => b.pontos - a.pontos);
     for (const c of ordenados.some(recente) || !antigos ? ordenados.filter(recente) : ordenados.slice(0, 1)) {
       const titulo = c.title.replace(/^Artigo\s*[-–:]\s*/i, '').replace(/\s+/g, ' ').trim();
-      if (vistos.has(normalize(titulo))) continue; vistos.add(normalize(titulo));
+      if (vistos.has(normalizar(titulo))) continue; vistos.add(normalizar(titulo));
       const data = dataBr(c.published_at);
       escolhidos.push({ url: c.url.split('#')[0], title: titulo, fetchedAt: c.fetched_at, pinned: true,
         content: `${ROTULO[c.estante] ?? 'Documento da biblioteca'}${data ? ` em ${data}` : ''}. ${trechosRelevantes(limpar(c.content), [...termos.map(radical), ...(nr === undefined ? [] : [`nr-${nr}`, `nr ${nr}`])], 650, 320).replace(/\s+/g, ' ')}` });
@@ -136,8 +137,8 @@ const mesBr = (periodo: string) => { const m = periodo.match(/^(\d{4})-?(\d{2})/
  * com movimentação recente, cada bloco com a data de referência. O modelo redige o resumo; os números vêm todos daqui, com a fonte.
  */
 export function materialDoRelatorio(pergunta: string, arquivo = dbPath()): Passagem[] {
-  const painel = readPainel(arquivo); if (!painel.available) return [];
-  const q = normalize(pergunta); const agora = new Date().toISOString(); const blocos: Passagem[] = [];
+  const painel = lerPainel(arquivo); if (!painel.available) return [];
+  const q = normalizar(pergunta); const agora = new Date().toISOString(); const blocos: Passagem[] = [];
   // Pergunta sobre leis e projetos: os projetos vêm primeiro e em maior número, e os indicadores econômicos ficam de fora.
   const legislativo = /projeto|tramita|congresso|legislac|regulatori|\bleis?\b/.test(q) && !/indicador|emprego|mercado|economi/.test(q);
   if (painel.indicators.length && !legislativo) blocos.push({ url: '/painel', title: 'Indicadores oficiais mais recentes', fetchedAt: painel.updatedAt ?? agora, pinned: true,

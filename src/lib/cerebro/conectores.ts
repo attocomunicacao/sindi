@@ -1,6 +1,6 @@
 import { readdirSync, readFileSync, statSync } from 'node:fs';
 import path from 'node:path';
-import { normalize } from '@/lib/knowledge/core';
+import { normalizar } from '@/lib/base/texto';
 import { lerCabecalho, pastaCerebro } from '@/lib/cerebro/carregar';
 
 /**
@@ -32,8 +32,8 @@ export function lerConector(arquivo: string, markdown: string): Conector | undef
   const instrucao = corpo.match(/^## Como responder\n([\s\S]*?)(?=^## |(?![\s\S]))/m)?.[1].replace(/<!--[\s\S]*?-->/g, '').replace(/\n{2,}/g, '\n').trim().slice(0, LIMITE_DA_INSTRUCAO) ?? '';
   if (!cabecalho.gatilhos.length || !instrucao) return undefined;
   const modo = chave(frente, 'modo'); const palavras = Number(chave(frente, 'palavras'));
-  return { id: path.basename(arquivo, '.md').replace(/^\d+-/, ''), titulo: cabecalho.titulo ?? arquivo, gatilhos: cabecalho.gatilhos.map(normalize), estantes: lista(chave(frente, 'estantes')),
-    instrucao, modo: modo === 'orientacao' ? modo : 'fontes', relatorio: lista(chave(frente, 'relatorio')).map(normalize), palavras: Number.isFinite(palavras) && palavras >= 30 ? Math.min(palavras, 220) : 70 };
+  return { id: path.basename(arquivo, '.md').replace(/^\d+-/, ''), titulo: cabecalho.titulo ?? arquivo, gatilhos: cabecalho.gatilhos.map(normalizar), estantes: lista(chave(frente, 'estantes')),
+    instrucao, modo: modo === 'orientacao' ? modo : 'fontes', relatorio: lista(chave(frente, 'relatorio')).map(normalizar), palavras: Number.isFinite(palavras) && palavras >= 30 ? Math.min(palavras, 220) : 70 };
 }
 
 let cache: { chave: string; conectores: Conector[]; verificadoEm: number } | undefined;
@@ -62,7 +62,7 @@ function casa(pergunta: string, palavras: Set<string>, gatilho: string) {
  */
 /** Placar de todos os conectores para um texto (só os que casam, do maior para o menor; empate fica na ordem dos arquivos). */
 export function pontuarConectores(texto: string, todos: Conector[] = conectores()) {
-  const q = normalize(texto); const palavras = new Set(q.match(/[a-z0-9]+/g) ?? []);
+  const q = normalizar(texto); const palavras = new Set(q.match(/[a-z0-9]+/g) ?? []);
   return todos.map(conector => ({ conector, pontos: conector.gatilhos.reduce((soma, g) => soma + (casa(q, palavras, g) ? (g.includes(' ') ? 2 : 1) : 0), 0) })).filter(r => r.pontos > 0).sort((a, b) => b.pontos - a.pontos);
 }
 export function escolherConector(pergunta: string, anteriores: string[] = [], todos: Conector[] = conectores()): Conector | undefined {
@@ -70,10 +70,10 @@ export function escolherConector(pergunta: string, anteriores: string[] = [], to
   const atual = pontuar(pergunta);
   if (atual.length) return atual[0].conector;
   // Continuação ("e para empresa filiada?"): herda a área da pergunta anterior.
-  return normalize(pergunta).trim().split(/\s+/).length <= 8 && anteriores.length ? pontuar(anteriores.at(-1)!)[0]?.conector : undefined;
+  return normalizar(pergunta).trim().split(/\s+/).length <= 8 && anteriores.length ? pontuar(anteriores.at(-1)!)[0]?.conector : undefined;
 }
 /** A pergunta pede um relatório ou panorama da área deste conector? */
 export function pedeRelatorio(conector: Conector | undefined, pergunta: string): boolean {
-  const q = normalize(pergunta);
+  const q = normalizar(pergunta);
   return Boolean(conector?.relatorio.some(expressao => q.includes(expressao)));
 }

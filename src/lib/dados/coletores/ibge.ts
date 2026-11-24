@@ -1,6 +1,6 @@
 import { dataIso, getJson, listaOuErro } from '@/lib/dados/http';
 import { setIndicator, upsertDocument } from '@/lib/dados/db';
-import type { Collector } from '@/lib/dados/collectors/types';
+import type { Coletor } from '@/lib/dados/coletores/tipos';
 
 type Sidra = { resultados: { series: { serie: Record<string, string> }[] }[] }[];
 const BASE = 'https://servicodados.ibge.gov.br/api/v3';
@@ -27,7 +27,7 @@ export function lastTwo(data: Sidra): { period: string; value: number; previous?
 }
 type News = { id: number; titulo: string; introducao: string; data_publicacao: string; link: string; editorias?: string };
 
-export const ibge: Collector = {
+export const ibge: Coletor = {
   source: 'ibge', label: 'IBGE',
   async run({ db, full }) {
     let fetched = 0; let changed = 0;

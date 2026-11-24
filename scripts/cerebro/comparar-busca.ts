@@ -2,7 +2,7 @@
 import { readFileSync } from 'node:fs';
 import { buscarHibrido, buscarNoCerebro } from '@/lib/cerebro/buscar';
 import { buscarSemantico } from '@/lib/cerebro/embeddings';
-import { arquivoDeCasos } from '@/lib/cerebro/avaliar';
+import { arquivoDeCasos } from '@/lib/cerebro/casos';
 import { trechosDoCerebro } from '@/lib/cerebro/carregar';
 
 const norm = (t: string) => t.normalize('NFD').replace(/\p{Diacritic}/gu, '').replace(/\s+/g, ' ').toLowerCase();

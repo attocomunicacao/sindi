@@ -10,7 +10,8 @@ import { decidirSituacao } from '@/lib/chat/situacao';
 import { respostaEmFluxo } from '@/lib/chat/stream';
 import { LlmError, MENSAGEM_NEUTRA, rapidoLigado } from '@/lib/ia/cascata';
 import { erroJson } from '@/lib/http/guarda';
-import { redigirDadosSensiveis, sourceReferences } from '@/lib/knowledge/grounded';
+import { redigirDadosSensiveis } from '@/lib/seguranca/redacao';
+import { referenciasDasFontes } from '@/lib/recuperacao/fontes';
 import { registrarUso as registrarUsoReal } from '@/lib/infra/uso';
 
 export const runtime = 'nodejs';
@@ -71,7 +72,7 @@ export async function POST(request: Request) {
         base, tentativas, pedido, primeira, nivel, signal, onDelta, onReset, manterColchetes: writing || PEDE_MODELO.test(question), perguntas: [...anteriores, question].join(' '),
       });
       if (!confiavel) { await registrarUso({ success: false, durationMs: Date.now() - started, usage: uso, provedor }); return error('Não foi possível gerar uma resposta confiável. Tente reformular a pergunta.', 502); }
-      const references = !writing && texto.trim() && fontesUsadas.length ? sourceReferences(fontesUsadas, language) : '';
+      const references = !writing && texto.trim() && fontesUsadas.length ? referenciasDasFontes(fontesUsadas, language) : '';
       if (references) onDelta?.(references);
       const metricsRecorded = await registrarUso({ success: Boolean(texto.trim()), durationMs: Date.now() - started, usage: uso, provedor });
       if (!texto.trim()) return error('Não foi possível gerar uma resposta. Tente novamente.', 502);

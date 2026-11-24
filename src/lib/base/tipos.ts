@@ -10,3 +10,14 @@ export type Passagem = {
 
 /** Passagem já escolhida pela pergunta (documentos e indicadores nomeados): sempre fixada. */
 export type PassagemFixa = Passagem & { pinned: true };
+
+/** Página ou PDF do espelho local do site do SINDEPRESTEM (`.data/knowledge/current.json`), lido pelo coletor `sindeprestem` e pela busca de reserva. */
+export type DocumentoDoEspelho = {
+  url: string; title: string; content: string; hash: string; fetchedAt: string;
+  checkedAt: string; publishedAt?: string; etag?: string; lastModified?: string;
+  kind: 'html' | 'pdf'; status: 'active' | 'removed'; links: string[];
+};
+export type EspelhoDoSite = { updatedAt: string; documents: DocumentoDoEspelho[] };
+
+/** O que a recuperação de documentos devolve: os trechos, e `semResposta` (aviso pronto) quando o documento pedido não consta da coleta. `lista` indica vários documentos curtos. */
+export type TrechosDeDocumentos = { passages: PassagemFixa[]; semResposta?: string; lista?: boolean };

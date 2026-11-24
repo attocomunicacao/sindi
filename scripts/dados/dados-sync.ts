@@ -4,6 +4,9 @@ import { setTimeout as delay } from 'node:timers/promises';
 import path from 'node:path';
 import { dataDir, due, openDb, setState } from '@/lib/dados/db';
 import { publicarCerebro } from '@/lib/cerebro/publicar';
+import { gerarArquivos } from '@/lib/cerebro/gerar';
+import { carregarCasos } from '@/lib/cerebro/casos';
+import { avaliarCasos } from '@/lib/chat/avaliar-cerebro';
 import { embeddings, indexarCerebro } from '@/lib/cerebro/embeddings';
 import { syncAll } from '@/lib/dados/sync';
 import { renameSync, writeFileSync } from 'node:fs';
@@ -37,7 +40,7 @@ try {
     catch (cause) { log(`Coleta: erro na rodada (${cause instanceof Error ? cause.message : 'desconhecido'}); a próxima rodada tenta de novo`); }
     // O cérebro autogerado (cerebro/auto) é regenerado a cada 6 horas, com validação e reversão se a avaliação piorar.
     if (!only && due(db, 'cerebro:publicacao', 6 * 60 * 60 * 1000, full)) {
-      try { const r = await publicarCerebro(db, log); log(`Cérebro: ${r.motivo}`); setState(db, 'cerebro:publicacao', new Date().toISOString()); }
+      try { const r = await publicarCerebro(db, log, { gerar: gerarArquivos, avaliar: () => avaliarCasos(carregarCasos()) }); log(`Cérebro: ${r.motivo}`); setState(db, 'cerebro:publicacao', new Date().toISOString()); }
       catch (cause) { log(`Cérebro: erro ao regenerar (${cause instanceof Error ? cause.message : 'desconhecido'}); a versão anterior foi mantida`); }
     }
     // Busca por significado: indexa o que mudou no cérebro e mantém o modelo de embeddings carregado (a primeira consulta fria é lenta).

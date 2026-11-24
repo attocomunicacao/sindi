@@ -10,7 +10,7 @@ import type { Grafo, No } from '@/lib/grafo/tipos';
 /**
  * O grafo alimentando o chat. Quando a pergunta cita uma lei, NR ou projeto de lei (por número), a busca recebe também os documentos que o grafo liga a essa
  * entidade — notícias, artigos, cartilhas e o próprio projeto — mesmo que as palavras da pergunta não estejam no título deles. Esses trechos entram como
- * **candidatos**: quem decide se vão ao modelo é a mesma régua de cobertura da busca (src/knowledge/retrieve.ts), e a verificação de fatos continua valendo.
+ * **candidatos**: quem decide se vão ao modelo é a mesma régua de cobertura da busca (src/lib/recuperacao/recuperar.ts), e a verificação de fatos continua valendo.
  */
 export const arquivoDoGrafo = () => path.join(dataDir(), 'grafo.json');
 

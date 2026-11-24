@@ -2,7 +2,7 @@ import { SITE } from '@/lib/base/constantes';
 // Gera os arquivos autogerados do cérebro da SINDI (cerebro/auto/*.md) a partir dos dados coletados.
 // Os arquivos curados, na pasta cerebro/, nunca são alterados por esta geração.
 import type { Db } from '@/lib/dados/db';
-import { contactFromSource } from '@/lib/knowledge/retrieve';
+import { contatoDaFonte } from '@/lib/cerebro/contato-do-site';
 
 /** Presidente da entidade (gestão 2026–2029). Está aqui, num só lugar, para ser atualizado quando a gestão mudar; o texto gerado cita o nome. */
 export const PRESIDENTE = 'Vander Morales';
@@ -33,7 +33,7 @@ const sem = (texto: string, ...padroes: RegExp[]) => padroes.reduce((t, p) => t.
 {
   const inst = linhasDe(pagina('/institucional-do-sindeprestem-sindicat'));
   const bloco = (titulo: string) => { const i = inst.findIndex(l => l === titulo); return i >= 0 ? inst[i + 1] : ''; };
-  const contato = contactFromSource(pagina('/contato') + '\nRodapé institucional: ' + rodapeDoContato().split('Rodapé institucional')[1], 'pt') ?? '';
+  const contato = contatoDaFonte(pagina('/contato') + '\nRodapé institucional: ' + rodapeDoContato().split('Rodapé institucional')[1], 'pt') ?? '';
   const rodape = rodapeDoContato();
   const endereco = rodape.match(/(?:Av\.|Avenida|Rua)\s+[^\n]{3,160}?São Paulo\s*[-–,]\s*SP/i)?.[0] ?? '';
   const associe = linhasDe(pagina('/associe'));

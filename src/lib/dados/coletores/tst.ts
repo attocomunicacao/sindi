@@ -1,7 +1,7 @@
 import { getText } from '@/lib/dados/http';
 import { extractArticle, linksFrom } from '@/lib/dados/html';
 import { hasDocument, upsertDocument } from '@/lib/dados/db';
-import type { Collector } from '@/lib/dados/collectors/types';
+import type { Coletor } from '@/lib/dados/coletores/tipos';
 
 const HOME = 'https://www.tst.jus.br/noticias';
 const isArticle = (u: URL) => u.hostname === 'www.tst.jus.br' && /^\/-\/[^/]+$/.test(u.pathname);
@@ -11,7 +11,7 @@ const pageNumber = (u: string) => Number(u.match(/_cur=(\d+)/)?.[1] || 0);
 export function parseTst(html: string) {
   return extractArticle(html, { containers: ['.news-body', '.materia'], dateText: '.date-info' });
 }
-export const tst: Collector = {
+export const tst: Coletor = {
   source: 'tst', label: 'Tribunal Superior do Trabalho',
   async run({ db, full }) {
     let fetched = 0; let changed = 0;

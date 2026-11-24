@@ -4,7 +4,7 @@ import { mkdtempSync, rmSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import path from 'node:path';
 import { openDb, setIndicator, startRun, finishRun, upsertDocument } from '@/lib/dados/db';
-import { esquecerPainelEmCache, readPainelEmCache } from '@/lib/dados/painel';
+import { esquecerPainelEmCache, lerPainelEmCache } from '@/lib/dados/painel';
 import { DEFASADA_HORAS, fontesDefasadas } from '@/lib/dados/frescor';
 import { lerDocumento, listarEstante, refDoDocumento, resumoDaBiblioteca } from '@/lib/biblioteca/consulta';
 import { estantePorId } from '@/lib/biblioteca/estantes';
@@ -28,7 +28,7 @@ test('fontes defasadas: cada fonte é medida pela própria última coleta ok, n�
   assert.equal(fontesDefasadas([{ source: 'x', lastOk: 'data inválida', status: 'ok' }], agora)[0].motivo, 'nunca');
 });
 
-test('readPainelEmCache: reaproveita a leitura por 30 s e lê de novo depois; readPainel não tem cache', () => {
+test('lerPainelEmCache: reaproveita a leitura por 30 s e lê de novo depois; lerPainel não tem cache', () => {
   const pasta = mkdtempSync(path.join(tmpdir(), 'sindi-painel-')); const arquivo = path.join(pasta, 'dados.sqlite');
   try {
     esquecerPainelEmCache();
@@ -36,13 +36,13 @@ test('readPainelEmCache: reaproveita a leitura por 30 s e lê de novo depois; re
     setIndicator(db, { id: 'bcb.selic-meta', source: 'bcb', group: 'Juros', label: 'Meta da taxa Selic', value: 13.75, unit: '% ao ano', period: '17/09/2026', previous: 14, url: 'https://www.bcb.gov.br/' });
     const rodada = startRun(db, 'bcb'); finishRun(db, rodada, { fetched: 1, changed: 1 });
     const t0 = Date.parse('2026-11-20T12:00:00Z');
-    assert.equal(readPainelEmCache(arquivo, t0).indicators[0].value, 13.75);
+    assert.equal(lerPainelEmCache(arquivo, t0).indicators[0].value, 13.75);
     setIndicator(db, { id: 'bcb.selic-meta', source: 'bcb', group: 'Juros', label: 'Meta da taxa Selic', value: 14.25, unit: '% ao ano', period: '29/10/2026', previous: 13.75, url: 'https://www.bcb.gov.br/' });
-    assert.equal(readPainelEmCache(arquivo, t0 + 10_000).indicators[0].value, 13.75, 'dentro de 30 s: a leitura guardada');
-    assert.equal(readPainelEmCache(arquivo, t0 + 31_000).indicators[0].value, 14.25, 'depois de 30 s: lê de novo');
+    assert.equal(lerPainelEmCache(arquivo, t0 + 10_000).indicators[0].value, 13.75, 'dentro de 30 s: a leitura guardada');
+    assert.equal(lerPainelEmCache(arquivo, t0 + 31_000).indicators[0].value, 14.25, 'depois de 30 s: lê de novo');
     db.close();
     esquecerPainelEmCache();
-    assert.equal(readPainelEmCache(path.join(pasta, 'nao-existe.sqlite')).available, false);
+    assert.equal(lerPainelEmCache(path.join(pasta, 'nao-existe.sqlite')).available, false);
   } finally { esquecerPainelEmCache(); rmSync(pasta, { recursive: true, force: true }); }
 });
 

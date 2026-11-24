@@ -3,13 +3,13 @@ import { test, afterEach } from 'node:test';
 import assert from 'node:assert/strict';
 import { cleanup, fireEvent, render, screen, waitFor } from '@testing-library/react';
 import { PainelFull } from '@/components/painel-view';
-import { emptyPainel, type Painel } from '@/lib/dados/painel';
+import { painelVazio, type Painel } from '@/lib/dados/painel';
 
 const original = globalThis.fetch;
 afterEach(() => { cleanup(); globalThis.fetch = original; definirAbaOculta(false); });
 const horasAtras = (h: number) => new Date(Date.now() - h * 3_600_000).toISOString();
 const painel = (extra: Partial<Painel> = {}): Painel => ({
-  ...emptyPainel(), available: true, updatedAt: horasAtras(1),
+  ...painelVazio(), available: true, updatedAt: horasAtras(1),
   sindicato: { noticias: [{ source: 'sindeprestem', title: 'Notícia do sindicato', publishedAt: '2026-11-10T12:00:00Z', url: 'https://www.sindeprestem.com.br/post/a' }], artigos: [] },
   bills: [{ source: 'camara', title: 'PL 1/2026', summary: 'Sobre terceirização', situacao: 'Em tramitação', movedAt: '2026-11-01T12:00:00Z', url: 'https://www.camara.leg.br/p?idProposicao=1' }],
   news: [{ source: 'ibge', title: 'IBGE divulga o IPCA', publishedAt: '2026-11-09T12:00:00Z', url: 'https://agenciadenoticias.ibge.gov.br/n' }],
@@ -60,7 +60,7 @@ test('painel: listas vazias mostram uma mensagem em vez de uma caixa vazia', asy
 });
 
 test('painel: sem dados coletados mostra a orientação; uma falha depois de ter dados mantém a última leitura com um aviso', async () => {
-  responder(emptyPainel());
+  responder(painelVazio());
   render(<PainelFull />);
   assert.match((await screen.findByText(/ainda não tem dados/)).textContent ?? '', /dados:sync/);
   cleanup();

@@ -1,6 +1,6 @@
 import { getJson, listaOuErro } from '@/lib/dados/http';
 import { setIndicator } from '@/lib/dados/db';
-import type { Collector } from '@/lib/dados/collectors/types';
+import type { Coletor } from '@/lib/dados/coletores/tipos';
 
 /**
  * Meta Selic (série 432 do SGS/Banco Central). A série é diária e repete a meta vigente também em datas futuras;
@@ -14,7 +14,7 @@ export function parseSgs(rows: { data: string; valor: string }[], today = new Da
   while (start > 0 && points[start - 1].value === last.value) start--;
   return { period: points[start].label, value: last.value, previous: start > 0 ? points[start - 1].value : undefined };
 }
-export const bcb: Collector = {
+export const bcb: Coletor = {
   source: 'bcb', label: 'Banco Central (Selic)',
   async run({ db }) {
     const br = (d: Date) => `${String(d.getUTCDate()).padStart(2, '0')}/${String(d.getUTCMonth() + 1).padStart(2, '0')}/${d.getUTCFullYear()}`;

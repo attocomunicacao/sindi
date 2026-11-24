@@ -24,7 +24,7 @@ antes de mostrá-la (e-mail, site, telefone, valor, número e lei precisam const
 | `src/lib/ia/` | Cascata de provedores de IA: tipos, adaptadores (OpenAI-compatível, Anthropic), disjuntor e limites conhecidos, fila |
 | `src/lib/ia/gemini.ts`, `infra/cota.ts`, `infra/limite-por-minuto.ts`, `infra/redis.ts`, `http/ip.ts` | Provedor Gemini, cota de mensagens, limite por minuto, Redis (Upstash) |
 | `src/lib/grafo/`, `src/lib/agentes/` | Grafo do cérebro (construção, entidades, Obsidian, consulta do chat) e orquestra de especialistas |
-| `src/lib/cerebro/`, `knowledge/` | Conectores, busca (palavras + significado), verificação de fatos, trechos |
+| `src/lib/cerebro/`, `recuperacao/`, `seguranca/` | Conectores e busca no cérebro (palavras + significado); recuperação dos trechos de cada pergunta (topo da pilha); verificação de fatos e redação de dados sensíveis |
 | `src/lib/dados/`, `biblioteca/` | Coleta de dados públicos (SQLite), painel, biblioteca |
 | `src/lib/orcamento/` | Cálculo, encargos, tabela de referência, PDFs |
 | `cerebro/` | O que ensina a SINDI (instruções, conectores, conhecimento, avaliação) |

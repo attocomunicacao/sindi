@@ -2,16 +2,16 @@ import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { montarDashboard, rotuloDoMes } from '@/lib/dados/dashboard';
 import { dashboardPdf } from '@/lib/dados/dashboard-pdf';
-import { emptyPainel, type PainelIndicator } from '@/lib/dados/painel';
+import { painelVazio, type PainelIndicator } from '@/lib/dados/painel';
 
 const ind = (id: string, value: number, previous: number | null, unit: string): PainelIndicator => ({ id, group: 'g', label: id, value, unit, period: '08/2026', previous, source: 'x', url: 'https://example.com', fetchedAt: '2026-10-13T00:00:00Z' });
-const painel = () => ({ ...emptyPainel(), available: true, updatedAt: '2026-10-13T12:00:00Z', indicators: [
+const painel = () => ({ ...painelVazio(), available: true, updatedAt: '2026-10-13T12:00:00Z', indicators: [
   ind('bcb.selic-meta', 13.75, 14, '% ao ano'), ind('ibge.ipca-12m', 4.58, 4.22, '% em 12 meses'), ind('ibge.desocupacao', 5.3, 5.3, '% da força de trabalho'),
   ind('caged.saldo', 100000, 50000, 'vagas no mês'), ind('caged.saldo-sp', 25000, 10000, 'vagas no mês'), ind('caged.saldo-temporario', -2438, 1423, 'vagas no mês') ],
   series: { 'caged.saldo': [{ period: '202606', value: 145161 }, { period: '202607', value: 58568 }, { period: '202608', value: 165827 }], 'caged.saldo-temporario': [{ period: '202606', value: 13512 }, { period: '202607', value: 1423 }, { period: '202608', value: -2438 }], 'caged.saldo-sp': [{ period: '202608', value: 42533 }] } });
 
 test('dashboard só usa indicadores coletados e marca variação favorável ou desfavorável', () => {
-  assert.equal(montarDashboard(emptyPainel()), null);
+  assert.equal(montarDashboard(painelVazio()), null);
   const d = montarDashboard(painel())!;
   assert.equal(d.kpis.length, 4);
   const [selic, ipca, desocupacao, caged] = d.kpis;

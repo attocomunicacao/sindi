@@ -2,7 +2,9 @@ import { gerarTexto } from '@/lib/ia/cascata';
 import type { Nivel } from '@/lib/ia/tipos';
 import type { Mensagem } from '@/lib/base/tipos';
 import type { Passagem } from '@/lib/base/tipos';
-import { notaDaSituacao, trechoDeContato, verificarFatos, type Situacao } from '@/lib/knowledge/grounded';
+import { notaDaSituacao, type Situacao } from '@/lib/chat/notas';
+import { trechoDeContato } from '@/lib/recuperacao/fontes';
+import { verificarFatos } from '@/lib/seguranca/verificar-fatos';
 import { ateAUltimaFrase, limparResposta, somar, type Uso } from '@/lib/chat/prompt';
 
 export type Tentativa = { nota: string; fontes: Passagem[] };

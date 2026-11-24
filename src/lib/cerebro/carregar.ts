@@ -1,7 +1,7 @@
 import { readdirSync, readFileSync, statSync } from 'node:fs';
 import path from 'node:path';
 
-export type Trecho = {
+export type TrechoDoCerebro = {
   /** Arquivo de origem, relativo à pasta cerebro (ex.: "auto/convencoes.md"). */
   arquivo: string; titulo: string; secao: string; texto: string; fonte?: string; atualizado?: string; gatilhos: string[]; tipo: 'curado' | 'autogerado'; prioridade: number;
   /** Seção de perguntas e respostas curadas: quando a pergunta do usuário é equivalente, a resposta é devolvida sem passar pelo modelo. */
@@ -39,10 +39,10 @@ export function lerCabecalho(markdown: string): { cabecalho: Cabecalho; corpo: s
  * Divide o texto por seções (`##`). Tabelas e listas ficam inteiras; seções longas são quebradas por parágrafo,
  * repetindo o título da seção em cada pedaço para que cada trecho faça sentido sozinho.
  */
-export function dividirEmTrechos(corpo: string, arquivo: string, cabecalho: Cabecalho): Trecho[] {
+export function dividirEmTrechos(corpo: string, arquivo: string, cabecalho: Cabecalho): TrechoDoCerebro[] {
   const partes = corpo.split(/^## +/m); const titulo = cabecalho.titulo ?? path.basename(arquivo, '.md');
-  const trechos: Trecho[] = [];
-  const novo = (secao: string, texto: string): Trecho => ({ arquivo, titulo, secao, texto: texto.trim(), fonte: cabecalho.fonte, atualizado: cabecalho.atualizado, gatilhos: cabecalho.gatilhos, tipo: cabecalho.tipo, prioridade: cabecalho.prioridade, direta: cabecalho.direta, semantica: cabecalho.semantica });
+  const trechos: TrechoDoCerebro[] = [];
+  const novo = (secao: string, texto: string): TrechoDoCerebro => ({ arquivo, titulo, secao, texto: texto.trim(), fonte: cabecalho.fonte, atualizado: cabecalho.atualizado, gatilhos: cabecalho.gatilhos, tipo: cabecalho.tipo, prioridade: cabecalho.prioridade, direta: cabecalho.direta, semantica: cabecalho.semantica });
   partes.forEach((parte, indice) => {
     if (!parte.trim()) return;
     const quebra = parte.indexOf('\n'); const secao = indice === 0 && !corpo.startsWith('## ') ? titulo : (quebra < 0 ? parte : parte.slice(0, quebra)).trim();
@@ -64,7 +64,7 @@ export function dividirEmTrechos(corpo: string, arquivo: string, cabecalho: Cabe
 function listar(pasta: string, base = pasta): string[] {
   return readdirSync(pasta, { withFileTypes: true }).flatMap(e => e.isDirectory() ? listar(path.join(pasta, e.name), base) : e.name.endsWith('.md') ? [path.relative(base, path.join(pasta, e.name)).replace(/\\/g, '/')] : []);
 }
-export function carregarArquivos(pasta = pastaCerebro()): { trechos: Trecho[]; arquivos: string[] } {
+export function carregarArquivos(pasta = pastaCerebro()): { trechos: TrechoDoCerebro[]; arquivos: string[] } {
   let arquivos: string[] = [];
   try { arquivos = listar(pasta).filter(a => !IGNORADOS.test(a)).sort(); } catch { return { trechos: [], arquivos: [] }; }
   const trechos = arquivos.flatMap(arquivo => {
@@ -73,9 +73,9 @@ export function carregarArquivos(pasta = pastaCerebro()): { trechos: Trecho[]; a
   });
   return { trechos, arquivos };
 }
-let cache: { chave: string; trechos: Trecho[]; verificadoEm: number } | undefined;
+let cache: { chave: string; trechos: TrechoDoCerebro[]; verificadoEm: number } | undefined;
 /** Os arquivos são relidos quando mudam (conferência por data de modificação, no máximo a cada 5 s). */
-export function trechosDoCerebro(pasta = pastaCerebro()): Trecho[] {
+export function trechosDoCerebro(pasta = pastaCerebro()): TrechoDoCerebro[] {
   if (cache && Date.now() - cache.verificadoEm < 5000) return cache.trechos;
   let chave = '';
   try { chave = listar(pasta).filter(a => !IGNORADOS.test(a)).map(a => `${a}:${statSync(path.join(pasta, a)).mtimeMs}`).join('|'); } catch { cache = { chave: '', trechos: [], verificadoEm: Date.now() }; return []; }

@@ -1,28 +1,22 @@
 import { SITE } from '@/lib/base/constantes';
-import { readFile } from 'node:fs/promises';
-import path from 'node:path';
-import { normalize, contextText, queryTerms, searchSnapshot, sufficientEvidence, type KnowledgeSnapshot } from '@/lib/knowledge/core';
+import { existsSync } from 'node:fs';
 import type { Passagem } from '@/lib/base/tipos';
-import { supabaseRequest } from '@/lib/knowledge/supabase';
+import { normalizar, termosDaConsulta } from '@/lib/base/texto';
+import { textoDeContexto, evidenciaSuficiente } from '@/lib/recuperacao/contexto';
+import { espelhoDoSite } from '@/lib/recuperacao/legado/espelho';
 import { executarFerramentas } from '@/lib/ferramentas/registro';
-import { pedidoDeAjuda } from '@/lib/knowledge/grounded';
+import { INTENCAO_EXTERNA, PERGUNTA_DE_ATUACAO, pedidoDeAjuda } from '@/lib/recuperacao/intencao';
 import { buscarHibrido } from '@/lib/cerebro/buscar';
 import { faixasDeContribuicao } from '@/lib/cerebro/faixas';
-import { EXTERNAL_INTENT, searchExternal, trechosDeDocumentos } from '@/lib/dados/painel';
+import { buscarFontesExternas } from '@/lib/recuperacao/externas';
+import { trechosDeDocumentos } from '@/lib/recuperacao/documentos';
 import { escolherConector, pedeRelatorio, type Conector } from '@/lib/cerebro/conectores';
 import { cobertura, materialDoRelatorio, pesosDosTermos, pesquisarNaBiblioteca, termosDaPesquisa } from '@/lib/biblioteca/pesquisa';
 import { dbPath } from '@/lib/dados/db';
-import { existsSync } from 'node:fs';
 import { documentosPeloGrafo } from '@/lib/grafo/consulta';
 import { estantesDaOrquestra, montarOrquestra } from '@/lib/agentes/orquestrador';
 try { process.loadEnvFile('.env.knowledge'); } catch { /* Optional outside the local installation. */ }
 
-const noisePage = (url: string) => /\/noticias\/(page\/|categories\/)/.test(url);
-/**
- * Pergunta sobre a atuação da entidade ("o que o Sindeprestem está fazendo sobre a NR-1?", "onde acompanho essa discussão?"): a resposta está nas notícias,
- * nos artigos e nas cartilhas do sindicato, com data, e não no texto da norma ou da lei citada.
- */
-const ATUACAO = /(sindeprestem|sindicato|fenaserhtt|entidade).{0,40}(esta fazendo|tem feito|\bfez\b|\bfaz\b|atua|defende|acompanha)|(esta fazendo|atuacao|o que faz).{0,40}(sindeprestem|sindicato|fenaserhtt|entidade)|onde (posso )?acompanhar/;
 /** Estantes pesquisadas quando a pergunta não cai em nenhum conector. */
 const ESTANTES_PADRAO = ['artigos', 'noticias', 'cartilhas'];
 /**
@@ -35,22 +29,22 @@ const ESTANTES_PADRAO = ['artigos', 'noticias', 'cartilhas'];
  * 3. Demais perguntas: o cérebro (busca por palavras e por significado) e a pesquisa nas estantes da biblioteca indicadas pelo conector, ordenados pela cobertura
  *    dos termos da pergunta. Tudo é local (arquivos e SQLite), para a resposta não esperar por rede.
  */
-export async function retrieveKnowledge(question: string, language = 'pt', conector: Conector | undefined = escolherConector(question)) {
+export async function recuperarConhecimento(question: string, language = 'pt', conector: Conector | undefined = escolherConector(question)) {
   const ferramentas = await executarFerramentas(question, { idioma: language, conector });
-  if (ferramentas.length) return { context: contextText(ferramentas), sufficient: true, passages: ferramentas, semResposta: undefined, lista: false, relatorio: false };
+  if (ferramentas.length) return { context: textoDeContexto(ferramentas), sufficient: true, passages: ferramentas, semResposta: undefined, lista: false, relatorio: false };
   if (pedeRelatorio(conector, question)) {
     const relatorio = materialDoRelatorio(question);
-    if (relatorio.length) return { context: contextText(relatorio), sufficient: true, passages: relatorio, semResposta: undefined, lista: false, relatorio: true };
+    if (relatorio.length) return { context: textoDeContexto(relatorio), sufficient: true, passages: relatorio, semResposta: undefined, lista: false, relatorio: true };
   }
-  if (ATUACAO.test(normalize(question))) {
+  if (PERGUNTA_DE_ATUACAO.test(normalizar(question))) {
     const atuacao = pesquisarNaBiblioteca(question, ['noticias', 'artigos', 'cartilhas'], { limite: 3 });
-    if (atuacao.length) return { context: contextText(atuacao), sufficient: true, passages: atuacao, semResposta: undefined, lista: false, relatorio: false };
+    if (atuacao.length) return { context: textoDeContexto(atuacao), sufficient: true, passages: atuacao, semResposta: undefined, lista: false, relatorio: false };
   }
-  const documentos = trechosDeDocumentos(question, queryTerms(question), language);
-  if (documentos.passages.length) return { context: contextText(documentos.passages), sufficient: true, passages: documentos.passages as Passagem[], semResposta: undefined, lista: documentos.lista === true, relatorio: false };
+  const documentos = trechosDeDocumentos(question, termosDaConsulta(question), language);
+  if (documentos.passages.length) return { context: textoDeContexto(documentos.passages), sufficient: true, passages: documentos.passages as Passagem[], semResposta: undefined, lista: documentos.lista === true, relatorio: false };
   // Contribuição por faixa (capital social ou número de colaboradores citado): só a linha da tabela que se aplica, e os vencimentos.
   const faixas = faixasDeContribuicao(question);
-  if (faixas.length) return { context: contextText(faixas), sufficient: true, passages: faixas, semResposta: undefined, lista: false, relatorio: false };
+  if (faixas.length) return { context: textoDeContexto(faixas), sufficient: true, passages: faixas, semResposta: undefined, lista: false, relatorio: false };
   const termos = termosDaPesquisa(question); const pesos = pesosDosTermos(termos);
   // A relevância de um trecho do cérebro conta também as "Variações:" da seção (formas de perguntar), que não vão ao modelo.
   const cerebro = (await buscarHibrido(question, 3)).map(({ trecho }) => ({ relevancia: cobertura(termos, `${trecho.titulo} ${trecho.secao} ${trecho.texto}`, pesos), curado: trecho.tipo === 'curado',
@@ -65,7 +59,7 @@ export async function retrieveKnowledge(question: string, language = 'pt', conec
   const doGrafo = ajuda || !estantes.length ? [] : documentosPeloGrafo(question, 3)
     .filter(p => !biblioteca.some(b => b.url === p.url) && cobertura(termos, `${p.title} ${p.content}`, pesos) >= 0.5);
   // Fontes externas coletadas (Câmara, Senado, TST, WEC, IBGE) entram quando a pergunta as menciona.
-  const external = EXTERNAL_INTENT.test(question) ? searchExternal(queryTerms(question), 2).map(p => ({ ...p, pinned: true })) : [];
+  const external = INTENCAO_EXTERNA.test(question) ? buscarFontesExternas(termosDaConsulta(question), 2).map(p => ({ ...p, pinned: true })) : [];
   let passages: Passagem[];
   if (biblioteca.length || external.length || doGrafo.length) {
     // Com um documento da biblioteca que cobre a pergunta, um acerto fraco do cérebro só atrapalha: ficam os trechos do cérebro que também cobrem os termos.
@@ -79,42 +73,5 @@ export async function retrieveKnowledge(question: string, language = 'pt', conec
   } else if (cerebro.length || existsSync(dbPath())) passages = cerebro.map(c => c.passagem);
   // Sem a coleta local (por exemplo, numa hospedagem sem o banco), vale o espelho do site.
   else passages = await espelhoDoSite(question);
-  return { context: contextText(passages), sufficient: sufficientEvidence(passages, question), passages, semResposta: documentos.semResposta, lista: false, relatorio: false };
-}
-/** Busca no espelho do site (Supabase ou cópia local), com prazo próprio. Só é usada quando a coleta local em SQLite não existe. */
-async function espelhoDoSite(question: string): Promise<Passagem[]> {
-  const buscaGeral = async (): Promise<Passagem[]> => {
-    if (process.env.SUPABASE_URL && (process.env.SUPABASE_PUBLISHABLE_KEY || process.env.SUPABASE_SECRET_KEY)) {
-      try {
-        const rows = await supabaseRequest('rpc/search_sindi_knowledge', { terms: queryTerms(question), result_limit: 8, question: normalize(question) });
-        if (!Array.isArray(rows)) throw new Error('Invalid knowledge response');
-        return rows.map(r => ({ url: r.url, title: r.title, content: r.content, fetchedAt: r.fetched_at }));
-      } catch { return localSearch(question); }
-    }
-    return localSearch(question);
-  };
-  let temporizador: ReturnType<typeof setTimeout> | undefined;
-  const passages = await Promise.race([buscaGeral(), new Promise<Passagem[]>(resolve => { temporizador = setTimeout(() => resolve([]), 3200); })]);
-  if (temporizador) clearTimeout(temporizador);
-  const asksNews = /news|latest|recent|noticia|novidade/.test(normalize(question));
-  // Listing and pagination pages only add noise unless the user asks for news.
-  return asksNews ? passages : passages.filter(p => !noisePage(p.url));
-}
-async function localSearch(question: string): Promise<Passagem[]> {
-  try {
-    const snapshot: KnowledgeSnapshot = JSON.parse(await readFile(path.join(process.cwd(), '.data/knowledge/current.json'), 'utf8'));
-    return searchSnapshot(snapshot, question, 8);
-  } catch { return []; }
-}
-/** Formata a página de contato coletada (usado só para gerar o arquivo de contatos do cérebro, não nas respostas do chat). */
-export function contactFromSource(content: string, language: string) {
-  const body = content.split('Rodapé institucional')[0];
-  const lines = body.split(/\r?\n/).map(l => l.trim()).filter(l => l && !/^(ligar|e-?mail|ligare-mail|whatsappe-mail|whatsapp)$/i.test(l));
-  const start = lines.findIndex(l => /^setor |^comunica/i.test(l));
-  const blocks = start >= 0 ? lines.slice(start) : [];
-  const hours = content.match(/Segunda a Sexta das\s*\d{1,2}:\d{2}\s*[ÀàAa]s\s*\d{1,2}:\d{2}/)?.[0]?.replace(/\s+/g, ' ');
-  if (!blocks.length && !hours) return undefined;
-  const list = blocks.map(l => /^(setor |comunica)/i.test(l) ? `\n**${l}**` : `- ${l}`).join('\n').trim();
-  const schedule = hours ? `\n\n${language === 'en' ? 'Hours' : 'Horário'}: ${hours}.` : '';
-  return `${language === 'en' ? 'Contact details on the official page' : 'Contatos da página oficial'}:\n\n${list}${schedule}`;
+  return { context: textoDeContexto(passages), sufficient: evidenciaSuficiente(passages, question), passages, semResposta: documentos.semResposta, lista: false, relatorio: false };
 }

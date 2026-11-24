@@ -7,11 +7,11 @@ import { POST as calcular } from '@/app/api/orcamento/calcular/route';
 import { POST as gerarPdf } from '@/app/api/orcamento/pdf/route';
 import { POST as atualizar } from '@/app/api/atualizar/route';
 import { GET as usage } from '@/app/api/uso/route';
-import { GET as knowledge } from '@/app/api/knowledge/route';
+import { GET as knowledge } from '@/app/api/conhecimento/route';
 import { GET as painel } from '@/app/api/painel/route';
 import { GET as catalogo } from '@/app/api/orcamento/catalogo/route';
 import { sistema } from '@/lib/cerebro/instrucoes';
-import { contemDadosSensiveis, redigirDadosSensiveis } from '@/lib/knowledge/grounded';
+import { contemDadosSensiveis, redigirDadosSensiveis } from '@/lib/seguranca/redacao';
 import { allowedChatOrigin } from '@/lib/infra/origem';
 import { hostLocal, pedidoLocal } from '@/lib/atualizacao';
 import { destinoPermitido, hostInterno, politeFetch } from '@/lib/dados/http';
@@ -166,7 +166,7 @@ test('logs: nenhuma saída do servidor contém o texto da pergunta, o dado pesso
 test('segredos: a chave do provedor e o token do Redis nunca aparecem em corpo ou cabeçalho de resposta, inclusive quando o provedor devolve a chave num erro', async () => {
   await comAmbiente({ UPSTASH_REDIS_REST_URL: 'https://redis.example', UPSTASH_REDIS_REST_TOKEN: 'TOKEN-REDIS-SECRETO-123' }, async () => {
     globalThis.fetch = (async () => new Response(JSON.stringify({ error: { message: `API key not valid: ${CHAVE}` } }), { status: 403 })) as typeof fetch;
-    const respostas: Response[] = [await chat(requisicao(JSON.stringify(mensagens('Oi')))), await chat(requisicao('x'.repeat(2_000_000))), await usage(new Request('http://localhost/api/uso')), await knowledge(new Request('http://localhost/api/knowledge')),
+    const respostas: Response[] = [await chat(requisicao(JSON.stringify(mensagens('Oi')))), await chat(requisicao('x'.repeat(2_000_000))), await usage(new Request('http://localhost/api/uso')), await knowledge(new Request('http://localhost/api/conhecimento')),
       await painel(new Request('http://localhost/api/painel')), await catalogo(new Request('http://localhost/api/orcamento/catalogo'))];
     for (const r of respostas) { const texto = await r.text() + JSON.stringify([...r.headers]); for (const segredo of [CHAVE, 'AIzaSy', 'TOKEN-REDIS-SECRETO-123']) assert.ok(!texto.includes(segredo), `resposta ${r.status} vaza ${segredo}`); }
   });

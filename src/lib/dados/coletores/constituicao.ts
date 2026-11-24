@@ -1,13 +1,13 @@
 import { deleteMissing, due, getState, setState, upsertDocument } from '@/lib/dados/db';
 import { politeFetch } from '@/lib/dados/http';
 import { decodeHtml, htmlToLines, splitArticles } from '@/lib/dados/legal';
-import type { Collector } from '@/lib/dados/collectors/types';
+import type { Coletor } from '@/lib/dados/coletores/tipos';
 
 export const CONSTITUICAO_URL = 'https://www.planalto.gov.br/ccivil_03/constituicao/constituicao.htm';
 const DAY = 24 * 60 * 60 * 1000;
 
 /** Constituição Federal (texto compilado do Planalto), um documento por artigo. Verificada uma vez por dia, com requisição condicional. */
-export const constituicao: Collector = {
+export const constituicao: Coletor = {
   source: 'constituicao', label: 'Constituição Federal',
   async run({ db, full }) {
     if (!due(db, 'constituicao:check', DAY, full)) return { fetched: 0, changed: 0 };

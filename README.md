@@ -20,7 +20,8 @@ src/
   app/          páginas (/, /base, /painel, /orcamento, /uso) e rotas /api
   lib/cerebro/  conectores, instruções, busca no cérebro, embeddings, avaliação
   lib/biblioteca/ estantes de /base e a pesquisa que o chat faz nelas
-  lib/knowledge/ orquestração da busca, verificação de fatos, proteções
+  lib/recuperacao/ escolha das fontes de cada pergunta (topo da pilha: só chat e app a usam)
+  lib/seguranca/ verificação de fatos e redação de dados sensíveis
   lib/dados/    coletores de fontes públicas, SQLite, painel
   lib/orcamento/ cálculo e PDF do orçamento de terceirização
 scripts/

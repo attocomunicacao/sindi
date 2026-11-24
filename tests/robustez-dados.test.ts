@@ -8,7 +8,7 @@ import { abandonarExecucoes, falhasSeguidas, finishRun, openDb, podarExecucoes, 
 import { syncAll } from '@/lib/dados/sync';
 import { dataIso, listaOuErro } from '@/lib/dados/http';
 import { pdfToText } from '@/lib/dados/legal';
-import type { Collector } from '@/lib/dados/collectors/types';
+import type { Coletor } from '@/lib/dados/coletores/tipos';
 
 const atraso = (ms: number) => new Promise(r => setTimeout(r, ms));
 async function comBanco(fn: (db: ReturnType<typeof openDb>, pasta: string) => Promise<void>) {
@@ -16,7 +16,7 @@ async function comBanco(fn: (db: ReturnType<typeof openDb>, pasta: string) => Pr
   const db = openDb(path.join(pasta, 'dados.sqlite'));
   try { await fn(db, pasta); } finally { db.close(); if (anterior === undefined) delete process.env.SINDI_DATA_DIR; else process.env.SINDI_DATA_DIR = anterior; rmSync(pasta, { recursive: true, force: true }); }
 }
-const coletor = (source: string, run: Collector['run']): Collector => ({ source, label: source.toUpperCase(), run });
+const coletor = (source: string, run: Coletor['run']): Coletor => ({ source, label: source.toUpperCase(), run });
 const ultimaExecucao = (db: ReturnType<typeof openDb>, source: string) => ({ ...(db.prepare('SELECT status, error FROM runs WHERE source = ? ORDER BY id DESC LIMIT 1').get(source) as { status: string; error: string | null }) });
 
 test('coleta: um coletor que trava estoura o tempo e os outros seguem; erro vira registro, não exceção', async () => {

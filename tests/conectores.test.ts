@@ -7,7 +7,7 @@ import { conectores, escolherConector, lerConector, pedeRelatorio, reiniciarCach
 import { exemplos, lerExemplos, mensagemDoPedido, reiniciarCacheDasInstrucoes, sistema, textoDasFontes } from '@/lib/cerebro/instrucoes';
 import { cobertura, coberturaLocal, materialDoRelatorio, pesquisarNaBiblioteca, radical, termosDaPesquisa } from '@/lib/biblioteca/pesquisa';
 import { chaveDaResposta, guardarResposta, limparRespostasGuardadas, respostaGuardada } from '@/lib/infra/cache-respostas';
-import { verificarFatos } from '@/lib/knowledge/grounded';
+import { verificarFatos } from '@/lib/seguranca/verificar-fatos';
 import { openDb, setIndicator, upsertDocument } from '@/lib/dados/db';
 
 const CONECTOR = `---

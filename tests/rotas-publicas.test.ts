@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import { GET as painel } from '@/app/api/painel/route';
 import { GET as painelPdf } from '@/app/api/painel/pdf/route';
 import { GET as usage } from '@/app/api/uso/route';
-import { GET as knowledge } from '@/app/api/knowledge/route';
+import { GET as knowledge } from '@/app/api/conhecimento/route';
 import { GET as atualizarEstado, POST as atualizar } from '@/app/api/atualizar/route';
 import { GET as bibliotecaPdf } from '@/app/api/biblioteca/pdf/[id]/route';
 import { reiniciarLimitesNaMemoria } from '@/lib/infra/limite-por-minuto';
@@ -16,10 +16,10 @@ async function semUpstash(fn: () => Promise<void>) {
   try { await fn(); } finally { process.env = salvo; reiniciarLimitesNaMemoria(); }
 }
 
-test('/api/painel e /api/knowledge: respondem sem expor estado interno e têm limite por minuto', async () => {
+test('/api/painel e /api/conhecimento: respondem sem expor estado interno e têm limite por minuto', async () => {
   await semUpstash(async () => {
     const p = await painel(get('http://localhost/api/painel')); assert.equal(p.status, 200); assert.equal(p.headers.get('cache-control'), 'no-store'); assert.equal(p.headers.get('x-content-type-options'), 'nosniff');
-    const k = await knowledge(get('http://localhost/api/knowledge')); assert.equal(k.status, 200);
+    const k = await knowledge(get('http://localhost/api/conhecimento')); assert.equal(k.status, 200);
     assert.deepEqual(Object.keys(await k.json()).sort(), ['available', 'phase']);
     // 300 por minuto no painel: o 301º é recusado.
     for (let i = 0; i < 300; i++) assert.equal((await painel(get('http://localhost/api/painel', { 'x-real-ip': '198.51.100.9' }))).status, 200);

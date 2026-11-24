@@ -5,8 +5,8 @@ import { getText, politeFetch } from '@/lib/dados/http';
 import { pdfToText } from '@/lib/dados/legal';
 import { SITE } from '@/lib/base/constantes';
 import { categoryOf, cleanPdfText, documentEntries, entryTitle, kindOf, isMonthOnly, lawIdentifier, sectionFor, titleFromPdfText, yearOf, type Section } from '@/lib/dados/sindicato';
-import type { KnowledgeSnapshot } from '@/lib/knowledge/core';
-import type { Collector } from '@/lib/dados/collectors/types';
+import type { EspelhoDoSite } from '@/lib/base/tipos';
+import type { Coletor } from '@/lib/dados/coletores/tipos';
 
 const MAX_PDF_BYTES = 80 * 1024 * 1024;
 const HOURS = 60 * 60 * 1000;
@@ -81,10 +81,10 @@ export function linksDoSite(links: unknown): { links?: string[] } {
   }))].slice(0, 120);
   return limpos.length ? { links: limpos } : {};
 }
-export const sindeprestem: Collector = {
+export const sindeprestem: Coletor = {
   source: 'sindeprestem', label: 'SINDEPRESTEM',
   async run({ db, full }) {
-    const snapshot: KnowledgeSnapshot = JSON.parse(await readFile(path.join(process.cwd(), '.data/knowledge/current.json'), 'utf8'));
+    const snapshot: EspelhoDoSite = JSON.parse(await readFile(path.join(process.cwd(), '.data/knowledge/current.json'), 'utf8'));
     let fetched = 0; let changed = 0;
     db.exec('BEGIN');
     try {

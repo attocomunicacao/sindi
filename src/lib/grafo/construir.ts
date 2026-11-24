@@ -3,10 +3,10 @@ import { DatabaseSync } from 'node:sqlite';
 import { forceCenter, forceLink, forceManyBody, forceSimulation, forceX, forceY, type SimulationLinkDatum, type SimulationNodeDatum } from 'd3-force';
 import { ESTANTES, estanteDoDocumento } from '@/lib/biblioteca/estantes';
 import { refDoDocumento } from '@/lib/biblioteca/consulta';
-import { carregarArquivos, type Trecho } from '@/lib/cerebro/carregar';
+import { carregarArquivos, type TrechoDoCerebro } from '@/lib/cerebro/carregar';
 import { conectores } from '@/lib/cerebro/conectores';
 import { arquivoDeVetores, cosseno, idDoTrecho } from '@/lib/cerebro/embeddings';
-import { normalize } from '@/lib/knowledge/core';
+import { normalizar } from '@/lib/base/texto';
 import { dbPath } from '@/lib/dados/db';
 import { extrairEntidades } from '@/lib/grafo/entidades';
 import type { Aresta, Grafo, No, TipoDeAresta, TipoDeNo } from '@/lib/grafo/tipos';
@@ -46,12 +46,12 @@ export function construirGrafo(opcoes: { banco?: string; iteracoes?: number } = 
 
   // Conhecimento escrito pela equipe e resumos automáticos (um nó por arquivo do cérebro).
   const { trechos } = carregarArquivos();
-  const porArquivo = new Map<string, Trecho[]>();
+  const porArquivo = new Map<string, TrechoDoCerebro[]>();
   for (const t of trechos) porArquivo.set(t.arquivo, [...(porArquivo.get(t.arquivo) ?? []), t]);
   for (const [arquivo, lista2] of porArquivo) {
     const id = no(`conhecimento:${arquivo}`, 'conhecimento', lista2[0].titulo, arquivo.startsWith('auto/') ? 'auto' : 'curado', { href: '/base/cerebro' });
     liga(id, 'estante:cerebro', 'guarda', 1);
-    const gatilhos = new Set(lista2.flatMap(t => t.gatilhos.map(normalize)));
+    const gatilhos = new Set(lista2.flatMap(t => t.gatilhos.map(normalizar)));
     for (const c of lista) { const comuns = c.gatilhos.filter(g => gatilhos.has(g)).length; if (comuns) liga(`conector:${c.id}`, id, 'gatilho', Math.min(3, comuns)); }
   }
 
@@ -88,7 +88,7 @@ export function construirGrafo(opcoes: { banco?: string; iteracoes?: number } = 
         for (const e of extrairEntidades(`${l.title}\n${l.trecho}`)) {
           const c = citacoes.get(e.id) ?? { rotulo: e.rotulo, tipo: e.tipo as TipoDeNo, docs: new Set<string>() }; c.docs.add(id);
           // O próprio projeto de lei (Câmara/Senado) é o documento da entidade.
-          if (e.tipo === 'proposicao' && (l.source === 'camara' || l.source === 'senado') && normalize(l.title).includes(normalize(e.rotulo))) c.proprio = id;
+          if (e.tipo === 'proposicao' && (l.source === 'camara' || l.source === 'senado') && normalizar(l.title).includes(normalizar(e.rotulo))) c.proprio = id;
           citacoes.set(e.id, c);
         }
       }

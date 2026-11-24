@@ -3,7 +3,7 @@ import type { Aresta, No } from '@/lib/grafo/tipos';
 
 /**
  * O caminho de uma pergunta pela SINDI, como rede: guarda → orquestrador → especialistas → fontes → redação em cascata → verificação → resposta.
- * Reflete o código (src/app/api/chat/route.ts, src/lib/agentes, src/lib/ia/cascata.ts, src/lib/knowledge/grounded.ts); mudou o fluxo, mude aqui.
+ * Reflete o código (src/app/api/chat/route.ts, src/lib/agentes, src/lib/ia/cascata.ts, src/lib/seguranca/verificar-fatos.ts); mudou o fluxo, mude aqui.
  */
 type Item = [id: string, rotulo: string, x: number, y: number, tipo?: No['tipo'], href?: string];
 const ITENS: Item[] = [

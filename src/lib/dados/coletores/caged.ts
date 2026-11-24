@@ -5,7 +5,7 @@ import path from 'node:path';
 import { createInterface } from 'node:readline';
 import { promisify } from 'node:util';
 import { dataDir, getSeries, getState, setSeries, setState, setIndicator, upsertDocument, type Db } from '@/lib/dados/db';
-import type { Collector } from '@/lib/dados/collectors/types';
+import type { Coletor } from '@/lib/dados/coletores/tipos';
 import { numeroBR } from '@/lib/base/formato';
 
 const run = promisify(execFile);
@@ -70,7 +70,7 @@ function publish(db: Db) {
 }
 const HOUR = 60 * 60 * 1000;
 
-export const caged: Collector = {
+export const caged: Coletor = {
   source: 'caged', label: 'CAGED (Ministério do Trabalho)',
   async run({ db, full }) {
     // O MTE publica uma vez por mês; verificar o FTP a cada ciclo só custa uma listagem pequena, mas limitamos a 1 hora.

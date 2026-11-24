@@ -2,7 +2,7 @@ import { createHash } from 'node:crypto';
 import { DatabaseSync } from 'node:sqlite';
 import { existsSync } from 'node:fs';
 import { dbPath } from '@/lib/dados/db';
-import { readPainelEmCache, type PainelIndicator } from '@/lib/dados/painel';
+import { lerPainelEmCache, type PainelIndicator } from '@/lib/dados/painel';
 import { carregarArquivos } from '@/lib/cerebro/carregar';
 import { buscarNoCerebro } from '@/lib/cerebro/buscar';
 import { ESTANTES, estanteDoDocumento, estantePorId, type Estante } from '@/lib/biblioteca/estantes';
@@ -41,7 +41,7 @@ export function resumoDaBiblioteca(): ResumoDaBiblioteca {
   const arquivos = carregarArquivos().trechos;
   const estantes = ESTANTES.map((estante): ResumoEstante => {
     if (estante.especial === 'cerebro') return { estante, total: arquivos.length, atualizado: arquivos.map(t => t.atualizado).filter(Boolean).sort().at(-1) };
-    if (estante.especial === 'indicadores') { const indicadores = readPainelEmCache().indicators; return { estante, total: indicadores.length, atualizado: indicadores.map(i => i.fetchedAt).sort().at(-1) }; }
+    if (estante.especial === 'indicadores') { const indicadores = lerPainelEmCache().indicators; return { estante, total: indicadores.length, atualizado: indicadores.map(i => i.fetchedAt).sort().at(-1) }; }
     if (!db || !estante.onde) return { estante, total: 0 };
     try { const r = db.prepare(`SELECT count(*) AS n, max(d.fetched_at) AS u FROM documents d WHERE ${estante.onde}`).get() as { n: number; u: string | null }; return { estante, total: r.n, atualizado: r.u ?? undefined }; } catch { return { estante, total: 0 }; }
   });
@@ -120,5 +120,5 @@ export function cerebroPorArquivo(): Arquivo[] {
   }
   return [...mapa.values()].sort((a, b) => Number(a.tipo === 'autogerado') - Number(b.tipo === 'autogerado') || a.arquivo.localeCompare(b.arquivo));
 }
-export const indicadores = (): PainelIndicator[] => readPainelEmCache().indicators;
+export const indicadores = (): PainelIndicator[] => lerPainelEmCache().indicators;
 export { estantePorId };

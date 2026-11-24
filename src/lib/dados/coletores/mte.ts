@@ -2,7 +2,7 @@ import { enqueue, hasDocument, markFetched, nextQueued, upsertDocument } from '@
 import { extractArticle, linksFrom } from '@/lib/dados/html';
 import { getText, politeFetch } from '@/lib/dados/http';
 import { pdfToText } from '@/lib/dados/legal';
-import type { Collector } from '@/lib/dados/collectors/types';
+import type { Coletor } from '@/lib/dados/coletores/tipos';
 
 const ROOT = 'https://www.gov.br/trabalho-e-emprego/pt-br';
 const NEWS = `${ROOT}/noticias-e-conteudo`;
@@ -43,7 +43,7 @@ export function titleFromSlug(url: string) {
  * Portal do Ministério do Trabalho e Emprego. Notícias: páginas de listagem e artigos novos a cada ciclo.
  * Assuntos (NRs, normas, serviços): rastreamento gradual por fila, poucas páginas por ciclo, revisadas a cada 7 dias.
  */
-export const mte: Collector = {
+export const mte: Coletor = {
   source: 'mte', label: 'Ministério do Trabalho e Emprego',
   async run({ db, full }) {
     let fetched = 0; let changed = 0;

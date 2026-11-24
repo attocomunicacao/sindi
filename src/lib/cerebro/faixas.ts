@@ -1,6 +1,6 @@
 import { SITE } from '@/lib/base/constantes';
 import type { Passagem } from '@/lib/base/tipos';
-import { normalize } from '@/lib/knowledge/core';
+import { normalizar } from '@/lib/base/texto';
 import { trechosDoCerebro } from '@/lib/cerebro/carregar';
 
 /**
@@ -13,7 +13,7 @@ const MULTIPLICADOR: Record<string, number> = { mil: 1e3, k: 1e3, mi: 1e6, milha
 
 /** Capital social citado ("capital social de R$ 800 mil", "R$ 1,5 milhão", "800.000"), em reais. */
 export function capitalDaPergunta(pergunta: string): number | undefined {
-  const q = normalize(pergunta);
+  const q = normalizar(pergunta);
   const m = q.match(/(?:capital(?: social)?(?: de| da empresa| igual a)?|r\$)\s*(?:r\$\s*)?(\d[\d.,]*)\s*(milhoes|milhao|mil|mi|k)?\b/);
   if (!m) return undefined;
   if (m[2]) { const base = Number(m[1].replace(/\.(?=\d{3}\b)/g, '').replace(',', '.')); return Number.isFinite(base) ? base * MULTIPLICADOR[m[2]] : undefined; }
@@ -21,7 +21,7 @@ export function capitalDaPergunta(pergunta: string): number | undefined {
 }
 /** Número de colaboradores citado ("200 colaboradores", "50 funcionários"). */
 export function colaboradoresDaPergunta(pergunta: string): number | undefined {
-  const m = normalize(pergunta).match(/(\d[\d.]*)\s*(?:colaboradores|funcionarios|empregados|trabalhadores|celetistas|temporarios)/);
+  const m = normalizar(pergunta).match(/(\d[\d.]*)\s*(?:colaboradores|funcionarios|empregados|trabalhadores|celetistas|temporarios)/);
   return m ? Number(m[1].replace(/\./g, '')) : undefined;
 }
 type Faixa = { texto: string; de?: number; ate?: number };
@@ -36,7 +36,7 @@ function faixasDa(secao: string): Faixa[] {
 const secao = (nome: string) => trechosDoCerebro().find(t => t.arquivo.endsWith('contribuicoes.md') && t.secao.startsWith(nome))?.texto;
 
 export function faixasDeContribuicao(pergunta: string): Passagem[] {
-  const q = normalize(pergunta);
+  const q = normalizar(pergunta);
   if (!/contribui|mensalidade|associativ|confederativ|negocial|quanto (paga|pago|custa|pagam)|taxa/.test(q)) return [];
   const capital = capitalDaPergunta(pergunta); const colaboradores = colaboradoresDaPergunta(pergunta); const semColaboradores = /sem (colaboradores|funcionarios|empregados)/.test(q);
   if (capital === undefined && colaboradores === undefined && !semColaboradores) return [];

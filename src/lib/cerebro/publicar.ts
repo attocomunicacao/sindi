@@ -1,9 +1,8 @@
 import { cpSync, existsSync, mkdirSync, readFileSync, renameSync, rmSync, writeFileSync } from 'node:fs';
 import path from 'node:path';
 import type { Db } from '@/lib/dados/db';
-import { avaliarCasos, carregarCasos, type ResultadoCaso } from '@/lib/cerebro/avaliar';
+import type { ResultadoCaso } from '@/lib/cerebro/casos';
 import { pastaCerebro, reiniciarCacheDoCerebro } from '@/lib/cerebro/carregar';
-import { gerarArquivos } from '@/lib/cerebro/gerar';
 
 /** Tamanho mínimo plausível de cada arquivo gerado: um arquivo vazio ou muito menor indica que a coleta falhou. */
 export const MINIMOS: Record<string, number> = { 'institucional.md': 2500, 'contribuicoes.md': 1500, 'convencoes.md': 8000, 'juridico.md': 800, 'cartilhas.md': 1500, 'artigos-e-noticias.md': 4000, 'fontes-de-dados.md': 1500 };
@@ -32,9 +31,10 @@ function recuperarSeInterrompido(pasta: string, anterior: string) {
  * Regenera os arquivos autogerados do cérebro com proteção: (1) valida o tamanho de cada arquivo; (2) só avalia se algo mudou;
  * (3) grava, reavalia as perguntas de ouro e, se alguma que passava passou a falhar, restaura os arquivos anteriores.
  * Qualquer erro depois de gravar (inclusive na reavaliação) também restaura a versão anterior e é repassado: nunca fica uma versão não validada no lugar.
+ * Quem chama informa como gerar e como avaliar (`gerarArquivos` e `avaliarCasos`): a avaliação usa a recuperação do chat, que fica acima do cérebro.
  */
 export async function publicarCerebro(db: Db, log: (mensagem: string) => void = () => {},
-  deps: Dependencias = { gerar: gerarArquivos, avaliar: () => avaliarCasos(carregarCasos()) }): Promise<Resultado> {
+  deps: Dependencias): Promise<Resultado> {
   const pasta = path.join(pastaCerebro(), 'auto'); const anterior = path.join(pastaCerebro(), 'auto.anterior');
   recuperarSeInterrompido(pasta, anterior);
   const novos = deps.gerar(db);

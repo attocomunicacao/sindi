@@ -1,6 +1,6 @@
 import { getJson } from '@/lib/dados/http';
 import { upsertDocument } from '@/lib/dados/db';
-import { LEGISLATIVE_KEYWORDS, type Collector } from '@/lib/dados/collectors/types';
+import { LEGISLATIVE_KEYWORDS, type Coletor } from '@/lib/dados/coletores/tipos';
 
 type Process = { id: number; identificacao: string; ementa: string; autoria?: string; situacaoAtual?: string; dataApresentacao?: string; dataSituacaoAtual?: string; tramitando?: string; tipoDocumento?: string };
 
@@ -9,7 +9,7 @@ export function processDocument(p: Process) {
     p.dataApresentacao ? `Apresentação: ${p.dataApresentacao}` : '', `Situação: ${p.situacaoAtual || 'não informada'}${p.dataSituacaoAtual ? ` (desde ${p.dataSituacaoAtual})` : ''}. Tramitando: ${p.tramitando || 'não informado'}.`].filter(Boolean).join('\n');
   return { content, movedAt: p.dataSituacaoAtual ? new Date(p.dataSituacaoAtual + 'T12:00:00Z').toISOString() : undefined };
 }
-export const senado: Collector = {
+export const senado: Coletor = {
   source: 'senado', label: 'Senado Federal',
   async run({ db }) {
     let fetched = 0; let changed = 0;

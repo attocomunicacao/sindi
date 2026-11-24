@@ -4,7 +4,7 @@
 // Cada pergunta usa o limite gratuito da API de IA: por padrão só as sugestões da tela inicial, com pausa entre elas; --treino inclui as perguntas de treinamento.
 // Exige o token SINDI_AQUECIMENTO_TOKEN do servidor (definido por publicar.ps1), para essas chamadas não entrarem nas métricas públicas de /uso.
 import { SUGESTOES } from '@/lib/sugestoes';
-import { carregarCasos } from '@/lib/cerebro/avaliar';
+import { carregarCasos } from '@/lib/cerebro/casos';
 
 const base = process.argv.find(a => a.startsWith('--base='))?.slice(7) ?? 'http://127.0.0.1:3100';
 const token = process.env.SINDI_AQUECIMENTO_TOKEN ?? '';

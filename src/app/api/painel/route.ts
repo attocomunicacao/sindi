@@ -1,4 +1,4 @@
-import { emptyPainel, readPainelEmCache } from '@/lib/dados/painel';
+import { painelVazio, lerPainelEmCache } from '@/lib/dados/painel';
 import { guardaDeLeitura } from '@/lib/http/guarda';
 
 export const runtime = 'nodejs';
@@ -8,6 +8,6 @@ export const dynamic = 'force-dynamic';
 export async function GET(request: Request) {
   const limite = guardaDeLeitura(request, 'painel', 300); if (limite) return limite;
   let body;
-  try { body = readPainelEmCache(); } catch { body = emptyPainel(); }
+  try { body = lerPainelEmCache(); } catch { body = painelVazio(); }
   return Response.json(body, { headers: { 'Cache-Control': 'no-store', 'X-Content-Type-Options': 'nosniff' } });
 }

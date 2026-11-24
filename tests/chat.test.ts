@@ -97,7 +97,7 @@ test('answers drop "[placeholder]" fields unless the user asked for a template, 
   assert.equal(limparResposta('1. 1. Qual sua experiência?\n2. 2. Qual sua disponibilidade?'), '1. Qual sua experiência?\n2. Qual sua disponibilidade?');
   assert.equal(limparResposta('1. Apresentação da empresa: [nome], [tempo de atuação], [registros].\n2. Escopo: funções e turnos.', false), '1. Apresentação da empresa.\n2. Escopo: funções e turnos.');
   assert.equal(limparResposta('Olá, [cliente].\nAtenciosamente,\n[nome]\n\nSINDI', true), 'Olá, [cliente].\nAtenciosamente,\n[nome]');
-  const { obrigacaoLegalDeContratacao } = await import('@/lib/knowledge/grounded');
+  const { obrigacaoLegalDeContratacao } = await import('@/lib/chat/escopo');
   for (const p of ['Minha empresa é obrigada a contratar aprendizes?', 'Posso pedir antecedentes criminais ao candidato?', 'Sou obrigado a cumprir cota de PcD?']) assert.equal(obrigacaoLegalDeContratacao(p), true, p);
   for (const p of ['Como atrair jovens aprendizes para vagas?', 'Como incluir pessoas com deficiência no processo seletivo?']) assert.equal(obrigacaoLegalDeContratacao(p), false, p);
 });

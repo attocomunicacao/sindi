@@ -3,7 +3,7 @@ import { CartaoDoItem, Filtro, FormBusca, data, endereco } from '@/components/bi
 import { numeroBR } from '@/lib/base/formato';
 import { ALAS, estantePorId, type Ala } from '@/lib/biblioteca/estantes';
 import { buscarNaBiblioteca, resumoDaBiblioteca } from '@/lib/biblioteca/consulta';
-import { knowledgeStatus } from '@/lib/knowledge/status';
+import { statusDoConhecimento } from '@/lib/recuperacao/legado/status';
 import { Pendente } from '@/components/pendente';
 
 export const metadata = { title: 'Biblioteca | SINDI', description: 'Acervo que a SINDI consulta: convenções, jurídico, normas, notícias, indicadores e o conhecimento escrito pela equipe.' };
@@ -28,7 +28,7 @@ export default async function BibliotecaPage({ searchParams }: { searchParams: P
 const Titulo = ({ children }: { children: React.ReactNode }) => <><span className="block h-1 w-10 rounded-full bg-amber-400" aria-hidden /><h1 className="mt-5 text-3xl font-semibold tracking-tight text-slate-900 sm:text-4xl">{children}</h1></>;
 
 async function Inicio() {
-  const resumo = resumoDaBiblioteca(); const status = await knowledgeStatus();
+  const resumo = resumoDaBiblioteca(); const status = await statusDoConhecimento();
   const alas = (Object.keys(ALAS) as Ala[]).map(ala => ({ ala, estantes: resumo.estantes.filter(e => e.estante.ala === ala) }));
   let ordem = 0;
   return <div className="mx-auto max-w-6xl gutter py-12 sm:py-16">

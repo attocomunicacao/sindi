@@ -2,7 +2,7 @@ import { load } from 'cheerio';
 import { deleteMissing, due, getState, setState, upsertDocument, type Db } from '@/lib/dados/db';
 import { getText, politeFetch } from '@/lib/dados/http';
 import { pdfToText, splitArticles } from '@/lib/dados/legal';
-import type { Collector } from '@/lib/dados/collectors/types';
+import type { Coletor } from '@/lib/dados/coletores/tipos';
 
 const WEEK = 7 * 24 * 60 * 60 * 1000;
 const MAX_PDF_BYTES = 40 * 1024 * 1024;
@@ -46,7 +46,7 @@ async function ingest(db: Db, regiment: Regiment, href: string, index: number, f
   setState(db, stateKey, `${response.headers.get('etag') ?? ''}|${response.headers.get('last-modified') ?? ''}`);
   return { fetched: 1, changed };
 }
-export const regimentos: Collector = {
+export const regimentos: Coletor = {
   source: 'regimentos', label: 'Regimentos (Câmara, Senado, Congresso)',
   async run({ db, full }) {
     let fetched = 0; let changed = 0; const pages = new Map<string, string>();

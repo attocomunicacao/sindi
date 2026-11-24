@@ -2,7 +2,7 @@ import { createHash } from 'node:crypto';
 import { mkdirSync, readFileSync, renameSync, statSync, writeFileSync } from 'node:fs';
 import path from 'node:path';
 import { dataDir } from '@/lib/dados/db';
-import { trechosDoCerebro, type Trecho } from '@/lib/cerebro/carregar';
+import { trechosDoCerebro, type TrechoDoCerebro } from '@/lib/cerebro/carregar';
 
 const NOME_DO_MODELO = process.env.GEMINI_EMBED_MODEL || 'gemini-embedding-001';
 /** Vetores de 768 dimensões (o modelo permite reduzir): índice menor e busca mais rápida. O nome no índice inclui o tamanho, então mudar qualquer um reindexa. */
@@ -12,13 +12,13 @@ export const arquivoDeVetores = () => path.join(dataDir(), 'cerebro-vetores.json
 type Indice = { modelo: string; vetores: Record<string, { hash: string; vetor: number[] }> };
 
 /** Identificador estável do trecho: arquivo + seção + início do texto; o hash do conteúdo detecta alterações. */
-export const idDoTrecho = (t: Trecho) => `${t.arquivo}#${t.secao}#${createHash('sha1').update(t.texto.slice(0, 80)).digest('hex').slice(0, 6)}`;
+export const idDoTrecho = (t: TrechoDoCerebro) => `${t.arquivo}#${t.secao}#${createHash('sha1').update(t.texto.slice(0, 80)).digest('hex').slice(0, 6)}`;
 /** O que vira vetor: o título da seção e o início do texto (o nome do arquivo e o fim de textos longos só diluem o significado). */
-export const textoParaVetor = (t: Trecho) => `${t.secao}\n${t.texto}`.slice(0, 700);
-export const hashDoTrecho = (t: Trecho) => createHash('sha256').update(textoParaVetor(t)).digest('hex').slice(0, 16);
+export const textoParaVetor = (t: TrechoDoCerebro) => `${t.secao}\n${t.texto}`.slice(0, 700);
+export const hashDoTrecho = (t: TrechoDoCerebro) => createHash('sha256').update(textoParaVetor(t)).digest('hex').slice(0, 16);
 /** Id e hash de um trecho, calculados uma vez (o trecho é imutável): a busca por significado os consulta para todos os trechos a cada pergunta. */
-const chaves = new WeakMap<Trecho, { id: string; hash: string }>();
-const chavesDe = (t: Trecho) => { let c = chaves.get(t); if (!c) { c = { id: idDoTrecho(t), hash: hashDoTrecho(t) }; chaves.set(t, c); } return c; };
+const chaves = new WeakMap<TrechoDoCerebro, { id: string; hash: string }>();
+const chavesDe = (t: TrechoDoCerebro) => { let c = chaves.get(t); if (!c) { c = { id: idDoTrecho(t), hash: hashDoTrecho(t) }; chaves.set(t, c); } return c; };
 
 /**
  * Vetores pela API do Gemini (nível gratuito). A tarefa informa ao modelo se o texto é um documento guardado ou uma pergunta. Na indexação (documento) um limite
@@ -64,7 +64,7 @@ function gravarIndice(indice: Indice) {
  * Calcula (de forma incremental) os vetores dos trechos do cérebro que ainda não têm vetor ou mudaram, e remove os de trechos que não existem mais.
  * Chamado após cada publicação do cérebro e por `npm run cerebro:indexar`.
  */
-export async function indexarCerebro(trechos: Trecho[] = trechosDoCerebro(), log: (m: string) => void = () => {}) {
+export async function indexarCerebro(trechos: TrechoDoCerebro[] = trechosDoCerebro(), log: (m: string) => void = () => {}) {
   const indice = lerIndice(); const vigentes = new Map(trechos.filter(t => t.semantica).map(t => [idDoTrecho(t), t]));
   for (const id of Object.keys(indice.vetores)) if (!vigentes.has(id)) delete indice.vetores[id];
   const pendentes = [...vigentes].filter(([id, t]) => indice.vetores[id]?.hash !== hashDoTrecho(t));
@@ -81,7 +81,7 @@ export async function indexarCerebro(trechos: Trecho[] = trechosDoCerebro(), log
   log(`Cérebro: ${pendentes.length} trecho(s) indexado(s) de ${vigentes.size}`);
   return { total: vigentes.size, novos: pendentes.length };
 }
-export type Semantico = { trecho: Trecho; similaridade: number };
+export type Semantico = { trecho: TrechoDoCerebro; similaridade: number };
 /**
  * Vetores de consultas já feitas (só em memória, até 500, por 6 h): a mesma pergunta frequente não gasta outra chamada de embeddings do limite gratuito.
  * A chave é um hash do texto normalizado — a pergunta em si não fica guardada. Não guarda falhas.
@@ -98,7 +98,7 @@ async function vetorDaConsulta(pergunta: string, tempoMs: number) {
 }
 export function esquecerVetoresDeConsulta() { vetores.clear(); }
 /** Trechos mais parecidos em significado com a pergunta. Sem índice ou sem resposta do provedor, devolve vazio (a busca por palavras continua valendo). */
-export async function buscarSemantico(pergunta: string, limite = 5, trechos: Trecho[] = trechosDoCerebro(), tempoMs = 2500): Promise<Semantico[]> {
+export async function buscarSemantico(pergunta: string, limite = 5, trechos: TrechoDoCerebro[] = trechosDoCerebro(), tempoMs = 2500): Promise<Semantico[]> {
   const indice = indiceEmMemoria(); if (!Object.keys(indice.vetores).length) return [];
   try {
     const consulta = await vetorDaConsulta(pergunta, tempoMs);

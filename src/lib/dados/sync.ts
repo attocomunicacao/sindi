@@ -1,21 +1,21 @@
 import { abandonarExecucoes, falhasSeguidas, finishRun, podarExecucoes, startRun, type Db } from '@/lib/dados/db';
 import { exportWorkbook } from '@/lib/dados/xlsx';
-import { bcb } from '@/lib/dados/collectors/bcb';
-import { camara } from '@/lib/dados/collectors/camara';
-import { ibge } from '@/lib/dados/collectors/ibge';
-import { senado } from '@/lib/dados/collectors/senado';
-import { sindeprestem } from '@/lib/dados/collectors/sindeprestem';
-import { tst } from '@/lib/dados/collectors/tst';
-import { wec } from '@/lib/dados/collectors/wec';
-import { caged } from '@/lib/dados/collectors/caged';
-import { constituicao } from '@/lib/dados/collectors/constituicao';
-import { mte } from '@/lib/dados/collectors/mte';
-import { regimentos } from '@/lib/dados/collectors/regimentos';
-import type { Collector } from '@/lib/dados/collectors/types';
+import { bcb } from '@/lib/dados/coletores/bcb';
+import { camara } from '@/lib/dados/coletores/camara';
+import { ibge } from '@/lib/dados/coletores/ibge';
+import { senado } from '@/lib/dados/coletores/senado';
+import { sindeprestem } from '@/lib/dados/coletores/sindeprestem';
+import { tst } from '@/lib/dados/coletores/tst';
+import { wec } from '@/lib/dados/coletores/wec';
+import { caged } from '@/lib/dados/coletores/caged';
+import { constituicao } from '@/lib/dados/coletores/constituicao';
+import { mte } from '@/lib/dados/coletores/mte';
+import { regimentos } from '@/lib/dados/coletores/regimentos';
+import type { Coletor } from '@/lib/dados/coletores/tipos';
 
-export const COLLECTORS: Collector[] = [sindeprestem, ibge, bcb, camara, senado, tst, wec, mte, caged, constituicao, regimentos];
+export const COLLECTORS: Coletor[] = [sindeprestem, ibge, bcb, camara, senado, tst, wec, mte, caged, constituicao, regimentos];
 
-export type SyncOptions = { only?: string[]; full?: boolean; log?: (message: string) => void; collectors?: Collector[]; timeoutMs?: number; concurrency?: number };
+export type SyncOptions = { only?: string[]; full?: boolean; log?: (message: string) => void; collectors?: Coletor[]; timeoutMs?: number; concurrency?: number };
 
 /** Tempo máximo de cada coletor (20 min; o do CAGED, que baixa um arquivo grande, é o maior). Um coletor travado não segura a planilha, o cérebro nem a próxima rodada. */
 const TEMPO_PADRAO_MS = 20 * 60 * 1000;

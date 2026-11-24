@@ -1,18 +1,21 @@
-import { casoJuridicoIndividual, contemDadosSensiveis, foraDoEscopo, lacunaConhecida, obrigacaoLegalDeContratacao, redigirDadosSensiveis, semFonteSemChute, sourceChoices, trechoDeContato, type Situacao } from '@/lib/knowledge/grounded';
-import { sufficientEvidence } from '@/lib/knowledge/core';
+import { casoJuridicoIndividual, foraDoEscopo, lacunaConhecida, obrigacaoLegalDeContratacao, semFonteSemChute } from '@/lib/chat/escopo';
+import { contemDadosSensiveis, redigirDadosSensiveis } from '@/lib/seguranca/redacao';
+import { escolherFontes, trechoDeContato } from '@/lib/recuperacao/fontes';
+import { type Situacao } from '@/lib/chat/notas';
+import { evidenciaSuficiente } from '@/lib/recuperacao/contexto';
 import type { Passagem } from '@/lib/base/tipos';
-import { retrieveKnowledge } from '@/lib/knowledge/retrieve';
+import { recuperarConhecimento } from '@/lib/recuperacao/recuperar';
 import { escolherConector, type Conector } from '@/lib/cerebro/conectores';
 import { MAXIMO_DE_FONTES, WRITING } from '@/lib/chat/prompt';
 
 // Decide, por regras, o que fazer com a pergunta: dados sensíveis, caso jurídico, saudação, fora do escopo ou busca de fontes. Nenhuma resposta é escrita aqui.
 
-type Conhecimento = Awaited<ReturnType<typeof retrieveKnowledge>>;
+type Conhecimento = Awaited<ReturnType<typeof recuperarConhecimento>>;
 async function referenceWithinBudget(question: string, language: string, conector: Conector | undefined): Promise<Pick<Conhecimento, 'passages' | 'semResposta' | 'lista' | 'relatorio'>> {
   let timer: ReturnType<typeof setTimeout> | undefined;
   try {
     return await Promise.race([
-      retrieveKnowledge(question, language, conector),
+      recuperarConhecimento(question, language, conector),
       new Promise<{ passages: Passagem[]; semResposta: undefined; lista: false; relatorio: false }>(resolve => { timer = setTimeout(() => resolve({ passages: [], semResposta: undefined, lista: false, relatorio: false }), 6500); }),
     ]);
   } finally { if (timer) clearTimeout(timer); }
@@ -43,9 +46,9 @@ export async function decidirSituacao({ mensagens, language }: { mensagens: { ro
     const knowledge = await referenceWithinBudget(consulta, language, conector);
     lista = knowledge.lista === true; relatorio = knowledge.relatorio === true;
     // A ordem de relevância vem da busca; aqui só se limpa o texto das fontes escolhidas.
-    const candidates = relatorio ? knowledge.passages : sourceChoices(knowledge.passages.slice(0, lista ? 8 : MAXIMO_DE_FONTES), consulta, 8);
+    const candidates = relatorio ? knowledge.passages : escolherFontes(knowledge.passages.slice(0, lista ? 8 : MAXIMO_DE_FONTES), consulta, 8);
     // Official pinned pages answer the question on their own; extra news excerpts only add noise.
-    choices = sufficientEvidence(candidates, consulta) ? (candidates.some(p => p.pinned) ? candidates.filter(p => p.pinned) : candidates) : [];
+    choices = evidenciaSuficiente(candidates, consulta) ? (candidates.some(p => p.pinned) ? candidates.filter(p => p.pinned) : candidates) : [];
     // NR, artigo ou cláusula pedidos que não constam dos textos coletados; fato que a base sabidamente não tem (CNPJ, salário de dirigentes); pergunta sem nenhuma fonte
     // (as áreas de orientação — comercial, RH, custos — podem responder com método geral, sem fato institucional).
     if (writing) choices = choices.filter(p => /orientação geral/i.test(p.title));

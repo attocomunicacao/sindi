@@ -7,9 +7,10 @@ import { PDFParse } from 'pdf-parse';
 import { Agent, setGlobalDispatcher } from 'undici';
 import { setDefaultResultOrder } from 'node:dns';
 import { SITE } from '@/lib/base/constantes';
-import { chunks, type KnowledgeDocument, type KnowledgeSnapshot } from '@/lib/knowledge/core';
-import { siteUrl, pdfUrl, extractHtml } from '@/lib/knowledge/extract';
-import { supabaseRequest } from '@/lib/knowledge/supabase';
+import type { DocumentoDoEspelho, EspelhoDoSite } from '@/lib/base/tipos';
+import { fatiarTexto } from '@/lib/recuperacao/legado/espelho';
+import { siteUrl, pdfUrl, extractHtml } from '@/lib/recuperacao/legado/extract';
+import { supabaseRequest } from '@/lib/recuperacao/legado/supabase';
 
 const directory = '.data/knowledge';
 const agent = 'SINDI-Knowledge/1.0';
@@ -131,7 +132,7 @@ async function textoDoPdf(data: Buffer) {
 }
 async function run() {
   const started = new Date().toISOString();
-  let previous: KnowledgeSnapshot = { updatedAt: '', documents: [] };
+  let previous: EspelhoDoSite = { updatedAt: '', documents: [] };
   try { previous = JSON.parse(await readFile(`${directory}/current.json`, 'utf8')); } catch { /* First collection. */ }
   const documents = new Map(previous.documents.map(d => [d.url, d]));
   await log(`Iniciando varredura; ${documents.size} documentos no espelho local`);
@@ -156,13 +157,13 @@ async function run() {
       checked: visited.size, documents: documents.size, changed, unchanged, skipped, uploaded, cloudErrors, cloudConfigured: cloud,
       incomplete: true, failures, externalLinks: [...external], intervalMinutes: 15 });
   }); await saving; }
-  async function upload(document: KnowledgeDocument) {
+  async function upload(document: DocumentoDoEspelho) {
     if (!cloud) return;
     // O dia da última verificação entra na assinatura: um documento sem mudança é reenviado no máximo uma vez por dia (e não a cada varredura de 15 minutos).
     const signature = `${process.env.SUPABASE_URL}:${document.hash}:${document.checkedAt.slice(0, 10)}:${document.status}`;
     if (cloudState[document.url] === signature) { uploaded++; return; }
     try {
-      await supabaseRequest('rpc/upsert_sindi_document', { document: { ...document, chunks: chunks(document.content) } }, true);
+      await supabaseRequest('rpc/upsert_sindi_document', { document: { ...document, chunks: fatiarTexto(document.content) } }, true);
       cloudState[document.url] = signature; uploaded++;
     } catch { cloudErrors++; failures.push({ url: document.url, reason: 'Supabase indisponível: espelho local preservado' }); }
   }
@@ -197,7 +198,7 @@ async function run() {
         if (extracted.content.length < 40) throw new Error(pdf ? 'PDF sem texto: precisa de OCR' : 'Página sem texto: precisa de revisão');
         if (extracted.content.length > 1500000) throw new Error('Texto excede limite operacional');
         const hash = createHash('sha256').update(extracted.title + '\n' + extracted.content).digest('hex');
-        const document: KnowledgeDocument = { url, ...extracted, hash, fetchedAt: old?.hash === hash ? old.fetchedAt : now,
+        const document: DocumentoDoEspelho = { url, ...extracted, hash, fetchedAt: old?.hash === hash ? old.fetchedAt : now,
           checkedAt: now, etag: r.headers.get('etag') || undefined, lastModified: r.headers.get('last-modified') || undefined, kind: pdf ? 'pdf' : 'html', status: 'active' };
         documents.set(url, document); if (old?.hash === hash) unchanged++; else changed++;
         for (const link of extracted.links) if (!scheduled.has(link)) { scheduled.add(link); queue.unshift([link, '']); }

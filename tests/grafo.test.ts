@@ -11,7 +11,7 @@ import { arquivoDoGrafo, documentosPeloGrafo, esquecerGrafo } from '@/lib/grafo/
 import { grafoDaArquitetura } from '@/lib/grafo/arquitetura';
 import { estantesDaOrquestra, montarOrquestra } from '@/lib/agentes/orquestrador';
 import { conectores } from '@/lib/cerebro/conectores';
-import { linksDoSite } from '@/lib/dados/collectors/sindeprestem';
+import { linksDoSite } from '@/lib/dados/coletores/sindeprestem';
 import { GET } from '@/app/api/cerebro/grafo/route';
 import { reiniciarLimitesNaMemoria } from '@/lib/infra/limite-por-minuto';
 

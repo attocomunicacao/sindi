@@ -1,28 +1,30 @@
 ---
 titulo: Fontes de dados que alimentam a SINDI
 fonte: https://www.sindeprestem.com.br
-atualizado: 2026-11-05
+atualizado: 2026-11-24
 tipo: autogerado
 prioridade: 1
 gatilhos: fontes, dados, indicadores, selic, ipca, desemprego, caged, ibge, tst, câmara, senado, constituição, regimento, ministério do trabalho, wec, painel, de onde vêm, atualização, coleta
 ---
 
-<!-- AUTOGERADO por src/lib/cerebro/gerar.ts em 2026-11-05. Não edite: as alterações serão perdidas. Para ajustar regras e respostas, edite os arquivos da pasta cerebro/. -->
+<!-- AUTOGERADO por src/lib/cerebro/gerar.ts em 2026-11-24. Não edite: as alterações serão perdidas. Para ajustar regras e respostas, edite os arquivos da pasta cerebro/. -->
 
 ## De onde vêm as informações
 A SINDI coleta dados públicos de fontes oficiais e os guarda neste computador, sem enviar conversas a terceiros. O [Painel](/painel) mostra indicadores e novidades; o chat usa os textos coletados e cita a fonte.
 
-- **SINDEPRESTEM** (4257 documentos; última coleta 05/11/2026): site oficial do sindicato (páginas, notícias, artigos, convenções, jurídico, cartilhas, contribuições e contato). Atualização: a cada 15 minutos (coleta de conhecimento) e 30 minutos (cópia para o painel).
-- **IBGE** (60 documentos; última coleta 05/11/2026): desocupação (PNAD Contínua), IPCA mensal e em 12 meses, volume de serviços (PMS) e notícias. Atualização: a cada 30 minutos; os indicadores são mensais.
+- **SINDEPRESTEM** (4264 documentos; última coleta 24/11/2026): site oficial do sindicato (páginas, notícias, artigos, convenções, jurídico, cartilhas, contribuições e contato). Atualização: a cada 15 minutos (coleta de conhecimento) e 30 minutos (cópia para o painel).
+- **IBGE** (1201 documentos; última coleta 24/11/2026): desocupação (PNAD Contínua), IPCA mensal e em 12 meses, volume de serviços (PMS) e notícias. Atualização: a cada 30 minutos; os indicadores são mensais.
 - **Banco Central**: meta da taxa Selic (data de início da vigência e meta anterior). Atualização: a cada 30 minutos.
-- **Câmara dos Deputados** (154 documentos; última coleta 05/11/2026): proposições sobre terceirização, trabalho temporário, jornada, 6x1, contribuição sindical e reforma trabalhista, com situação e último andamento (API de dados abertos). Atualização: a cada 30 minutos.
-- **Senado Federal** (125 documentos; última coleta 05/11/2026): matérias com os mesmos temas (API de dados abertos). Atualização: a cada 30 minutos.
-- **Tribunal Superior do Trabalho** (199 documentos; última coleta 05/11/2026): notícias e decisões divulgadas. Atualização: a cada 30 minutos (apenas páginas novas).
-- **World Employment Confederation** (479 documentos; última coleta 05/11/2026): notícias e publicações do setor de trabalho temporário (em inglês). Atualização: a cada 30 minutos (apenas páginas novas).
-- **Ministério do Trabalho e Emprego** (534 documentos; última coleta 05/11/2026): notícias e páginas de assuntos, incluindo as Normas Regulamentadoras (NR-1 a NR-38). Atualização: notícias a cada 30 minutos; assuntos revisados a cada 7 dias.
-- **Novo CAGED** (4 documentos; última coleta 05/11/2026): saldo mensal de empregos formais (Brasil, São Paulo, serviços administrativos e locação de mão de obra temporária). Atualização: verificação a cada hora; o dado é mensal.
-- **Constituição Federal** (413 documentos; última coleta 05/11/2026): texto compilado, um documento por artigo, mais o ADCT. Atualização: diária.
-- **Regimentos** (938 documentos; última coleta 05/11/2026): Regimento Interno da Câmara, do Senado e Regimento Comum do Congresso, um documento por artigo. Atualização: semanal.
+- **Câmara dos Deputados** (251 documentos; última coleta 24/11/2026): proposições sobre terceirização, trabalho temporário, jornada, 6x1, contribuição sindical e reforma trabalhista, com situação e último andamento (API de dados abertos). Atualização: a cada 30 minutos.
+- **Senado Federal** (127 documentos; última coleta 24/11/2026): matérias com os mesmos temas (API de dados abertos). Atualização: a cada 30 minutos.
+- **Tribunal Superior do Trabalho** (20 documentos; última coleta 24/11/2026): notícias e decisões divulgadas. Atualização: a cada 30 minutos (apenas páginas novas).
+- **World Employment Confederation** (424 documentos; última coleta 24/11/2026): notícias e publicações do setor de trabalho temporário (em inglês). Atualização: a cada 30 minutos (apenas páginas novas).
+- **Ministério do Trabalho e Emprego** (176 documentos; última coleta 24/11/2026): notícias e páginas de assuntos, incluindo as Normas Regulamentadoras (NR-1 a NR-38). Atualização: notícias a cada 30 minutos; assuntos revisados a cada 7 dias.
+- **Novo CAGED** (24 documentos; última coleta 24/11/2026): saldo mensal de empregos formais (Brasil, São Paulo, serviços administrativos e locação de mão de obra temporária). Atualização: verificação a cada hora; o dado é mensal.
+- **Constituição Federal** (394 documentos; última coleta 24/11/2026): texto compilado, um documento por artigo, mais o ADCT. Atualização: diária.
+- **Legislação (Planalto)** (884 documentos; última coleta 24/11/2026): Lei 6.019/1974 (trabalho temporário), Leis 13.429/2017 e 13.467/2017, CLT e Emenda Constitucional 141/2026, um documento por artigo, mais a ementa de cada norma. Atualização: diária.
+- **Normas Regulamentadoras (MTE)** (606 documentos; última coleta 24/11/2026): texto oficial das NRs vigentes do Ministério do Trabalho e Emprego (NR-1, NR-6, NR-7, NR-9, NR-17, NR-35, NR-38 e demais, exceto as revogadas), um documento por seção ou anexo, extraído do PDF atual de cada norma. Atualização: diária.
+- **Regimentos** (938 documentos; última coleta 24/11/2026): Regimento Interno da Câmara, do Senado e Regimento Comum do Congresso, um documento por artigo. Atualização: semanal.
 
 ## Limites
 - Os indicadores mensais (IPCA, PNAD, CAGED) só mudam quando o órgão divulga um novo mês.

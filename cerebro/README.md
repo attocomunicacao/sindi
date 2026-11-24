@@ -23,12 +23,12 @@ pergunta
   3. fontes:  orçamento · relatório (indicadores, publicações, projetos) · documento citado (NR, artigo, cláusula, indicador)
               · conhecimento (busca por palavras + significado)                  → cerebro/conhecimento/ e cerebro/auto/
               · biblioteca, nas estantes do conector (notícias, artigos, cartilhas, projetos)   → /base
-  4. modelo:  regras + exemplos (iguais sempre, lidos do cache) + orientação do conector + até 2 fontes + pergunta
+  4. modelo:  regras + exemplos (iguais sempre) + orientação do conector + até 2 fontes + pergunta
   5. verificação: e-mail, site, telefone, valor, número e lei da resposta precisam estar nas fontes; senão o modelo reescreve
   6. resposta + referências (links das fontes usadas)
 ```
 
-Detalhes do desenho, das medições e do modelo em `docs/ia/21-fluxo-e-modelo-reduzido.md`. O mapa das áreas e das perguntas de treinamento está em
+Detalhes do desenho, das medições e do modelo em `docs/historico/21-fluxo-e-modelo-reduzido.md` (histórico) e `docs/desenvolvimento/guia-do-desenvolvedor.md`. O mapa das áreas e das perguntas de treinamento está em
 `docs/ia/22-conectores-e-treinamento.md`.
 
 ## O que editar para quê
@@ -39,7 +39,7 @@ Detalhes do desenho, das medições e do modelo em `docs/ia/21-fluxo-e-modelo-re
 | Dar uma resposta de referência a uma pergunta | `conhecimento/faq.md` ou o arquivo do tema: `## Pergunta?`, linha `Variações: forma 2 \| forma 3`, resposta | `npm run cerebro:indexar` |
 | Mudar como uma área responde (tom, formato, tamanho) | `conectores/NN-area.md`, seção `## Como responder` e a chave `palavras:` | nada (relê sozinha) |
 | Fazer uma pergunta cair na área certa | `gatilhos:` do conector | nada |
-| Mudar a regra geral de comportamento | `instrucoes/identidade-e-regras.md` | `npm run modelo:criar` (só para o uso direto no Ollama) |
+| Mudar a regra geral de comportamento | `instrucoes/identidade-e-regras.md` | reiniciar o servidor |
 | Conferir se melhorou | — | `npm run avaliar:treino` e `npm run cerebro:avaliar` |
 
 ## Formato dos arquivos de conhecimento
@@ -94,7 +94,6 @@ npm run cerebro:gerar     # recria cerebro/auto/*.md a partir dos dados
 npm run cerebro:indexar   # recalcula os vetores da busca por significado
 npm run cerebro:avaliar   # perguntas de ouro (evidência)
 npm run avaliar:treino    # perguntas de treinamento (resposta final e tempo)
-npm run modelo:medir      # velocidade de leitura e escrita do modelo neste computador
 ```
 
 ## O que é "treinar" aqui, e o que não é

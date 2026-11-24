@@ -25,7 +25,7 @@
 ## Opção de voz — 10/10/2026
 
 - [x] Microfone restrito ao próprio site, ativação opcional com aviso de processamento pelo navegador; câmera desabilitada.
-- [x] Sem gravações recebidas/persistidas pela SINDI; métricas continuam agregadas.
+- [x] Sem gravações recebidas/persistidas pela SINDI no servidor; o histórico de conversas, se ligado, fica só no navegador (redigido antes de salvar); métricas continuam agregadas.
 - [x] Texto de referência removido da leitura, captura pausada durante resposta e cancelamento ao ocultar a página.
 - [x] Vinte testes, lint/typecheck/build; Gitleaks e Semgrep sem achados na revisão de voz; audit de produção sem vulnerabilidades.
 - [x] ZAP no teste local sem High/Medium/Low; limites de cobertura documentados.

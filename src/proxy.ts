@@ -9,8 +9,12 @@ export function proxy(request: NextRequest) {
     // Sem style-src-attr: atributos style="" no HTML são bloqueados. Estilos do site vêm do CSS; gráficos usam atributos SVG.
     `style-src 'self' 'nonce-${nonce}'`,
     `connect-src 'self'${development ? ' ws: wss:' : ''}`,
-    "img-src 'self' data: blob:", "font-src 'self'", "object-src 'none'",
-    "base-uri 'self'", "form-action 'self'", "frame-ancestors 'none'",
+    "img-src 'self' data: blob:",
+    "font-src 'self'",
+    "object-src 'none'",
+    "base-uri 'self'",
+    "form-action 'self'",
+    "frame-ancestors 'none'",
   ].join('; ');
   const headers = new Headers(request.headers);
   headers.set('x-nonce', nonce);

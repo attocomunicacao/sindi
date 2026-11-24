@@ -1,9 +1,9 @@
 // Compara a busca por palavras, por significado e híbrida nas perguntas parafraseadas. Uso: npm run cerebro:comparar [-- --limiar=0.55] [-- --arquivo=parafrases-reserva.md]
 import { readFileSync } from 'node:fs';
-import { buscarHibrido, buscarNoCerebro } from '../../src/lib/cerebro/buscar';
-import { buscarSemantico } from '../../src/lib/cerebro/embeddings';
-import { arquivoDeCasos } from '../../src/lib/cerebro/avaliar';
-import { trechosDoCerebro } from '../../src/lib/cerebro/carregar';
+import { buscarHibrido, buscarNoCerebro } from '@/lib/cerebro/buscar';
+import { buscarSemantico } from '@/lib/cerebro/embeddings';
+import { arquivoDeCasos } from '@/lib/cerebro/casos';
+import { trechosDoCerebro } from '@/lib/cerebro/carregar';
 
 const norm = (t: string) => t.normalize('NFD').replace(/\p{Diacritic}/gu, '').replace(/\s+/g, ' ').toLowerCase();
 const limiar = Number(process.argv.find(a => a.startsWith('--limiar='))?.slice(9) || 0.55);

@@ -1,26 +1,38 @@
-import { allowedChatOrigin } from '@/lib/origin';
-import { orcamentoSchema, type OrcamentoRequisicao } from './schema';
+import { erroJson, guardaDeEscrita } from '@/lib/http/guarda';
+import { calcularOrcamento } from '@/lib/orcamento/calculo';
+import { ErroTributario } from '@/lib/tributos/decimal';
+import { orcamentoSchema, type OrcamentoRequisicao } from '@/lib/orcamento/esquema';
 
 const LIMITE_BYTES = 64 * 1024;
-export const erro = (mensagem: string, status: number) => Response.json({ error: mensagem }, { status, headers: { 'Cache-Control': 'no-store' } });
+export const erro = erroJson;
 
-/** Mesmas proteções do chat: origem, tipo de conteúdo, tamanho máximo e validação do corpo. Nada é registrado nem gravado. */
-export async function lerRequisicao(request: Request): Promise<{ corpo: OrcamentoRequisicao } | { resposta: Response }> {
-  const host = request.headers.get('host') || new URL(request.url).host;
-  if (!allowedChatOrigin(request.headers.get('origin'), host, process.env.SINDI_PUBLIC_ORIGIN, Boolean(process.env.VERCEL))) return { resposta: erro('Origem não permitida.', 403) };
-  if (!request.headers.get('content-type')?.includes('application/json')) return { resposta: erro('Formato inválido.', 415) };
-  let json: unknown;
+/** Calcula o orçamento; um valor que a regra tributária recusa vira resposta 400 com a mensagem dela, e qualquer outra falha segue como erro. */
+export function calcularOuErro(
+  entrada: Parameters<typeof calcularOrcamento>[0],
+): { resultado: ReturnType<typeof calcularOrcamento> } | { resposta: Response } {
   try {
-    const leitor = request.body?.getReader(); if (!leitor) return { resposta: erro('Requisição inválida.', 400) };
-    let tamanho = 0; const partes: Uint8Array[] = [];
-    while (true) {
-      const { value, done } = await leitor.read(); if (done) break;
-      tamanho += value.length; if (tamanho > LIMITE_BYTES) { await leitor.cancel(); return { resposta: erro('Requisição grande demais.', 413) }; }
-      partes.push(value);
-    }
-    json = JSON.parse(Buffer.concat(partes).toString('utf8'));
-  } catch { return { resposta: erro('Requisição inválida.', 400) }; }
-  const resultado = orcamentoSchema.safeParse(json);
-  if (!resultado.success) return { resposta: erro('Revise os dados do orçamento: ' + (resultado.error.issues[0]?.message ?? 'valor inválido') + '.', 400) };
+    return { resultado: calcularOrcamento(entrada) };
+  } catch (causa) {
+    // RangeError é a recusa da conta (taxas informadas somando 100% ou mais); a mensagem é fixa e segura.
+    if (causa instanceof ErroTributario || causa instanceof RangeError) return { resposta: erro(causa.message, 400) };
+    throw causa;
+  }
+}
+
+/** Proteções comuns das rotas (origem, tipo, limite por minuto, tamanho do corpo) e a validação do orçamento. Nada é registrado nem gravado. */
+export async function lerRequisicao(
+  request: Request,
+  rota: { nome: string; limitePorMinuto: number },
+): Promise<{ corpo: OrcamentoRequisicao } | { resposta: Response }> {
+  const lida = await guardaDeEscrita(request, { ...rota, limiteBytes: LIMITE_BYTES });
+  if ('resposta' in lida) return lida;
+  const resultado = orcamentoSchema.safeParse(lida.json);
+  if (!resultado.success)
+    return {
+      resposta: erro(
+        'Revise os dados do orçamento: ' + (resultado.error.issues[0]?.message ?? 'valor inválido') + '.',
+        400,
+      ),
+    };
   return { corpo: resultado.data };
 }

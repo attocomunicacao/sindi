@@ -28,7 +28,7 @@ Variações: Como repassar o reajuste da convenção ao contrato? | A data-base 
 (orientação geral) Verifique na convenção vigente o novo piso, o percentual de reajuste e os benefícios alterados; recalcule salário, adicionais, encargos e benefícios; e confira no contrato com o cliente a cláusula de reajuste ou repactuação. O texto e a data-base de cada convenção estão em Documentos coletivos, no site do SINDEPRESTEM. A aplicação a um contrato específico deve ser confirmada com o Setor Jurídico.
 
 ## A SINDI faz cálculo tributário ou simulação financeira?
-Não. Nesta versão a SINDI oferece orientações, checklists e a estimativa de custo dos postos. Cálculo tributário personalizado, simulação financeira e análise de viabilidade de um contrato dependem de dados da empresa e de validação por profissional habilitado.
+Calculadoras, sim; consultoria, não. O site tem a calculadora de tributos (CBS e IBS do regime regular, DAS do Simples Nacional e CBS e IBS no Simples) e o orçamento de terceirização, que pode ser calculado com as regras atuais, com a Reforma Tributária ou com o Simples Nacional. São estimativas: as alíquotas da reforma são estimadas e devem ser conferidas com a LC 214/2025. Planejamento tributário personalizado, análise de viabilidade de um contrato e a decisão sobre o regime dependem de dados da empresa e de validação por profissional habilitado.
 
 ## Como o adicional noturno entra no preço do posto?
 Variações: Como o adicional noturno afeta o preço de um posto? | Quanto o turno da noite encarece o posto?
@@ -36,4 +36,4 @@ Na ferramenta de orçamento da SINDI, o turno noturno inclui o adicional noturno
 
 ## O que é BDI no preço do posto?
 Variações: O que é BDI e como ele entra no preço do posto? | O que significa BDI?
-BDI é a parcela do preço que cobre as despesas indiretas da empresa (administração e estrutura que não estão ligadas a um posto específico). Na ferramenta de orçamento da SINDI, o BDI é de 3%, além de um lucro de 3%. É uma estimativa: cada empresa deve calcular o seu.
+BDI é a parcela do preço que cobre as despesas indiretas da empresa (administração e estrutura que não estão ligadas a um posto específico). Na ferramenta de orçamento da SINDI, o custo é calculado; BDI, lucro e tributos são informados por quem usa (em branco, valem zero), e a SINDI não sugere percentuais. Cada empresa deve calcular o seu.

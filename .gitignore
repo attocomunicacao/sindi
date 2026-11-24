@@ -5,6 +5,8 @@ node_modules/
 .vercel/
 *.tsbuildinfo
 test-results/
+playwright-report/
+blob-report/
 .data/
 .tools/
 .env.knowledge.local
@@ -12,4 +14,6 @@ test-results/
 env.download
 env.knowledge
 env.knowledge.download
-gitignore
+cerebro/auto.anterior/
+supabase/.temp/
+.playwright-mcp/

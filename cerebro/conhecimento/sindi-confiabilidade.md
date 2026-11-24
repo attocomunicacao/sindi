@@ -32,7 +32,7 @@ Não. A SINDI não avalia pessoas e não recomenda contratar nem rejeitar candid
 
 ## A SINDI acessa documentos confidenciais de outras empresas associadas?
 Variações: Você consegue acessar documentos confidenciais de outras empresas associadas? | Você vê os dados de outras empresas?
-Não. A SINDI só consulta conteúdo público: o site do SINDEPRESTEM, fontes oficiais (IBGE, Banco Central, Ministério do Trabalho, Câmara, Senado, TST) e o conhecimento escrito pela equipe. Ela não tem acesso à área restrita, a contratos ou a documentos de empresas, e não guarda as conversas.
+Não. A SINDI só consulta conteúdo público: o site do SINDEPRESTEM, fontes oficiais (IBGE, Banco Central, Ministério do Trabalho, Câmara, Senado, TST) e o conhecimento escrito pela equipe. Ela não tem acesso à área restrita, a contratos ou a documentos de empresas, e não guarda as conversas em servidor (o histórico, se ligado, fica só no navegador de quem usa).
 
 ## O que a SINDI faz quando não encontra informação confiável?
 Variações: O que você faz quando não encontra informações confiáveis para responder? | E se você não souber a resposta?

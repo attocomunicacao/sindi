@@ -1,13 +1,13 @@
 ---
 titulo: Documentos jurídicos publicados pelo SINDEPRESTEM
 fonte: https://www.sindeprestem.com.br/juridico
-atualizado: 2026-11-05
+atualizado: 2026-11-24
 tipo: autogerado
 prioridade: 2
 gatilhos: jurídico, legislação, lei, decreto, portaria, medida provisória, processos judiciais, 6.019, trabalho temporário, feriados, comércio
 ---
 
-<!-- AUTOGERADO por src/lib/cerebro/gerar.ts em 2026-11-05. Não edite: as alterações serão perdidas. Para ajustar regras e respostas, edite os arquivos da pasta cerebro/. -->
+<!-- AUTOGERADO por src/lib/cerebro/gerar.ts em 2026-11-24. Não edite: as alterações serão perdidas. Para ajustar regras e respostas, edite os arquivos da pasta cerebro/. -->
 
 ## O que a página Jurídico oferece
 A página [Jurídico](https://www.sindeprestem.com.br/juridico) dá "acesso às legislações, processos judiciais e documentos oficiais do setor", organizados em Leis Ordinárias, Portarias, Decretos e Processos Judiciais. Há 46 documentos em PDF. A SINDI lista e cita esses documentos; ela não faz parecer jurídico.

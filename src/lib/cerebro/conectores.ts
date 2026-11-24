@@ -1,7 +1,7 @@
 import { readdirSync, readFileSync, statSync } from 'node:fs';
 import path from 'node:path';
-import { normalize } from '../knowledge/core';
-import { lerCabecalho, pastaCerebro } from './carregar';
+import { normalizar } from '@/lib/base/texto';
+import { lerCabecalho, pastaCerebro } from '@/lib/cerebro/carregar';
 
 /**
  * Conector: um arquivo de `cerebro/conectores/` que liga um tipo de pergunta às estantes da biblioteca onde está a resposta e à instrução curta de como responder.
@@ -32,8 +32,8 @@ export function lerConector(arquivo: string, markdown: string): Conector | undef
   const instrucao = corpo.match(/^## Como responder\n([\s\S]*?)(?=^## |(?![\s\S]))/m)?.[1].replace(/<!--[\s\S]*?-->/g, '').replace(/\n{2,}/g, '\n').trim().slice(0, LIMITE_DA_INSTRUCAO) ?? '';
   if (!cabecalho.gatilhos.length || !instrucao) return undefined;
   const modo = chave(frente, 'modo'); const palavras = Number(chave(frente, 'palavras'));
-  return { id: path.basename(arquivo, '.md').replace(/^\d+-/, ''), titulo: cabecalho.titulo ?? arquivo, gatilhos: cabecalho.gatilhos.map(normalize), estantes: lista(chave(frente, 'estantes')),
-    instrucao, modo: modo === 'orientacao' ? modo : 'fontes', relatorio: lista(chave(frente, 'relatorio')).map(normalize), palavras: Number.isFinite(palavras) && palavras >= 30 ? Math.min(palavras, 220) : 70 };
+  return { id: path.basename(arquivo, '.md').replace(/^\d+-/, ''), titulo: cabecalho.titulo ?? arquivo, gatilhos: cabecalho.gatilhos.map(normalizar), estantes: lista(chave(frente, 'estantes')),
+    instrucao, modo: modo === 'orientacao' ? modo : 'fontes', relatorio: lista(chave(frente, 'relatorio')).map(normalizar), palavras: Number.isFinite(palavras) && palavras >= 30 ? Math.min(palavras, 220) : 70 };
 }
 
 let cache: { chave: string; conectores: Conector[]; verificadoEm: number } | undefined;
@@ -56,22 +56,27 @@ function casa(pergunta: string, palavras: Set<string>, gatilho: string) {
   if (gatilho.endsWith('*')) { const prefixo = gatilho.slice(0, -1); return [...palavras].some(p => p.startsWith(prefixo)); }
   return gatilho.includes(' ') || gatilho.includes('-') ? pergunta.includes(gatilho) : palavras.has(gatilho);
 }
+/** Placar de todos os conectores para um texto (só os que casam, do maior para o menor; empate fica na ordem dos arquivos). */
+export function pontuarConectores(texto: string, todos: Conector[] = conectores()) {
+  const q = normalizar(texto); const palavras = new Set(q.match(/[a-z0-9]+/g) ?? []);
+  return todos.map(conector => ({ conector, pontos: conector.gatilhos.reduce((soma, g) => soma + (casa(q, palavras, g) ? (g.includes(' ') ? 2 : 1) : 0), 0) })).filter(r => r.pontos > 0).sort((a, b) => b.pontos - a.pontos);
+}
 /**
  * Área da pergunta: o conector com mais gatilhos presentes (expressões valem o dobro de palavras soltas). Sem nenhum gatilho, devolve `undefined`
  * e a SINDI segue só com as regras gerais. `anteriores` são as perguntas anteriores do usuário, usadas quando a atual é uma continuação curta.
  */
 export function escolherConector(pergunta: string, anteriores: string[] = [], todos: Conector[] = conectores()): Conector | undefined {
-  const pontuar = (texto: string) => {
-    const q = normalize(texto); const palavras = new Set(q.match(/[a-z0-9]+/g) ?? []);
-    return todos.map(conector => ({ conector, pontos: conector.gatilhos.reduce((soma, g) => soma + (casa(q, palavras, g) ? (g.includes(' ') ? 2 : 1) : 0), 0) })).filter(r => r.pontos > 0).sort((a, b) => b.pontos - a.pontos);
-  };
+  const pontuar = (texto: string) => pontuarConectores(texto, todos);
   const atual = pontuar(pergunta);
   if (atual.length) return atual[0].conector;
   // Continuação ("e para empresa filiada?"): herda a área da pergunta anterior.
-  return normalize(pergunta).trim().split(/\s+/).length <= 8 && anteriores.length ? pontuar(anteriores.at(-1)!)[0]?.conector : undefined;
+  // Procura da mais recente para a mais antiga: se a anterior também foi uma continuação, a área vem da que a definiu.
+  if (normalizar(pergunta).trim().split(/\s+/).length > 8) return undefined;
+  for (const anterior of [...anteriores].reverse()) { const area = pontuar(anterior)[0]?.conector; if (area) return area; }
+  return undefined;
 }
 /** A pergunta pede um relatório ou panorama da área deste conector? */
 export function pedeRelatorio(conector: Conector | undefined, pergunta: string): boolean {
-  const q = normalize(pergunta);
+  const q = normalizar(pergunta);
   return Boolean(conector?.relatorio.some(expressao => q.includes(expressao)));
 }

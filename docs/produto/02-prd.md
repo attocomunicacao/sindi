@@ -9,8 +9,8 @@ Atualização aprovada: sem cotas de mensagens impostas pela SINDI; gráfico pú
 - Chat responsivo em uma página; envio por botão ou Enter, Shift+Enter para quebra de linha.
 - Tom profissional (padrão), acolhedor ou técnico.
 - Resposta em português (padrão) ou inglês. Preservar termos técnicos e explicar quando necessário.
-- Conversa somente em memória da aba; recarregar ou Nova conversa elimina o histórico.
-- Usar no máximo as últimas 6 trocas (12 mensagens) como contexto; informar essa janela na interface.
+- O servidor não guarda conversa. Na tela, a conversa vive na memória da aba; o histórico de conversas anteriores é opcional e fica só no navegador (IndexedDB), com pausa, apagar tudo, exportar e importar.
+- Contexto: o navegador envia as últimas 7 mensagens (3 trocas e a pergunta atual); ao modelo vão as 2 últimas trocas encurtadas por frase; a interface informa a janela ("a SINDI considera as últimas 3 trocas").
 - Entrada de até 1.500 caracteres; resposta limitada a aproximadamente 500 tokens, ajustável após testes.
 - Estados de carregamento, erro, limite atingido e serviço indisponível; impedir envios simultâneos.
 - Proposta inicial: até 10 envios por visitante/dia e 3 por minuto. Valores dependem da cota real da conta e do volume esperado. A cota do provedor é compartilhada por todo o projeto.

@@ -1,0 +1,1701 @@
+{
+  "origem": "calculadora-rtc-simples-nacional (Receita Federal, MIT)",
+  "versaoDoServico": "1.0.2",
+  "geradoEm": "2026-11-24T15:04:46.846Z",
+  "casos": [
+    {
+      "receita": 50000,
+      "anexo": "III",
+      "comRedistribuicao": {
+        "cbs": 2.3874,
+        "ibs": 0.0263
+      },
+      "semRedistribuicao": {
+        "cbs": 2.5,
+        "ibs": 0.03
+      },
+      "retido": false,
+      "semIss": false,
+      "isencao": false,
+      "situacao": "padrão",
+      "par": "com-redistribuicao",
+      "oficial": {
+        "estado": "CALCULADO",
+        "vCBS": "1195.00",
+        "vIBS": "15.00"
+      }
+    },
+    {
+      "receita": 12345.67,
+      "anexo": "III",
+      "comRedistribuicao": {
+        "cbs": 2.3874,
+        "ibs": 0.0263
+      },
+      "semRedistribuicao": {
+        "cbs": 2.5,
+        "ibs": 0.03
+      },
+      "retido": false,
+      "semIss": false,
+      "isencao": false,
+      "situacao": "padrão",
+      "par": "com-redistribuicao",
+      "oficial": {
+        "estado": "CALCULADO",
+        "vCBS": "295.06",
+        "vIBS": "3.70"
+      }
+    },
+    {
+      "receita": 0.01,
+      "anexo": "III",
+      "comRedistribuicao": {
+        "cbs": 2.3874,
+        "ibs": 0.0263
+      },
+      "semRedistribuicao": {
+        "cbs": 2.5,
+        "ibs": 0.03
+      },
+      "retido": false,
+      "semIss": false,
+      "isencao": false,
+      "situacao": "padrão",
+      "par": "com-redistribuicao",
+      "oficial": {
+        "estado": "CALCULADO",
+        "vCBS": "0.00",
+        "vIBS": "0.00"
+      }
+    },
+    {
+      "receita": 999999.99,
+      "anexo": "III",
+      "comRedistribuicao": {
+        "cbs": 2.3874,
+        "ibs": 0.0263
+      },
+      "semRedistribuicao": {
+        "cbs": 2.5,
+        "ibs": 0.03
+      },
+      "retido": false,
+      "semIss": false,
+      "isencao": false,
+      "situacao": "padrão",
+      "par": "com-redistribuicao",
+      "oficial": {
+        "estado": "CALCULADO",
+        "vCBS": "23900.00",
+        "vIBS": "300.00"
+      }
+    },
+    {
+      "receita": 33.33,
+      "anexo": "III",
+      "comRedistribuicao": {
+        "cbs": 2.3874,
+        "ibs": 0.0263
+      },
+      "semRedistribuicao": {
+        "cbs": 2.5,
+        "ibs": 0.03
+      },
+      "retido": false,
+      "semIss": false,
+      "isencao": false,
+      "situacao": "padrão",
+      "par": "com-redistribuicao",
+      "oficial": {
+        "estado": "CALCULADO",
+        "vCBS": "0.80",
+        "vIBS": "0.01"
+      }
+    },
+    {
+      "receita": 250.5,
+      "anexo": "III",
+      "comRedistribuicao": {
+        "cbs": 2.3874,
+        "ibs": 0.0263
+      },
+      "semRedistribuicao": {
+        "cbs": 2.5,
+        "ibs": 0.03
+      },
+      "retido": false,
+      "semIss": false,
+      "isencao": false,
+      "situacao": "padrão",
+      "par": "com-redistribuicao",
+      "oficial": {
+        "estado": "CALCULADO",
+        "vCBS": "5.99",
+        "vIBS": "0.08"
+      }
+    },
+    {
+      "receita": 1234567.89,
+      "anexo": "III",
+      "comRedistribuicao": {
+        "cbs": 2.3874,
+        "ibs": 0.0263
+      },
+      "semRedistribuicao": {
+        "cbs": 2.5,
+        "ibs": 0.03
+      },
+      "retido": false,
+      "semIss": false,
+      "isencao": false,
+      "situacao": "padrão",
+      "par": "com-redistribuicao",
+      "oficial": {
+        "estado": "CALCULADO",
+        "vCBS": "29506.17",
+        "vIBS": "370.37"
+      }
+    },
+    {
+      "receita": 50000,
+      "anexo": "III",
+      "comRedistribuicao": {
+        "cbs": 2.3874,
+        "ibs": 0.0263
+      },
+      "semRedistribuicao": {
+        "cbs": 2.5,
+        "ibs": 0.03
+      },
+      "retido": true,
+      "semIss": false,
+      "isencao": false,
+      "situacao": "ISS retido",
+      "par": "sem-redistribuicao",
+      "oficial": {
+        "estado": "CALCULADO",
+        "vCBS": "1250.00",
+        "vIBS": "15.00"
+      }
+    },
+    {
+      "receita": 12345.67,
+      "anexo": "III",
+      "comRedistribuicao": {
+        "cbs": 2.3874,
+        "ibs": 0.0263
+      },
+      "semRedistribuicao": {
+        "cbs": 2.5,
+        "ibs": 0.03
+      },
+      "retido": true,
+      "semIss": false,
+      "isencao": false,
+      "situacao": "ISS retido",
+      "par": "sem-redistribuicao",
+      "oficial": {
+        "estado": "CALCULADO",
+        "vCBS": "308.64",
+        "vIBS": "3.70"
+      }
+    },
+    {
+      "receita": 0.01,
+      "anexo": "III",
+      "comRedistribuicao": {
+        "cbs": 2.3874,
+        "ibs": 0.0263
+      },
+      "semRedistribuicao": {
+        "cbs": 2.5,
+        "ibs": 0.03
+      },
+      "retido": true,
+      "semIss": false,
+      "isencao": false,
+      "situacao": "ISS retido",
+      "par": "sem-redistribuicao",
+      "oficial": {
+        "estado": "CALCULADO",
+        "vCBS": "0.00",
+        "vIBS": "0.00"
+      }
+    },
+    {
+      "receita": 999999.99,
+      "anexo": "III",
+      "comRedistribuicao": {
+        "cbs": 2.3874,
+        "ibs": 0.0263
+      },
+      "semRedistribuicao": {
+        "cbs": 2.5,
+        "ibs": 0.03
+      },
+      "retido": true,
+      "semIss": false,
+      "isencao": false,
+      "situacao": "ISS retido",
+      "par": "sem-redistribuicao",
+      "oficial": {
+        "estado": "CALCULADO",
+        "vCBS": "25000.00",
+        "vIBS": "300.00"
+      }
+    },
+    {
+      "receita": 33.33,
+      "anexo": "III",
+      "comRedistribuicao": {
+        "cbs": 2.3874,
+        "ibs": 0.0263
+      },
+      "semRedistribuicao": {
+        "cbs": 2.5,
+        "ibs": 0.03
+      },
+      "retido": true,
+      "semIss": false,
+      "isencao": false,
+      "situacao": "ISS retido",
+      "par": "sem-redistribuicao",
+      "oficial": {
+        "estado": "CALCULADO",
+        "vCBS": "0.83",
+        "vIBS": "0.01"
+      }
+    },
+    {
+      "receita": 250.5,
+      "anexo": "III",
+      "comRedistribuicao": {
+        "cbs": 2.3874,
+        "ibs": 0.0263
+      },
+      "semRedistribuicao": {
+        "cbs": 2.5,
+        "ibs": 0.03
+      },
+      "retido": true,
+      "semIss": false,
+      "isencao": false,
+      "situacao": "ISS retido",
+      "par": "sem-redistribuicao",
+      "oficial": {
+        "estado": "CALCULADO",
+        "vCBS": "6.26",
+        "vIBS": "0.08"
+      }
+    },
+    {
+      "receita": 1234567.89,
+      "anexo": "III",
+      "comRedistribuicao": {
+        "cbs": 2.3874,
+        "ibs": 0.0263
+      },
+      "semRedistribuicao": {
+        "cbs": 2.5,
+        "ibs": 0.03
+      },
+      "retido": true,
+      "semIss": false,
+      "isencao": false,
+      "situacao": "ISS retido",
+      "par": "sem-redistribuicao",
+      "oficial": {
+        "estado": "CALCULADO",
+        "vCBS": "30864.20",
+        "vIBS": "370.37"
+      }
+    },
+    {
+      "receita": 50000,
+      "anexo": "III",
+      "comRedistribuicao": {
+        "cbs": 2.3874,
+        "ibs": 0.0263
+      },
+      "semRedistribuicao": {
+        "cbs": 2.5,
+        "ibs": 0.03
+      },
+      "retido": false,
+      "semIss": true,
+      "isencao": false,
+      "situacao": "sem ISS",
+      "par": "sem-redistribuicao",
+      "oficial": {
+        "estado": "CALCULADO",
+        "vCBS": "1250.00",
+        "vIBS": "15.00"
+      }
+    },
+    {
+      "receita": 12345.67,
+      "anexo": "III",
+      "comRedistribuicao": {
+        "cbs": 2.3874,
+        "ibs": 0.0263
+      },
+      "semRedistribuicao": {
+        "cbs": 2.5,
+        "ibs": 0.03
+      },
+      "retido": false,
+      "semIss": true,
+      "isencao": false,
+      "situacao": "sem ISS",
+      "par": "sem-redistribuicao",
+      "oficial": {
+        "estado": "CALCULADO",
+        "vCBS": "308.64",
+        "vIBS": "3.70"
+      }
+    },
+    {
+      "receita": 0.01,
+      "anexo": "III",
+      "comRedistribuicao": {
+        "cbs": 2.3874,
+        "ibs": 0.0263
+      },
+      "semRedistribuicao": {
+        "cbs": 2.5,
+        "ibs": 0.03
+      },
+      "retido": false,
+      "semIss": true,
+      "isencao": false,
+      "situacao": "sem ISS",
+      "par": "sem-redistribuicao",
+      "oficial": {
+        "estado": "CALCULADO",
+        "vCBS": "0.00",
+        "vIBS": "0.00"
+      }
+    },
+    {
+      "receita": 999999.99,
+      "anexo": "III",
+      "comRedistribuicao": {
+        "cbs": 2.3874,
+        "ibs": 0.0263
+      },
+      "semRedistribuicao": {
+        "cbs": 2.5,
+        "ibs": 0.03
+      },
+      "retido": false,
+      "semIss": true,
+      "isencao": false,
+      "situacao": "sem ISS",
+      "par": "sem-redistribuicao",
+      "oficial": {
+        "estado": "CALCULADO",
+        "vCBS": "25000.00",
+        "vIBS": "300.00"
+      }
+    },
+    {
+      "receita": 33.33,
+      "anexo": "III",
+      "comRedistribuicao": {
+        "cbs": 2.3874,
+        "ibs": 0.0263
+      },
+      "semRedistribuicao": {
+        "cbs": 2.5,
+        "ibs": 0.03
+      },
+      "retido": false,
+      "semIss": true,
+      "isencao": false,
+      "situacao": "sem ISS",
+      "par": "sem-redistribuicao",
+      "oficial": {
+        "estado": "CALCULADO",
+        "vCBS": "0.83",
+        "vIBS": "0.01"
+      }
+    },
+    {
+      "receita": 250.5,
+      "anexo": "III",
+      "comRedistribuicao": {
+        "cbs": 2.3874,
+        "ibs": 0.0263
+      },
+      "semRedistribuicao": {
+        "cbs": 2.5,
+        "ibs": 0.03
+      },
+      "retido": false,
+      "semIss": true,
+      "isencao": false,
+      "situacao": "sem ISS",
+      "par": "sem-redistribuicao",
+      "oficial": {
+        "estado": "CALCULADO",
+        "vCBS": "6.26",
+        "vIBS": "0.08"
+      }
+    },
+    {
+      "receita": 1234567.89,
+      "anexo": "III",
+      "comRedistribuicao": {
+        "cbs": 2.3874,
+        "ibs": 0.0263
+      },
+      "semRedistribuicao": {
+        "cbs": 2.5,
+        "ibs": 0.03
+      },
+      "retido": false,
+      "semIss": true,
+      "isencao": false,
+      "situacao": "sem ISS",
+      "par": "sem-redistribuicao",
+      "oficial": {
+        "estado": "CALCULADO",
+        "vCBS": "30864.20",
+        "vIBS": "370.37"
+      }
+    },
+    {
+      "receita": 50000,
+      "anexo": "III",
+      "comRedistribuicao": {
+        "cbs": 2.3874,
+        "ibs": 0.0263
+      },
+      "semRedistribuicao": {
+        "cbs": 2.5,
+        "ibs": 0.03
+      },
+      "retido": false,
+      "semIss": false,
+      "isencao": true,
+      "situacao": "isenção municipal",
+      "par": "sem-redistribuicao",
+      "oficial": {
+        "estado": "CALCULADO",
+        "vCBS": "1250.00",
+        "vIBS": "15.00"
+      }
+    },
+    {
+      "receita": 12345.67,
+      "anexo": "III",
+      "comRedistribuicao": {
+        "cbs": 2.3874,
+        "ibs": 0.0263
+      },
+      "semRedistribuicao": {
+        "cbs": 2.5,
+        "ibs": 0.03
+      },
+      "retido": false,
+      "semIss": false,
+      "isencao": true,
+      "situacao": "isenção municipal",
+      "par": "sem-redistribuicao",
+      "oficial": {
+        "estado": "CALCULADO",
+        "vCBS": "308.64",
+        "vIBS": "3.70"
+      }
+    },
+    {
+      "receita": 0.01,
+      "anexo": "III",
+      "comRedistribuicao": {
+        "cbs": 2.3874,
+        "ibs": 0.0263
+      },
+      "semRedistribuicao": {
+        "cbs": 2.5,
+        "ibs": 0.03
+      },
+      "retido": false,
+      "semIss": false,
+      "isencao": true,
+      "situacao": "isenção municipal",
+      "par": "sem-redistribuicao",
+      "oficial": {
+        "estado": "CALCULADO",
+        "vCBS": "0.00",
+        "vIBS": "0.00"
+      }
+    },
+    {
+      "receita": 999999.99,
+      "anexo": "III",
+      "comRedistribuicao": {
+        "cbs": 2.3874,
+        "ibs": 0.0263
+      },
+      "semRedistribuicao": {
+        "cbs": 2.5,
+        "ibs": 0.03
+      },
+      "retido": false,
+      "semIss": false,
+      "isencao": true,
+      "situacao": "isenção municipal",
+      "par": "sem-redistribuicao",
+      "oficial": {
+        "estado": "CALCULADO",
+        "vCBS": "25000.00",
+        "vIBS": "300.00"
+      }
+    },
+    {
+      "receita": 33.33,
+      "anexo": "III",
+      "comRedistribuicao": {
+        "cbs": 2.3874,
+        "ibs": 0.0263
+      },
+      "semRedistribuicao": {
+        "cbs": 2.5,
+        "ibs": 0.03
+      },
+      "retido": false,
+      "semIss": false,
+      "isencao": true,
+      "situacao": "isenção municipal",
+      "par": "sem-redistribuicao",
+      "oficial": {
+        "estado": "CALCULADO",
+        "vCBS": "0.83",
+        "vIBS": "0.01"
+      }
+    },
+    {
+      "receita": 250.5,
+      "anexo": "III",
+      "comRedistribuicao": {
+        "cbs": 2.3874,
+        "ibs": 0.0263
+      },
+      "semRedistribuicao": {
+        "cbs": 2.5,
+        "ibs": 0.03
+      },
+      "retido": false,
+      "semIss": false,
+      "isencao": true,
+      "situacao": "isenção municipal",
+      "par": "sem-redistribuicao",
+      "oficial": {
+        "estado": "CALCULADO",
+        "vCBS": "6.26",
+        "vIBS": "0.08"
+      }
+    },
+    {
+      "receita": 1234567.89,
+      "anexo": "III",
+      "comRedistribuicao": {
+        "cbs": 2.3874,
+        "ibs": 0.0263
+      },
+      "semRedistribuicao": {
+        "cbs": 2.5,
+        "ibs": 0.03
+      },
+      "retido": false,
+      "semIss": false,
+      "isencao": true,
+      "situacao": "isenção municipal",
+      "par": "sem-redistribuicao",
+      "oficial": {
+        "estado": "CALCULADO",
+        "vCBS": "30864.20",
+        "vIBS": "370.37"
+      }
+    },
+    {
+      "receita": 50000,
+      "anexo": "IV",
+      "comRedistribuicao": {
+        "cbs": 2.3874,
+        "ibs": 0.0263
+      },
+      "semRedistribuicao": {
+        "cbs": 2.5,
+        "ibs": 0.03
+      },
+      "retido": false,
+      "semIss": false,
+      "isencao": false,
+      "situacao": "padrão",
+      "par": "com-redistribuicao",
+      "oficial": {
+        "estado": "CALCULADO",
+        "vCBS": "1195.00",
+        "vIBS": "15.00"
+      }
+    },
+    {
+      "receita": 12345.67,
+      "anexo": "IV",
+      "comRedistribuicao": {
+        "cbs": 2.3874,
+        "ibs": 0.0263
+      },
+      "semRedistribuicao": {
+        "cbs": 2.5,
+        "ibs": 0.03
+      },
+      "retido": false,
+      "semIss": false,
+      "isencao": false,
+      "situacao": "padrão",
+      "par": "com-redistribuicao",
+      "oficial": {
+        "estado": "CALCULADO",
+        "vCBS": "295.06",
+        "vIBS": "3.70"
+      }
+    },
+    {
+      "receita": 0.01,
+      "anexo": "IV",
+      "comRedistribuicao": {
+        "cbs": 2.3874,
+        "ibs": 0.0263
+      },
+      "semRedistribuicao": {
+        "cbs": 2.5,
+        "ibs": 0.03
+      },
+      "retido": false,
+      "semIss": false,
+      "isencao": false,
+      "situacao": "padrão",
+      "par": "com-redistribuicao",
+      "oficial": {
+        "estado": "CALCULADO",
+        "vCBS": "0.00",
+        "vIBS": "0.00"
+      }
+    },
+    {
+      "receita": 999999.99,
+      "anexo": "IV",
+      "comRedistribuicao": {
+        "cbs": 2.3874,
+        "ibs": 0.0263
+      },
+      "semRedistribuicao": {
+        "cbs": 2.5,
+        "ibs": 0.03
+      },
+      "retido": false,
+      "semIss": false,
+      "isencao": false,
+      "situacao": "padrão",
+      "par": "com-redistribuicao",
+      "oficial": {
+        "estado": "CALCULADO",
+        "vCBS": "23900.00",
+        "vIBS": "300.00"
+      }
+    },
+    {
+      "receita": 33.33,
+      "anexo": "IV",
+      "comRedistribuicao": {
+        "cbs": 2.3874,
+        "ibs": 0.0263
+      },
+      "semRedistribuicao": {
+        "cbs": 2.5,
+        "ibs": 0.03
+      },
+      "retido": false,
+      "semIss": false,
+      "isencao": false,
+      "situacao": "padrão",
+      "par": "com-redistribuicao",
+      "oficial": {
+        "estado": "CALCULADO",
+        "vCBS": "0.80",
+        "vIBS": "0.01"
+      }
+    },
+    {
+      "receita": 250.5,
+      "anexo": "IV",
+      "comRedistribuicao": {
+        "cbs": 2.3874,
+        "ibs": 0.0263
+      },
+      "semRedistribuicao": {
+        "cbs": 2.5,
+        "ibs": 0.03
+      },
+      "retido": false,
+      "semIss": false,
+      "isencao": false,
+      "situacao": "padrão",
+      "par": "com-redistribuicao",
+      "oficial": {
+        "estado": "CALCULADO",
+        "vCBS": "5.99",
+        "vIBS": "0.08"
+      }
+    },
+    {
+      "receita": 1234567.89,
+      "anexo": "IV",
+      "comRedistribuicao": {
+        "cbs": 2.3874,
+        "ibs": 0.0263
+      },
+      "semRedistribuicao": {
+        "cbs": 2.5,
+        "ibs": 0.03
+      },
+      "retido": false,
+      "semIss": false,
+      "isencao": false,
+      "situacao": "padrão",
+      "par": "com-redistribuicao",
+      "oficial": {
+        "estado": "CALCULADO",
+        "vCBS": "29506.17",
+        "vIBS": "370.37"
+      }
+    },
+    {
+      "receita": 50000,
+      "anexo": "IV",
+      "comRedistribuicao": {
+        "cbs": 2.3874,
+        "ibs": 0.0263
+      },
+      "semRedistribuicao": {
+        "cbs": 2.5,
+        "ibs": 0.03
+      },
+      "retido": true,
+      "semIss": false,
+      "isencao": false,
+      "situacao": "ISS retido",
+      "par": "sem-redistribuicao",
+      "oficial": {
+        "estado": "CALCULADO",
+        "vCBS": "1250.00",
+        "vIBS": "15.00"
+      }
+    },
+    {
+      "receita": 12345.67,
+      "anexo": "IV",
+      "comRedistribuicao": {
+        "cbs": 2.3874,
+        "ibs": 0.0263
+      },
+      "semRedistribuicao": {
+        "cbs": 2.5,
+        "ibs": 0.03
+      },
+      "retido": true,
+      "semIss": false,
+      "isencao": false,
+      "situacao": "ISS retido",
+      "par": "sem-redistribuicao",
+      "oficial": {
+        "estado": "CALCULADO",
+        "vCBS": "308.64",
+        "vIBS": "3.70"
+      }
+    },
+    {
+      "receita": 0.01,
+      "anexo": "IV",
+      "comRedistribuicao": {
+        "cbs": 2.3874,
+        "ibs": 0.0263
+      },
+      "semRedistribuicao": {
+        "cbs": 2.5,
+        "ibs": 0.03
+      },
+      "retido": true,
+      "semIss": false,
+      "isencao": false,
+      "situacao": "ISS retido",
+      "par": "sem-redistribuicao",
+      "oficial": {
+        "estado": "CALCULADO",
+        "vCBS": "0.00",
+        "vIBS": "0.00"
+      }
+    },
+    {
+      "receita": 999999.99,
+      "anexo": "IV",
+      "comRedistribuicao": {
+        "cbs": 2.3874,
+        "ibs": 0.0263
+      },
+      "semRedistribuicao": {
+        "cbs": 2.5,
+        "ibs": 0.03
+      },
+      "retido": true,
+      "semIss": false,
+      "isencao": false,
+      "situacao": "ISS retido",
+      "par": "sem-redistribuicao",
+      "oficial": {
+        "estado": "CALCULADO",
+        "vCBS": "25000.00",
+        "vIBS": "300.00"
+      }
+    },
+    {
+      "receita": 33.33,
+      "anexo": "IV",
+      "comRedistribuicao": {
+        "cbs": 2.3874,
+        "ibs": 0.0263
+      },
+      "semRedistribuicao": {
+        "cbs": 2.5,
+        "ibs": 0.03
+      },
+      "retido": true,
+      "semIss": false,
+      "isencao": false,
+      "situacao": "ISS retido",
+      "par": "sem-redistribuicao",
+      "oficial": {
+        "estado": "CALCULADO",
+        "vCBS": "0.83",
+        "vIBS": "0.01"
+      }
+    },
+    {
+      "receita": 250.5,
+      "anexo": "IV",
+      "comRedistribuicao": {
+        "cbs": 2.3874,
+        "ibs": 0.0263
+      },
+      "semRedistribuicao": {
+        "cbs": 2.5,
+        "ibs": 0.03
+      },
+      "retido": true,
+      "semIss": false,
+      "isencao": false,
+      "situacao": "ISS retido",
+      "par": "sem-redistribuicao",
+      "oficial": {
+        "estado": "CALCULADO",
+        "vCBS": "6.26",
+        "vIBS": "0.08"
+      }
+    },
+    {
+      "receita": 1234567.89,
+      "anexo": "IV",
+      "comRedistribuicao": {
+        "cbs": 2.3874,
+        "ibs": 0.0263
+      },
+      "semRedistribuicao": {
+        "cbs": 2.5,
+        "ibs": 0.03
+      },
+      "retido": true,
+      "semIss": false,
+      "isencao": false,
+      "situacao": "ISS retido",
+      "par": "sem-redistribuicao",
+      "oficial": {
+        "estado": "CALCULADO",
+        "vCBS": "30864.20",
+        "vIBS": "370.37"
+      }
+    },
+    {
+      "receita": 50000,
+      "anexo": "IV",
+      "comRedistribuicao": {
+        "cbs": 2.3874,
+        "ibs": 0.0263
+      },
+      "semRedistribuicao": {
+        "cbs": 2.5,
+        "ibs": 0.03
+      },
+      "retido": false,
+      "semIss": true,
+      "isencao": false,
+      "situacao": "sem ISS",
+      "par": "sem-redistribuicao",
+      "oficial": {
+        "estado": "CALCULADO",
+        "vCBS": "1250.00",
+        "vIBS": "15.00"
+      }
+    },
+    {
+      "receita": 12345.67,
+      "anexo": "IV",
+      "comRedistribuicao": {
+        "cbs": 2.3874,
+        "ibs": 0.0263
+      },
+      "semRedistribuicao": {
+        "cbs": 2.5,
+        "ibs": 0.03
+      },
+      "retido": false,
+      "semIss": true,
+      "isencao": false,
+      "situacao": "sem ISS",
+      "par": "sem-redistribuicao",
+      "oficial": {
+        "estado": "CALCULADO",
+        "vCBS": "308.64",
+        "vIBS": "3.70"
+      }
+    },
+    {
+      "receita": 0.01,
+      "anexo": "IV",
+      "comRedistribuicao": {
+        "cbs": 2.3874,
+        "ibs": 0.0263
+      },
+      "semRedistribuicao": {
+        "cbs": 2.5,
+        "ibs": 0.03
+      },
+      "retido": false,
+      "semIss": true,
+      "isencao": false,
+      "situacao": "sem ISS",
+      "par": "sem-redistribuicao",
+      "oficial": {
+        "estado": "CALCULADO",
+        "vCBS": "0.00",
+        "vIBS": "0.00"
+      }
+    },
+    {
+      "receita": 999999.99,
+      "anexo": "IV",
+      "comRedistribuicao": {
+        "cbs": 2.3874,
+        "ibs": 0.0263
+      },
+      "semRedistribuicao": {
+        "cbs": 2.5,
+        "ibs": 0.03
+      },
+      "retido": false,
+      "semIss": true,
+      "isencao": false,
+      "situacao": "sem ISS",
+      "par": "sem-redistribuicao",
+      "oficial": {
+        "estado": "CALCULADO",
+        "vCBS": "25000.00",
+        "vIBS": "300.00"
+      }
+    },
+    {
+      "receita": 33.33,
+      "anexo": "IV",
+      "comRedistribuicao": {
+        "cbs": 2.3874,
+        "ibs": 0.0263
+      },
+      "semRedistribuicao": {
+        "cbs": 2.5,
+        "ibs": 0.03
+      },
+      "retido": false,
+      "semIss": true,
+      "isencao": false,
+      "situacao": "sem ISS",
+      "par": "sem-redistribuicao",
+      "oficial": {
+        "estado": "CALCULADO",
+        "vCBS": "0.83",
+        "vIBS": "0.01"
+      }
+    },
+    {
+      "receita": 250.5,
+      "anexo": "IV",
+      "comRedistribuicao": {
+        "cbs": 2.3874,
+        "ibs": 0.0263
+      },
+      "semRedistribuicao": {
+        "cbs": 2.5,
+        "ibs": 0.03
+      },
+      "retido": false,
+      "semIss": true,
+      "isencao": false,
+      "situacao": "sem ISS",
+      "par": "sem-redistribuicao",
+      "oficial": {
+        "estado": "CALCULADO",
+        "vCBS": "6.26",
+        "vIBS": "0.08"
+      }
+    },
+    {
+      "receita": 1234567.89,
+      "anexo": "IV",
+      "comRedistribuicao": {
+        "cbs": 2.3874,
+        "ibs": 0.0263
+      },
+      "semRedistribuicao": {
+        "cbs": 2.5,
+        "ibs": 0.03
+      },
+      "retido": false,
+      "semIss": true,
+      "isencao": false,
+      "situacao": "sem ISS",
+      "par": "sem-redistribuicao",
+      "oficial": {
+        "estado": "CALCULADO",
+        "vCBS": "30864.20",
+        "vIBS": "370.37"
+      }
+    },
+    {
+      "receita": 50000,
+      "anexo": "IV",
+      "comRedistribuicao": {
+        "cbs": 2.3874,
+        "ibs": 0.0263
+      },
+      "semRedistribuicao": {
+        "cbs": 2.5,
+        "ibs": 0.03
+      },
+      "retido": false,
+      "semIss": false,
+      "isencao": true,
+      "situacao": "isenção municipal",
+      "par": "sem-redistribuicao",
+      "oficial": {
+        "estado": "CALCULADO",
+        "vCBS": "1250.00",
+        "vIBS": "15.00"
+      }
+    },
+    {
+      "receita": 12345.67,
+      "anexo": "IV",
+      "comRedistribuicao": {
+        "cbs": 2.3874,
+        "ibs": 0.0263
+      },
+      "semRedistribuicao": {
+        "cbs": 2.5,
+        "ibs": 0.03
+      },
+      "retido": false,
+      "semIss": false,
+      "isencao": true,
+      "situacao": "isenção municipal",
+      "par": "sem-redistribuicao",
+      "oficial": {
+        "estado": "CALCULADO",
+        "vCBS": "308.64",
+        "vIBS": "3.70"
+      }
+    },
+    {
+      "receita": 0.01,
+      "anexo": "IV",
+      "comRedistribuicao": {
+        "cbs": 2.3874,
+        "ibs": 0.0263
+      },
+      "semRedistribuicao": {
+        "cbs": 2.5,
+        "ibs": 0.03
+      },
+      "retido": false,
+      "semIss": false,
+      "isencao": true,
+      "situacao": "isenção municipal",
+      "par": "sem-redistribuicao",
+      "oficial": {
+        "estado": "CALCULADO",
+        "vCBS": "0.00",
+        "vIBS": "0.00"
+      }
+    },
+    {
+      "receita": 999999.99,
+      "anexo": "IV",
+      "comRedistribuicao": {
+        "cbs": 2.3874,
+        "ibs": 0.0263
+      },
+      "semRedistribuicao": {
+        "cbs": 2.5,
+        "ibs": 0.03
+      },
+      "retido": false,
+      "semIss": false,
+      "isencao": true,
+      "situacao": "isenção municipal",
+      "par": "sem-redistribuicao",
+      "oficial": {
+        "estado": "CALCULADO",
+        "vCBS": "25000.00",
+        "vIBS": "300.00"
+      }
+    },
+    {
+      "receita": 33.33,
+      "anexo": "IV",
+      "comRedistribuicao": {
+        "cbs": 2.3874,
+        "ibs": 0.0263
+      },
+      "semRedistribuicao": {
+        "cbs": 2.5,
+        "ibs": 0.03
+      },
+      "retido": false,
+      "semIss": false,
+      "isencao": true,
+      "situacao": "isenção municipal",
+      "par": "sem-redistribuicao",
+      "oficial": {
+        "estado": "CALCULADO",
+        "vCBS": "0.83",
+        "vIBS": "0.01"
+      }
+    },
+    {
+      "receita": 250.5,
+      "anexo": "IV",
+      "comRedistribuicao": {
+        "cbs": 2.3874,
+        "ibs": 0.0263
+      },
+      "semRedistribuicao": {
+        "cbs": 2.5,
+        "ibs": 0.03
+      },
+      "retido": false,
+      "semIss": false,
+      "isencao": true,
+      "situacao": "isenção municipal",
+      "par": "sem-redistribuicao",
+      "oficial": {
+        "estado": "CALCULADO",
+        "vCBS": "6.26",
+        "vIBS": "0.08"
+      }
+    },
+    {
+      "receita": 1234567.89,
+      "anexo": "IV",
+      "comRedistribuicao": {
+        "cbs": 2.3874,
+        "ibs": 0.0263
+      },
+      "semRedistribuicao": {
+        "cbs": 2.5,
+        "ibs": 0.03
+      },
+      "retido": false,
+      "semIss": false,
+      "isencao": true,
+      "situacao": "isenção municipal",
+      "par": "sem-redistribuicao",
+      "oficial": {
+        "estado": "CALCULADO",
+        "vCBS": "30864.20",
+        "vIBS": "370.37"
+      }
+    },
+    {
+      "receita": 50000,
+      "anexo": "V",
+      "comRedistribuicao": {
+        "cbs": 2.3874,
+        "ibs": 0.0263
+      },
+      "semRedistribuicao": {
+        "cbs": 2.5,
+        "ibs": 0.03
+      },
+      "retido": false,
+      "semIss": false,
+      "isencao": false,
+      "situacao": "padrão",
+      "par": "com-redistribuicao",
+      "oficial": {
+        "estado": "CALCULADO",
+        "vCBS": "1195.00",
+        "vIBS": "15.00"
+      }
+    },
+    {
+      "receita": 12345.67,
+      "anexo": "V",
+      "comRedistribuicao": {
+        "cbs": 2.3874,
+        "ibs": 0.0263
+      },
+      "semRedistribuicao": {
+        "cbs": 2.5,
+        "ibs": 0.03
+      },
+      "retido": false,
+      "semIss": false,
+      "isencao": false,
+      "situacao": "padrão",
+      "par": "com-redistribuicao",
+      "oficial": {
+        "estado": "CALCULADO",
+        "vCBS": "295.06",
+        "vIBS": "3.70"
+      }
+    },
+    {
+      "receita": 0.01,
+      "anexo": "V",
+      "comRedistribuicao": {
+        "cbs": 2.3874,
+        "ibs": 0.0263
+      },
+      "semRedistribuicao": {
+        "cbs": 2.5,
+        "ibs": 0.03
+      },
+      "retido": false,
+      "semIss": false,
+      "isencao": false,
+      "situacao": "padrão",
+      "par": "com-redistribuicao",
+      "oficial": {
+        "estado": "CALCULADO",
+        "vCBS": "0.00",
+        "vIBS": "0.00"
+      }
+    },
+    {
+      "receita": 999999.99,
+      "anexo": "V",
+      "comRedistribuicao": {
+        "cbs": 2.3874,
+        "ibs": 0.0263
+      },
+      "semRedistribuicao": {
+        "cbs": 2.5,
+        "ibs": 0.03
+      },
+      "retido": false,
+      "semIss": false,
+      "isencao": false,
+      "situacao": "padrão",
+      "par": "com-redistribuicao",
+      "oficial": {
+        "estado": "CALCULADO",
+        "vCBS": "23900.00",
+        "vIBS": "300.00"
+      }
+    },
+    {
+      "receita": 33.33,
+      "anexo": "V",
+      "comRedistribuicao": {
+        "cbs": 2.3874,
+        "ibs": 0.0263
+      },
+      "semRedistribuicao": {
+        "cbs": 2.5,
+        "ibs": 0.03
+      },
+      "retido": false,
+      "semIss": false,
+      "isencao": false,
+      "situacao": "padrão",
+      "par": "com-redistribuicao",
+      "oficial": {
+        "estado": "CALCULADO",
+        "vCBS": "0.80",
+        "vIBS": "0.01"
+      }
+    },
+    {
+      "receita": 250.5,
+      "anexo": "V",
+      "comRedistribuicao": {
+        "cbs": 2.3874,
+        "ibs": 0.0263
+      },
+      "semRedistribuicao": {
+        "cbs": 2.5,
+        "ibs": 0.03
+      },
+      "retido": false,
+      "semIss": false,
+      "isencao": false,
+      "situacao": "padrão",
+      "par": "com-redistribuicao",
+      "oficial": {
+        "estado": "CALCULADO",
+        "vCBS": "5.99",
+        "vIBS": "0.08"
+      }
+    },
+    {
+      "receita": 1234567.89,
+      "anexo": "V",
+      "comRedistribuicao": {
+        "cbs": 2.3874,
+        "ibs": 0.0263
+      },
+      "semRedistribuicao": {
+        "cbs": 2.5,
+        "ibs": 0.03
+      },
+      "retido": false,
+      "semIss": false,
+      "isencao": false,
+      "situacao": "padrão",
+      "par": "com-redistribuicao",
+      "oficial": {
+        "estado": "CALCULADO",
+        "vCBS": "29506.17",
+        "vIBS": "370.37"
+      }
+    },
+    {
+      "receita": 50000,
+      "anexo": "V",
+      "comRedistribuicao": {
+        "cbs": 2.3874,
+        "ibs": 0.0263
+      },
+      "semRedistribuicao": {
+        "cbs": 2.5,
+        "ibs": 0.03
+      },
+      "retido": true,
+      "semIss": false,
+      "isencao": false,
+      "situacao": "ISS retido",
+      "par": "sem-redistribuicao",
+      "oficial": {
+        "estado": "CALCULADO",
+        "vCBS": "1250.00",
+        "vIBS": "15.00"
+      }
+    },
+    {
+      "receita": 12345.67,
+      "anexo": "V",
+      "comRedistribuicao": {
+        "cbs": 2.3874,
+        "ibs": 0.0263
+      },
+      "semRedistribuicao": {
+        "cbs": 2.5,
+        "ibs": 0.03
+      },
+      "retido": true,
+      "semIss": false,
+      "isencao": false,
+      "situacao": "ISS retido",
+      "par": "sem-redistribuicao",
+      "oficial": {
+        "estado": "CALCULADO",
+        "vCBS": "308.64",
+        "vIBS": "3.70"
+      }
+    },
+    {
+      "receita": 0.01,
+      "anexo": "V",
+      "comRedistribuicao": {
+        "cbs": 2.3874,
+        "ibs": 0.0263
+      },
+      "semRedistribuicao": {
+        "cbs": 2.5,
+        "ibs": 0.03
+      },
+      "retido": true,
+      "semIss": false,
+      "isencao": false,
+      "situacao": "ISS retido",
+      "par": "sem-redistribuicao",
+      "oficial": {
+        "estado": "CALCULADO",
+        "vCBS": "0.00",
+        "vIBS": "0.00"
+      }
+    },
+    {
+      "receita": 999999.99,
+      "anexo": "V",
+      "comRedistribuicao": {
+        "cbs": 2.3874,
+        "ibs": 0.0263
+      },
+      "semRedistribuicao": {
+        "cbs": 2.5,
+        "ibs": 0.03
+      },
+      "retido": true,
+      "semIss": false,
+      "isencao": false,
+      "situacao": "ISS retido",
+      "par": "sem-redistribuicao",
+      "oficial": {
+        "estado": "CALCULADO",
+        "vCBS": "25000.00",
+        "vIBS": "300.00"
+      }
+    },
+    {
+      "receita": 33.33,
+      "anexo": "V",
+      "comRedistribuicao": {
+        "cbs": 2.3874,
+        "ibs": 0.0263
+      },
+      "semRedistribuicao": {
+        "cbs": 2.5,
+        "ibs": 0.03
+      },
+      "retido": true,
+      "semIss": false,
+      "isencao": false,
+      "situacao": "ISS retido",
+      "par": "sem-redistribuicao",
+      "oficial": {
+        "estado": "CALCULADO",
+        "vCBS": "0.83",
+        "vIBS": "0.01"
+      }
+    },
+    {
+      "receita": 250.5,
+      "anexo": "V",
+      "comRedistribuicao": {
+        "cbs": 2.3874,
+        "ibs": 0.0263
+      },
+      "semRedistribuicao": {
+        "cbs": 2.5,
+        "ibs": 0.03
+      },
+      "retido": true,
+      "semIss": false,
+      "isencao": false,
+      "situacao": "ISS retido",
+      "par": "sem-redistribuicao",
+      "oficial": {
+        "estado": "CALCULADO",
+        "vCBS": "6.26",
+        "vIBS": "0.08"
+      }
+    },
+    {
+      "receita": 1234567.89,
+      "anexo": "V",
+      "comRedistribuicao": {
+        "cbs": 2.3874,
+        "ibs": 0.0263
+      },
+      "semRedistribuicao": {
+        "cbs": 2.5,
+        "ibs": 0.03
+      },
+      "retido": true,
+      "semIss": false,
+      "isencao": false,
+      "situacao": "ISS retido",
+      "par": "sem-redistribuicao",
+      "oficial": {
+        "estado": "CALCULADO",
+        "vCBS": "30864.20",
+        "vIBS": "370.37"
+      }
+    },
+    {
+      "receita": 50000,
+      "anexo": "V",
+      "comRedistribuicao": {
+        "cbs": 2.3874,
+        "ibs": 0.0263
+      },
+      "semRedistribuicao": {
+        "cbs": 2.5,
+        "ibs": 0.03
+      },
+      "retido": false,
+      "semIss": true,
+      "isencao": false,
+      "situacao": "sem ISS",
+      "par": "sem-redistribuicao",
+      "oficial": {
+        "estado": "CALCULADO",
+        "vCBS": "1250.00",
+        "vIBS": "15.00"
+      }
+    },
+    {
+      "receita": 12345.67,
+      "anexo": "V",
+      "comRedistribuicao": {
+        "cbs": 2.3874,
+        "ibs": 0.0263
+      },
+      "semRedistribuicao": {
+        "cbs": 2.5,
+        "ibs": 0.03
+      },
+      "retido": false,
+      "semIss": true,
+      "isencao": false,
+      "situacao": "sem ISS",
+      "par": "sem-redistribuicao",
+      "oficial": {
+        "estado": "CALCULADO",
+        "vCBS": "308.64",
+        "vIBS": "3.70"
+      }
+    },
+    {
+      "receita": 0.01,
+      "anexo": "V",
+      "comRedistribuicao": {
+        "cbs": 2.3874,
+        "ibs": 0.0263
+      },
+      "semRedistribuicao": {
+        "cbs": 2.5,
+        "ibs": 0.03
+      },
+      "retido": false,
+      "semIss": true,
+      "isencao": false,
+      "situacao": "sem ISS",
+      "par": "sem-redistribuicao",
+      "oficial": {
+        "estado": "CALCULADO",
+        "vCBS": "0.00",
+        "vIBS": "0.00"
+      }
+    },
+    {
+      "receita": 999999.99,
+      "anexo": "V",
+      "comRedistribuicao": {
+        "cbs": 2.3874,
+        "ibs": 0.0263
+      },
+      "semRedistribuicao": {
+        "cbs": 2.5,
+        "ibs": 0.03
+      },
+      "retido": false,
+      "semIss": true,
+      "isencao": false,
+      "situacao": "sem ISS",
+      "par": "sem-redistribuicao",
+      "oficial": {
+        "estado": "CALCULADO",
+        "vCBS": "25000.00",
+        "vIBS": "300.00"
+      }
+    },
+    {
+      "receita": 33.33,
+      "anexo": "V",
+      "comRedistribuicao": {
+        "cbs": 2.3874,
+        "ibs": 0.0263
+      },
+      "semRedistribuicao": {
+        "cbs": 2.5,
+        "ibs": 0.03
+      },
+      "retido": false,
+      "semIss": true,
+      "isencao": false,
+      "situacao": "sem ISS",
+      "par": "sem-redistribuicao",
+      "oficial": {
+        "estado": "CALCULADO",
+        "vCBS": "0.83",
+        "vIBS": "0.01"
+      }
+    },
+    {
+      "receita": 250.5,
+      "anexo": "V",
+      "comRedistribuicao": {
+        "cbs": 2.3874,
+        "ibs": 0.0263
+      },
+      "semRedistribuicao": {
+        "cbs": 2.5,
+        "ibs": 0.03
+      },
+      "retido": false,
+      "semIss": true,
+      "isencao": false,
+      "situacao": "sem ISS",
+      "par": "sem-redistribuicao",
+      "oficial": {
+        "estado": "CALCULADO",
+        "vCBS": "6.26",
+        "vIBS": "0.08"
+      }
+    },
+    {
+      "receita": 1234567.89,
+      "anexo": "V",
+      "comRedistribuicao": {
+        "cbs": 2.3874,
+        "ibs": 0.0263
+      },
+      "semRedistribuicao": {
+        "cbs": 2.5,
+        "ibs": 0.03
+      },
+      "retido": false,
+      "semIss": true,
+      "isencao": false,
+      "situacao": "sem ISS",
+      "par": "sem-redistribuicao",
+      "oficial": {
+        "estado": "CALCULADO",
+        "vCBS": "30864.20",
+        "vIBS": "370.37"
+      }
+    }
+  ]
+}

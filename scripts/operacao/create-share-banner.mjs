@@ -7,17 +7,28 @@ import sharp from 'sharp';
 import { mkdir, writeFile } from 'node:fs/promises';
 
 // Paleta de src/app/globals.css (tema claro).
-const C = { canvas: '#faf8f5', surface: '#ffffff', ink: '#2d2727', inkDeep: '#1e1a1a', muted: '#685f59', soft: '#8f8780', line: '#e6e0d8', gold: '#ebb92e', red: '#b61323' };
+const C = {
+  canvas: '#faf8f5',
+  surface: '#ffffff',
+  ink: '#2d2727',
+  inkDeep: '#1e1a1a',
+  muted: '#685f59',
+  soft: '#8f8780',
+  line: '#e6e0d8',
+  gold: '#ebb92e',
+  red: '#b61323',
+};
 const FONTE = "'Segoe UI', 'Helvetica Neue', Arial, sans-serif";
 
-// Figuras do logotipo do SINDEPRESTEM, a mesma geometria de src/components/sindi-mark.tsx (caixa de 80×32 dentro do balão de 112×80).
+// Figuras do logotipo do SINDEPRESTEM, a mesma geometria de src/componentes/layout/marca-sindi.tsx (caixa de 80×32 dentro do balão de 112×80).
 const LOGO = [
   { cor: C.ink, cabeca: [125.3, 96.6], corpo: 'M71 226V481H15V581H173V400L358 585H532L173 226Z' },
   { cor: C.red, cabeca: [480.8, 96.6], corpo: 'M435 233V486L533 585V401L720 587H887L533 233Z' },
   { cor: C.gold, cabeca: [836.3, 96.6], corpo: 'M791 237V489L890 587V404L1077 591H1244L891 237Z' },
   { cor: 'none', cabeca: [1191.8, 96.6], corpo: 'M1139 232V486L1243 590V403L1427 588H1553V489H1497L1243 232Z' },
 ];
-const ESCALA = 80 / 1538; const DESLOCA_Y = (32 - 591 * ESCALA) / 2;
+const ESCALA = 80 / 1538;
+const DESLOCA_Y = (32 - 591 * ESCALA) / 2;
 const figuras = LOGO.map(({ cor, cabeca, corpo }) => {
   const vazada = cor === 'none';
   return `<g transform="translate(0 ${DESLOCA_Y}) scale(${ESCALA}) translate(-15 0)" fill="${cor}" stroke="${vazada ? C.ink : cor}" stroke-width="${vazada ? 22 : 2}" stroke-linejoin="round">
@@ -29,13 +40,17 @@ const marca = (x, y, escala) => `<g transform="translate(${x} ${y}) scale(${esca
 
 // Prévia do chat: as mesmas três linhas de sugestão da página inicial e a caixa de mensagem.
 const sugestoes = ['O que é trabalho temporário?', 'Qual o piso da portaria?', 'Como falar com o Setor Jurídico?'];
-const cx = 676; const cy = 150; const cw = 464;
-const linhas = sugestoes.map((s, i) => {
-  const y = cy + 92 + i * 64;
-  return `<line x1="${cx + 32}" y1="${y - 38}" x2="${cx + cw - 32}" y2="${y - 38}" stroke="${C.line}" stroke-width="2"/>
+const cx = 676;
+const cy = 150;
+const cw = 464;
+const linhas = sugestoes
+  .map((s, i) => {
+    const y = cy + 92 + i * 64;
+    return `<line x1="${cx + 32}" y1="${y - 38}" x2="${cx + cw - 32}" y2="${y - 38}" stroke="${C.line}" stroke-width="2"/>
   <text x="${cx + 32}" y="${y}" font-family="${FONTE}" font-size="22" fill="${C.ink}">${s}</text>
   <path d="M${cx + cw - 50} ${y - 2}L${cx + cw - 38} ${y - 14}M${cx + cw - 47} ${y - 14}H${cx + cw - 38}V${y - 5}" stroke="${C.soft}" stroke-width="2.2" fill="none" stroke-linecap="round"/>`;
-}).join('');
+  })
+  .join('');
 
 const arte = `<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="630" viewBox="0 0 1200 630">
 <rect width="1200" height="630" fill="${C.canvas}"/>
@@ -66,7 +81,12 @@ console.log('Banner 1200×630 criado em public/social/sindi-share-v2.jpg');
 // Favicon: a mesma marca do cabeçalho, num quadrado. O balão é branco com contorno grafite, legível nas abas claras e escuras.
 const icone = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 -12 112 104">${marca(0, 0, 1)}</svg>`;
 await writeFile('src/app/icon.svg', icone, 'utf8');
-const quadrado = (lado, fundo) => sharp(Buffer.from(`<svg xmlns="http://www.w3.org/2000/svg" width="${lado}" height="${lado}" viewBox="-10 -22 132 132"><rect x="-10" y="-22" width="132" height="132" fill="${fundo}"/>${marca(0, 0, 1)}</svg>`)).png();
+const quadrado = (lado, fundo) =>
+  sharp(
+    Buffer.from(
+      `<svg xmlns="http://www.w3.org/2000/svg" width="${lado}" height="${lado}" viewBox="-10 -22 132 132"><rect x="-10" y="-22" width="132" height="132" fill="${fundo}"/>${marca(0, 0, 1)}</svg>`,
+    ),
+  ).png();
 await quadrado(192, C.canvas).toFile('src/app/icon.png');
 await quadrado(180, C.canvas).toFile('src/app/apple-icon.png');
 console.log('Ícones criados em src/app (icon.svg, icon.png, apple-icon.png)');

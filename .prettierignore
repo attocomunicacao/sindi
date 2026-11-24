@@ -1,0 +1,16 @@
+node_modules
+.next
+.data
+.tools
+cerebro
+docs
+supabase
+deployment
+package-lock.json
+next-env.d.ts
+src/lib/danfse/logo-nfse.ts
+src/lib/orcamento/tabela.json
+src/lib/danfse/localidades.json
+tests/fixtures
+test-results
+playwright-report

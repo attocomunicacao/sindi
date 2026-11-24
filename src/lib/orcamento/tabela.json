@@ -20,15 +20,6 @@
   "descontoValeTransporte": 0.06,
   "seac": 0,
   "contribuicaoAssistencialPatronal": 0,
-  "bdi": 0.03,
-  "lucro": 0.03,
-  "impostos": {
-   "iss": 0.05,
-   "pis": 0.0165,
-   "cofins": 0.076,
-   "contribuicaoSocial": 0.01,
-   "irpj": 0.01
-  },
   "adicionalNoturno": 0.2,
   "dsr": {
    "diasDescanso": 8,
@@ -100,6 +91,15 @@
    "avisoPrevioTrabalhadoPct": 0.05,
    "demitidosSemJustaCausa": 0.0256,
    "demitidosAte30Dias": 0.03,
+   "multaFgts": {
+    "base": 0.032,
+    "percentual": 0.4
+   },
+   "contribuicaoLc110Art1": {
+    "base": 0.008,
+    "ajuste": 0.0025,
+    "percentual": 0.1
+   },
    "permanenciaMeses": 26.11,
    "maternidadeBase": {
     "dias": 120,

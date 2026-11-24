@@ -1,13 +1,13 @@
 ---
 titulo: Cartilhas do SINDEPRESTEM
 fonte: https://www.sindeprestem.com.br/cartilhas
-atualizado: 2026-11-05
+atualizado: 2026-11-24
 tipo: autogerado
 prioridade: 2
 gatilhos: cartilha, cartilhas, guia, esg, bombeiro civil, trabalho temporário, lei 13.429, material, orientação
 ---
 
-<!-- AUTOGERADO por src/lib/cerebro/gerar.ts em 2026-11-05. Não edite: as alterações serão perdidas. Para ajustar regras e respostas, edite os arquivos da pasta cerebro/. -->
+<!-- AUTOGERADO por src/lib/cerebro/gerar.ts em 2026-11-24. Não edite: as alterações serão perdidas. Para ajustar regras e respostas, edite os arquivos da pasta cerebro/. -->
 
 ## Cartilhas disponíveis
 "Conteúdos informativos produzidos para orientar empresas, associados e profissionais sobre temas relevantes do setor" ([página Cartilhas](https://www.sindeprestem.com.br/cartilhas)).

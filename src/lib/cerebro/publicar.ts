@@ -1,12 +1,12 @@
 import { cpSync, existsSync, mkdirSync, readFileSync, renameSync, rmSync, writeFileSync } from 'node:fs';
 import path from 'node:path';
-import type { Db } from '@/lib/dados/db';
+import type { BancoDeDados } from '@/lib/dados/db';
 import type { ResultadoCaso } from '@/lib/cerebro/casos';
 import { pastaCerebro, reiniciarCacheDoCerebro } from '@/lib/cerebro/carregar';
 
 /** Tamanho mínimo plausível de cada arquivo gerado: um arquivo vazio ou muito menor indica que a coleta falhou. */
 export const MINIMOS: Record<string, number> = { 'institucional.md': 2500, 'contribuicoes.md': 1500, 'convencoes.md': 8000, 'juridico.md': 800, 'cartilhas.md': 1500, 'artigos-e-noticias.md': 4000, 'fontes-de-dados.md': 1500 };
-export type Dependencias = { gerar: (db: Db) => Record<string, string>; avaliar: () => Promise<ResultadoCaso[]> };
+export type Dependencias = { gerar: (db: BancoDeDados) => Record<string, string>; avaliar: () => Promise<ResultadoCaso[]> };
 export type Resultado = { publicado: boolean; motivo: string };
 
 /** Compara o conteúdo sem a data de geração, para não republicar (nem reavaliar) quando nada mudou. */
@@ -33,7 +33,7 @@ function recuperarSeInterrompido(pasta: string, anterior: string) {
  * Qualquer erro depois de gravar (inclusive na reavaliação) também restaura a versão anterior e é repassado: nunca fica uma versão não validada no lugar.
  * Quem chama informa como gerar e como avaliar (`gerarArquivos` e `avaliarCasos`): a avaliação usa a recuperação do chat, que fica acima do cérebro.
  */
-export async function publicarCerebro(db: Db, log: (mensagem: string) => void = () => {},
+export async function publicarCerebro(db: BancoDeDados, log: (mensagem: string) => void = () => {},
   deps: Dependencias): Promise<Resultado> {
   const pasta = path.join(pastaCerebro(), 'auto'); const anterior = path.join(pastaCerebro(), 'auto.anterior');
   recuperarSeInterrompido(pasta, anterior);

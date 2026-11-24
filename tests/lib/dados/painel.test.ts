@@ -1,10 +1,10 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { montarDashboard, rotuloDoMes } from '@/lib/dados/dashboard';
-import { dashboardPdf } from '@/lib/dados/dashboard-pdf';
-import { painelVazio, type PainelIndicator } from '@/lib/dados/painel';
+import { pdfDoDashboard } from '@/lib/dados/dashboard-pdf';
+import { painelVazio, type IndicadorDoPainel } from '@/lib/dados/painel';
 
-const ind = (id: string, value: number, previous: number | null, unit: string): PainelIndicator => ({ id, group: 'g', label: id, value, unit, period: '08/2026', previous, source: 'x', url: 'https://example.com', fetchedAt: '2026-10-13T00:00:00Z' });
+const ind = (id: string, value: number, previous: number | null, unit: string): IndicadorDoPainel => ({ id, group: 'g', label: id, value, unit, period: '08/2026', previous, source: 'x', url: 'https://example.com', fetchedAt: '2026-10-13T00:00:00Z' });
 const painel = () => ({ ...painelVazio(), available: true, updatedAt: '2026-10-13T12:00:00Z', indicators: [
   ind('bcb.selic-meta', 13.75, 14, '% ao ano'), ind('ibge.ipca-12m', 4.58, 4.22, '% em 12 meses'), ind('ibge.desocupacao', 5.3, 5.3, '% da força de trabalho'),
   ind('caged.saldo', 100000, 50000, 'vagas no mês'), ind('caged.saldo-sp', 25000, 10000, 'vagas no mês'), ind('caged.saldo-temporario', -2438, 1423, 'vagas no mês') ],
@@ -31,7 +31,7 @@ test('a evolução mensal do emprego vem da série coletada, com meses legíveis
   assert.equal(taxa.favoravel, true); assert.equal(taxa.url, 'https://example.com'); assert.equal(taxa.fonte, 'x', 'fonte desconhecida mantém o código');
 });
 test('PDF do dashboard tem uma página A4', async () => {
-  const bytes = await dashboardPdf(montarDashboard(painel())!);
+  const bytes = await pdfDoDashboard(montarDashboard(painel())!);
   assert.equal(Buffer.from(bytes.subarray(0, 5)).toString(), '%PDF-');
   const { PDFDocument } = await import('pdf-lib');
   const pdf = await PDFDocument.load(bytes); assert.equal(pdf.getPageCount(), 1);

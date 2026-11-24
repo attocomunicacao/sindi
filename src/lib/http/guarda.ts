@@ -5,7 +5,7 @@
  *  - respostas de erro sempre em JSON `{ error }`, sem cache; PDFs com os mesmos cabeçalhos.
  * A validação do conteúdo (zod) e a regra da ferramenta continuam na rota.
  */
-import { allowedChatOrigin } from '@/lib/infra/origem';
+import { origemConfiavel } from '@/lib/infra/origem';
 import { limitarPorMinuto } from '@/lib/infra/limite-por-minuto';
 
 export const erroJson = (mensagem: string, status: number, extra: Record<string, unknown> = {}, cabecalhos: Record<string, string> = {}) =>
@@ -17,7 +17,7 @@ export const jsonSemCache = (corpo: unknown, status?: number) => Response.json(c
 /** A origem do navegador tem de ser a do próprio servidor ou a origem pública configurada (SINDI_PUBLIC_ORIGIN, atrás de um repasse). */
 export function origemPermitida(request: Request) {
   const host = request.headers.get('host') || new URL(request.url).host;
-  return allowedChatOrigin(request.headers.get('origin'), host, process.env.SINDI_PUBLIC_ORIGIN, Boolean(process.env.VERCEL));
+  return origemConfiavel(request.headers.get('origin'), host, process.env.SINDI_PUBLIC_ORIGIN, Boolean(process.env.VERCEL));
 }
 
 export const limiteExcedido = (reiniciaEmSegundos: number) => erroJson('Muitos pedidos em pouco tempo. Tente novamente em instantes.', 429, {}, { 'Retry-After': String(reiniciaEmSegundos) });

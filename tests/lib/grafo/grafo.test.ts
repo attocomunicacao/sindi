@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import { mkdtempSync, readFileSync, readdirSync, rmSync, writeFileSync, existsSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import path from 'node:path';
-import { openDb, upsertDocument } from '@/lib/dados/db';
+import { abrirBanco, gravarDocumento } from '@/lib/dados/db';
 import { extrairEntidades } from '@/lib/grafo/entidades';
 import { construirGrafo } from '@/lib/grafo/construir';
 import { exportarObsidian } from '@/lib/grafo/obsidian';
@@ -35,8 +35,8 @@ test('coletor do site: só links https do próprio domínio, normalizados e sem 
 async function comBancoDoGrafo(fn: (pasta: string) => Promise<void> | void) {
   const pasta = mkdtempSync(path.join(tmpdir(), 'sindi-grafo-')); const antes = process.env.SINDI_DATA_DIR;
   process.env.SINDI_DATA_DIR = pasta; esquecerGrafo();
-  const db = openDb(path.join(pasta, 'sindi-dados.sqlite'));
-  const doc = (url: string, source: string, title: string, content: string, meta: Record<string, unknown> = {}, publishedAt?: string) => upsertDocument(db, { url, source, title, content, meta, publishedAt });
+  const db = abrirBanco(path.join(pasta, 'sindi-dados.sqlite'));
+  const doc = (url: string, source: string, title: string, content: string, meta: Record<string, unknown> = {}, publishedAt?: string) => gravarDocumento(db, { url, source, title, content, meta, publishedAt });
   doc('https://www.camara.leg.br/proposicoesWeb/fichadetramitacao?idProposicao=1', 'camara', 'PL 1234/2023', 'Altera a Lei 6.019/1974 para tratar do trabalho temporário.');
   doc('https://www.sindeprestem.com.br/noticias/pl-temporario', 'sindeprestem', 'Sindeprestem acompanha projeto sobre temporários', 'O PL 1234/2023, que altera a Lei 6.019/1974, foi debatido pelo sindicato em audiência.', { section: 'noticia', links: ['https://www.sindeprestem.com.br/cartilhas/temporario'] }, '2026-10-01');
   doc('https://www.sindeprestem.com.br/cartilhas/temporario', 'sindeprestem', 'Cartilha do trabalho temporário', 'A Lei 6.019/1974, alterada pela Lei 13.429/2017, regula o trabalho temporário.', { section: 'cartilha' });

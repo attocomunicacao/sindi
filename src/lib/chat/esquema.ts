@@ -1,5 +1,5 @@
 import { z } from 'zod';
-export { historicoParaOModelo, recentMessages } from '@/lib/chat/historico';
+export { historicoParaOModelo, mensagensRecentes } from '@/lib/chat/historico';
 export const chatSchema = z.object({
   // O histórico vem do navegador e pode ser forjado: as respostas do assistente têm teto (o modelo só lê as duas últimas trocas, encurtadas).
   messages: z.array(z.object({ role: z.enum(['user', 'assistant']), content: z.string().trim().min(1).max(4000) })).min(1).max(40),

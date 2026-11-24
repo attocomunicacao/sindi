@@ -12,9 +12,9 @@ import { GET as painel } from '@/app/api/painel/route';
 import { GET as catalogo } from '@/app/api/orcamento/catalogo/route';
 import { sistema } from '@/lib/cerebro/instrucoes';
 import { contemDadosSensiveis, redigirDadosSensiveis } from '@/lib/seguranca/redacao';
-import { allowedChatOrigin } from '@/lib/infra/origem';
+import { origemConfiavel } from '@/lib/infra/origem';
 import { hostLocal, pedidoLocal } from '@/lib/atualizacao';
-import { destinoPermitido, hostInterno, politeFetch } from '@/lib/dados/http';
+import { destinoPermitido, hostInterno, buscarComEducacao } from '@/lib/dados/http';
 import { pdfPermitido } from '@/lib/biblioteca/pdf';
 import { linkSeguro } from '@/lib/base/url-segura';
 import { urlDeDocumentoValida } from '@/lib/dados/url-documento';
@@ -180,7 +180,7 @@ test('SSRF na coleta: redirecionamento para endereço interno (IPv4 em qualquer 
     for (const alvo of alvos) {
       const pedidos: string[] = [];
       globalThis.fetch = (async (entrada: RequestInfo | URL) => { const url = String(entrada); pedidos.push(url); return url.endsWith('/robots.txt') ? new Response('', { status: 404 }) : url.startsWith('https://www.ibge.gov.br/inicio') ? new Response(null, { status: 302, headers: { location: alvo } }) : new Response('segredo interno'); }) as typeof fetch;
-      await assert.rejects(politeFetch('https://www.ibge.gov.br/inicio', { minMs: 0 }), /interno|HTTPS|credenciais|Porta|protocolo|inválid|Invalid/i, alvo);
+      await assert.rejects(buscarComEducacao('https://www.ibge.gov.br/inicio', { minMs: 0 }), /interno|HTTPS|credenciais|Porta|protocolo|inválid|Invalid/i, alvo);
       assert.equal(pedidos.filter(p => !p.endsWith('/robots.txt')).length, 1, `${alvo}: só o endereço inicial pode ser acessado (pedidos: ${pedidos.join(', ')})`);
     }
     for (const permitido of ['https://servicodados.ibge.gov.br/api', 'https://www.camara.leg.br/x']) assert.doesNotThrow(() => destinoPermitido(new URL(permitido)));
@@ -191,7 +191,7 @@ test('redirecionamentos: cadeia longa e laço terminam depois de poucos saltos',
   await comAmbiente({}, async () => {
     let saltos = 0;
     globalThis.fetch = (async (entrada: RequestInfo | URL) => { const url = String(entrada); if (url.endsWith('/robots.txt')) return new Response('', { status: 404 }); saltos++; return new Response(null, { status: 302, headers: { location: url.includes('/a') ? 'https://www.ibge.gov.br/b' : 'https://www.ibge.gov.br/a' } }); }) as typeof fetch;
-    await assert.rejects(politeFetch('https://www.ibge.gov.br/a', { minMs: 0 }), /Redirecionamentos demais/); assert.ok(saltos <= 5, `${saltos} requisições num laço de redirecionamento (esperado: 1 + 4 saltos, sem novas tentativas)`);
+    await assert.rejects(buscarComEducacao('https://www.ibge.gov.br/a', { minMs: 0 }), /Redirecionamentos demais/); assert.ok(saltos <= 5, `${saltos} requisições num laço de redirecionamento (esperado: 1 + 4 saltos, sem novas tentativas)`);
   });
 });
 
@@ -219,7 +219,7 @@ test('linkSeguro e endereços de documentos: esquemas perigosos, mistura de mai�
 
 // ------------------------------------------------------------------------------------------------ 4. origem, local, cota
 test('origem: variações de Origin e Host que um atacante controla não passam', () => {
-  const ok = (origin: string | null, host = 'localhost:3000', publica = '', vercel = false) => allowedChatOrigin(origin, host, publica, vercel);
+  const ok = (origin: string | null, host = 'localhost:3000', publica = '', vercel = false) => origemConfiavel(origin, host, publica, vercel);
   assert.equal(ok('http://localhost:3000'), true);
   for (const ruim of [null, '', 'null', 'http://localhost', 'http://localhost:3000/', 'http://localhost:3000/x', 'HTTP://LOCALHOST:3000', 'http://localhost:3000@evil.com', 'http://evil.com', 'http://localhost.evil.com:3000', 'javascript://localhost:3000', 'http://localhost:3000%00.evil.com', 'file://']) assert.equal(ok(ruim), false, String(ruim));
   assert.equal(ok('https://sindi.example', 'localhost:3100', 'https://sindi.example'), true, 'origem pública configurada'); assert.equal(ok('http://sindi.example', 'localhost:3100', 'https://sindi.example'), false, 'esquema diferente da origem pública');

@@ -4,104 +4,104 @@ import { mkdir, readdir, rm } from 'node:fs/promises';
 import path from 'node:path';
 import { createInterface } from 'node:readline';
 import { promisify } from 'node:util';
-import { dataDir, getSeries, getState, setSeries, setState, setIndicator, upsertDocument, type Db } from '@/lib/dados/db';
+import { pastaDosDados, lerSerie, lerEstado, gravarSerie, gravarEstado, gravarIndicador, gravarDocumento, type BancoDeDados } from '@/lib/dados/db';
 import type { Coletor } from '@/lib/dados/coletores/tipos';
 import { numeroBR } from '@/lib/base/formato';
 
-const run = promisify(execFile);
+const executar = promisify(execFile);
 export const CAGED_FTP = 'ftp://ftp.mtps.gov.br/pdet/microdados/NOVO%20CAGED/';
 /** Link navegável (o FTP não abre em todos os navegadores e é bloqueado nos links do chat): notícias do Ministério, onde o resultado mensal é divulgado. */
-export const CAGED_PAGE = 'https://www.gov.br/trabalho-e-emprego/pt-br/noticias-e-conteudo';
-const TEMPORARY = '7820500'; // CNAE 7820-5: locação de mão de obra temporária
-const SP = '35';
+export const PAGINA_DO_CAGED = 'https://www.gov.br/trabalho-e-emprego/pt-br/noticias-e-conteudo';
+const CNAE_TEMPORARIO = '7820500'; // CNAE 7820-5: locação de mão de obra temporária
+const CODIGO_SP = '35';
 
-export type Totals = { admissions: number; dismissals: number };
-export type Aggregate = Record<'brasil' | 'sp' | 'servicos' | 'servicosSp' | 'temporario' | 'temporarioSp', Totals>;
-export const emptyAggregate = (): Aggregate => ({ brasil: { admissions: 0, dismissals: 0 }, sp: { admissions: 0, dismissals: 0 }, servicos: { admissions: 0, dismissals: 0 }, servicosSp: { admissions: 0, dismissals: 0 }, temporario: { admissions: 0, dismissals: 0 }, temporarioSp: { admissions: 0, dismissals: 0 } });
-export const net = (t: Totals) => t.admissions - t.dismissals;
+export type Totais = { admissions: number; dismissals: number };
+export type Agregado = Record<'brasil' | 'sp' | 'servicos' | 'servicosSp' | 'temporario' | 'temporarioSp', Totais>;
+export const agregadoVazio = (): Agregado => ({ brasil: { admissions: 0, dismissals: 0 }, sp: { admissions: 0, dismissals: 0 }, servicos: { admissions: 0, dismissals: 0 }, servicosSp: { admissions: 0, dismissals: 0 }, temporario: { admissions: 0, dismissals: 0 }, temporarioSp: { admissions: 0, dismissals: 0 } });
+export const saldoLiquido = (t: Totais) => t.admissions - t.dismissals;
 
 /** Soma uma linha do arquivo CAGEDMOV (separador ';'): seção N = atividades administrativas e serviços complementares. */
-export function addLine(aggregate: Aggregate, line: string, month: string) {
-  const c = line.split(';');
-  if (c.length < 7 || c[0] !== month) return;
-  const balance = Number(c[6]); if (balance !== 1 && balance !== -1) return;
-  const bump = (t: Totals) => { if (balance === 1) t.admissions++; else t.dismissals++; };
-  const sp = c[2] === SP; const services = c[4] === 'N'; const temporary = c[5] === TEMPORARY;
-  bump(aggregate.brasil);
-  if (sp) bump(aggregate.sp);
-  if (services) { bump(aggregate.servicos); if (sp) bump(aggregate.servicosSp); }
-  if (temporary) { bump(aggregate.temporario); if (sp) bump(aggregate.temporarioSp); }
+export function somarLinha(agregado: Agregado, linha: string, mes: string) {
+  const c = linha.split(';');
+  if (c.length < 7 || c[0] !== mes) return;
+  const variacaoDeVagas = Number(c[6]); if (variacaoDeVagas !== 1 && variacaoDeVagas !== -1) return;
+  const contar = (t: Totais) => { if (variacaoDeVagas === 1) t.admissions++; else t.dismissals++; };
+  const sp = c[2] === CODIGO_SP; const servicos = c[4] === 'N'; const temporario = c[5] === CNAE_TEMPORARIO;
+  contar(agregado.brasil);
+  if (sp) contar(agregado.sp);
+  if (servicos) { contar(agregado.servicos); if (sp) contar(agregado.servicosSp); }
+  if (temporario) { contar(agregado.temporario); if (sp) contar(agregado.temporarioSp); }
 }
-export const monthLabel = (month: string) => `${month.slice(4)}/${month.slice(0, 4)}`;
-export function parseListing(text: string) { return text.split(/\r?\n/).map(l => l.trim()).filter(Boolean); }
+export const rotuloDoMes = (mes: string) => `${mes.slice(4)}/${mes.slice(0, 4)}`;
+export function lerListagem(texto: string) { return texto.split(/\r?\n/).map(l => l.trim()).filter(Boolean); }
 
-const curl = (url: string, args: string[] = []) => run('curl', ['-s', '--fail', '-m', '900', ...args, url], { maxBuffer: 16 * 1024 * 1024, encoding: 'buffer' });
-async function list(url: string) { return parseListing(((await curl(url)).stdout as unknown as Buffer).toString('latin1')); }
-const extractor = () => process.platform === 'win32' ? path.join(process.env.SystemRoot || 'C:\\Windows', 'System32', 'tar.exe') : '7z';
-const extractArgs = (archive: string, target: string) => process.platform === 'win32' ? ['-xf', archive, '-C', target] : ['x', '-y', `-o${target}`, archive];
+const baixarComCurl = (url: string, args: string[] = []) => executar('curl', ['-s', '--fail', '-m', '900', ...args, url], { maxBuffer: 16 * 1024 * 1024, encoding: 'buffer' });
+async function listar(url: string) { return lerListagem(((await baixarComCurl(url)).stdout as unknown as Buffer).toString('latin1')); }
+const extratorDeArquivo = () => process.platform === 'win32' ? path.join(process.env.SystemRoot || 'C:\\Windows', 'System32', 'tar.exe') : '7z';
+const argumentosDeExtracao = (arquivo: string, target: string) => process.platform === 'win32' ? ['-xf', arquivo, '-C', target] : ['x', '-y', `-o${target}`, arquivo];
 
 /** Novo CAGED: baixa o CAGEDMOV do mês, soma admissões e desligamentos em fluxo (sem carregar o arquivo na memória) e apaga os temporários. */
-async function aggregateMonth(year: string, month: string): Promise<Aggregate> {
-  const work = path.join(dataDir(), 'tmp', `caged-${month}`);
-  await rm(work, { recursive: true, force: true }); await mkdir(work, { recursive: true });
+async function agregarMes(ano: string, mes: string): Promise<Agregado> {
+  const pastaDeTrabalho = path.join(pastaDosDados(), 'tmp', `caged-${mes}`);
+  await rm(pastaDeTrabalho, { recursive: true, force: true }); await mkdir(pastaDeTrabalho, { recursive: true });
   try {
-    const archive = path.join(work, `CAGEDMOV${month}.7z`);
-    await curl(`${CAGED_FTP}${year}/${month}/CAGEDMOV${month}.7z`, ['-o', archive]);
-    await run(extractor(), extractArgs(archive, work), { maxBuffer: 1024 * 1024 });
-    const txt = (await readdir(work)).find(f => /\.txt$/i.test(f));
-    if (!txt) throw new Error('Arquivo CAGEDMOV sem .txt após extração');
-    const aggregate = emptyAggregate();
-    for await (const line of createInterface({ input: createReadStream(path.join(work, txt), { encoding: 'utf8' }), crlfDelay: Infinity })) addLine(aggregate, line, month);
-    if (aggregate.brasil.admissions + aggregate.brasil.dismissals < 100000) throw new Error('Totais do CAGED implausíveis; arquivo possivelmente incompleto');
-    return aggregate;
-  } finally { await rm(work, { recursive: true, force: true }); }
+    const arquivo = path.join(pastaDeTrabalho, `CAGEDMOV${mes}.7z`);
+    await baixarComCurl(`${CAGED_FTP}${ano}/${mes}/CAGEDMOV${mes}.7z`, ['-o', arquivo]);
+    await executar(extratorDeArquivo(), argumentosDeExtracao(arquivo, pastaDeTrabalho), { maxBuffer: 1024 * 1024 });
+    const arquivoTxt = (await readdir(pastaDeTrabalho)).find(f => /\.txt$/i.test(f));
+    if (!arquivoTxt) throw new Error('Arquivo CAGEDMOV sem .txt após extração');
+    const agregado = agregadoVazio();
+    for await (const linha of createInterface({ input: createReadStream(path.join(pastaDeTrabalho, arquivoTxt), { encoding: 'utf8' }), crlfDelay: Infinity })) somarLinha(agregado, linha, mes);
+    if (agregado.brasil.admissions + agregado.brasil.dismissals < 100000) throw new Error('Totais do CAGED implausíveis; arquivo possivelmente incompleto');
+    return agregado;
+  } finally { await rm(pastaDeTrabalho, { recursive: true, force: true }); }
 }
-const SERIES: [keyof Aggregate, string, string][] = [
+const SERIES_DO_CAGED: [keyof Agregado, string, string][] = [
   ['brasil', 'caged.saldo', 'Saldo de emprego formal — Brasil'],
   ['sp', 'caged.saldo-sp', 'Saldo de emprego formal — São Paulo'],
   ['servicos', 'caged.saldo-servicos', 'Saldo — serviços administrativos e complementares (seção N)'],
   ['temporario', 'caged.saldo-temporario', 'Saldo — locação de mão de obra temporária (CNAE 7820-5)'],
 ];
-function publish(db: Db) {
-  for (const [, id, label] of SERIES) {
-    const series = getSeries(db, id); const last = series.at(-1); if (!last) continue;
-    setIndicator(db, { id, source: 'caged', group: 'Emprego formal', label, value: last.value, unit: 'vagas no mês', period: monthLabel(last.period), previous: series.at(-2)?.value, url: CAGED_PAGE });
+function publicar(db: BancoDeDados) {
+  for (const [, id, rotulo] of SERIES_DO_CAGED) {
+    const serie = lerSerie(db, id); const ultimo = serie.at(-1); if (!ultimo) continue;
+    gravarIndicador(db, { id, source: 'caged', group: 'Emprego formal', label: rotulo, value: ultimo.value, unit: 'vagas no mês', period: rotuloDoMes(ultimo.period), previous: serie.at(-2)?.value, url: PAGINA_DO_CAGED });
   }
 }
-const HOUR = 60 * 60 * 1000;
+const UMA_HORA_MS = 60 * 60 * 1000;
 
 export const caged: Coletor = {
   source: 'caged', label: 'CAGED (Ministério do Trabalho)',
   async run({ db, full }) {
     // O MTE publica uma vez por mês; verificar o FTP a cada ciclo só custa uma listagem pequena, mas limitamos a 1 hora.
-    const lastCheck = getState(db, 'caged:check');
-    if (!full && lastCheck && Date.now() - Date.parse(lastCheck.updatedAt) < HOUR) { publish(db); return { fetched: 0, changed: 0 }; }
-    let fetched = 0; let changed = 0;
-    const years = (await list(CAGED_FTP)).map(l => l.match(/<DIR>\s+(20\d{2})$/)?.[1]).filter((y): y is string => Boolean(y)).sort(); fetched++;
-    const candidates: { year: string; month: string }[] = [];
-    for (const year of years.slice(-3).reverse()) {
-      const months = (await list(`${CAGED_FTP}${year}/`)).map(l => l.match(/<DIR>\s+(\d{6})$/)?.[1]).filter((m): m is string => Boolean(m)).sort().reverse(); fetched++;
-      candidates.push(...months.map(month => ({ year, month })));
+    const ultimaVerificacao = lerEstado(db, 'caged:check');
+    if (!full && ultimaVerificacao && Date.now() - Date.parse(ultimaVerificacao.updatedAt) < UMA_HORA_MS) { publicar(db); return { fetched: 0, changed: 0 }; }
+    let buscados = 0; let alterados = 0;
+    const anos = (await listar(CAGED_FTP)).map(l => l.match(/<DIR>\s+(20\d{2})$/)?.[1]).filter((y): y is string => Boolean(y)).sort(); buscados++;
+    const candidatas: { year: string; month: string }[] = [];
+    for (const ano of anos.slice(-3).reverse()) {
+      const meses = (await listar(`${CAGED_FTP}${ano}/`)).map(l => l.match(/<DIR>\s+(\d{6})$/)?.[1]).filter((m): m is string => Boolean(m)).sort().reverse(); buscados++;
+      candidatas.push(...meses.map(mes => ({ year: ano, month: mes })));
     }
-    for (const { year, month } of candidates.slice(0, full ? 24 : 3)) {
-      const files = await list(`${CAGED_FTP}${year}/${month}/`); fetched++;
-      const size = files.find(l => l.includes(`CAGEDMOV${month}.7z`))?.match(/\s(\d+)\s+CAGEDMOV/)?.[1];
-      if (!size) continue;
-      const known = getState(db, `caged:size:${month}`)?.value;
-      if (known === size && getSeries(db, 'caged.saldo').some(p => p.period === month)) continue; // inalterado desde a última coleta
-      const aggregate = await aggregateMonth(year, month); fetched++;
-      for (const [key, id] of SERIES) setSeries(db, id, month, net(aggregate[key]));
-      setSeries(db, 'caged.saldo-temporario-sp', month, net(aggregate.temporarioSp)); setSeries(db, 'caged.saldo-servicos-sp', month, net(aggregate.servicosSp));
-      const fmt = numeroBR;
-      const line = (name: string, t: Totals) => `${name}: ${fmt(t.admissions)} admissões, ${fmt(t.dismissals)} desligamentos, saldo ${fmt(net(t))}.`;
-      const content = [`Novo CAGED — competência ${monthLabel(month)} (arquivo CAGEDMOV, base do número divulgado pelo Ministério no mês; declarações fora do prazo e exclusões posteriores não são aplicadas).`,
-        line('Brasil', aggregate.brasil), line('São Paulo', aggregate.sp), line('Serviços administrativos e complementares (seção N), Brasil', aggregate.servicos), line('Serviços administrativos e complementares (seção N), São Paulo', aggregate.servicosSp),
-        line('Locação de mão de obra temporária (CNAE 7820-5), Brasil', aggregate.temporario), line('Locação de mão de obra temporária (CNAE 7820-5), São Paulo', aggregate.temporarioSp)].join('\n');
-      if (upsertDocument(db, { source: 'caged', url: `${CAGED_FTP}${year}/${month}/`, title: `Novo CAGED — ${monthLabel(month)}`, content, publishedAt: new Date(Date.UTC(Number(month.slice(0, 4)), Number(month.slice(4)) , 1)).toISOString(), meta: { month } })) changed++;
-      setState(db, `caged:size:${month}`, size);
+    for (const { year: ano, month: mes } of candidatas.slice(0, full ? 24 : 3)) {
+      const arquivos = await listar(`${CAGED_FTP}${ano}/${mes}/`); buscados++;
+      const tamanho = arquivos.find(l => l.includes(`CAGEDMOV${mes}.7z`))?.match(/\s(\d+)\s+CAGEDMOV/)?.[1];
+      if (!tamanho) continue;
+      const conhecido = lerEstado(db, `caged:size:${mes}`)?.value;
+      if (conhecido === tamanho && lerSerie(db, 'caged.saldo').some(p => p.period === mes)) continue; // inalterado desde a última coleta
+      const agregado = await agregarMes(ano, mes); buscados++;
+      for (const [key, id] of SERIES_DO_CAGED) gravarSerie(db, id, mes, saldoLiquido(agregado[key]));
+      gravarSerie(db, 'caged.saldo-temporario-sp', mes, saldoLiquido(agregado.temporarioSp)); gravarSerie(db, 'caged.saldo-servicos-sp', mes, saldoLiquido(agregado.servicosSp));
+      const formatar = numeroBR;
+      const linha = (nome: string, t: Totais) => `${nome}: ${formatar(t.admissions)} admissões, ${formatar(t.dismissals)} desligamentos, saldo ${formatar(saldoLiquido(t))}.`;
+      const conteudo = [`Novo CAGED — competência ${rotuloDoMes(mes)} (arquivo CAGEDMOV, base do número divulgado pelo Ministério no mês; declarações fora do prazo e exclusões posteriores não são aplicadas).`,
+        linha('Brasil', agregado.brasil), linha('São Paulo', agregado.sp), linha('Serviços administrativos e complementares (seção N), Brasil', agregado.servicos), linha('Serviços administrativos e complementares (seção N), São Paulo', agregado.servicosSp),
+        linha('Locação de mão de obra temporária (CNAE 7820-5), Brasil', agregado.temporario), linha('Locação de mão de obra temporária (CNAE 7820-5), São Paulo', agregado.temporarioSp)].join('\n');
+      if (gravarDocumento(db, { source: 'caged', url: `${CAGED_FTP}${ano}/${mes}/`, title: `Novo CAGED — ${rotuloDoMes(mes)}`, content: conteudo, publishedAt: new Date(Date.UTC(Number(mes.slice(0, 4)), Number(mes.slice(4)) , 1)).toISOString(), meta: { month: mes } })) alterados++;
+      gravarEstado(db, `caged:size:${mes}`, tamanho);
     }
-    setState(db, 'caged:check', new Date().toISOString());
-    publish(db);
-    return { fetched, changed };
+    gravarEstado(db, 'caged:check', new Date().toISOString());
+    publicar(db);
+    return { fetched: buscados, changed: alterados };
   },
 };

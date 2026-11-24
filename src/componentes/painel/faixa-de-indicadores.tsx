@@ -2,7 +2,7 @@
 import { ArrowDown, ArrowUp, Minus } from 'lucide-react';
 import { ehPercentual, numeroCompacto, numeroDoIndicador } from '@/lib/base/formato';
 import { linkSeguro } from '@/lib/base/url-segura';
-import type { PainelIndicator } from '@/lib/dados/painel';
+import type { IndicadorDoPainel } from '@/lib/dados/painel';
 import { NOMES_DAS_FONTES } from '@/componentes/painel/formatacao';
 import { usePainel } from '@/componentes/painel/usar-painel';
 
@@ -11,16 +11,16 @@ const NA_FAIXA = ['bcb.selic-meta', 'ibge.ipca-12m', 'ibge.desocupacao', 'caged.
 const ROTULO_NA_FAIXA: Record<string, string> = { 'bcb.selic-meta': 'Selic', 'ibge.ipca-12m': 'IPCA 12m', 'ibge.desocupacao': 'Desocupação', 'caged.saldo': 'CAGED Brasil' };
 
 /** Faixa compacta: percentuais com duas casas, contagens abreviadas (165,8 mil). */
-const valorCurto = (item: PainelIndicator) => ehPercentual(item.unit) ? `${numeroDoIndicador(item.value, item.unit)}%` : numeroCompacto(item.value);
+const valorCurto = (item: IndicadorDoPainel) => ehPercentual(item.unit) ? `${numeroDoIndicador(item.value, item.unit)}%` : numeroCompacto(item.value);
 
 /** Rótulo curto de um indicador que não tem apelido em ROTULO_NA_FAIXA. */
-function rotuloCurto(item: PainelIndicator) {
+function rotuloCurto(item: IndicadorDoPainel) {
   if (item.id.startsWith('caged')) return `CAGED ${item.label.split('—')[1]?.trim().split(' (')[0] ?? ''}`.trim();
   return `${item.label.split(' (')[0].split(' — ')[0]}${item.id.endsWith('12m') ? ' 12m' : ''}`;
 }
 
 /** Variação curta ao lado do valor ("0,25 p.p."); a frase completa fica para leitores de tela. */
-function VariacaoDaFaixa({ item }: { item: PainelIndicator }) {
+function VariacaoDaFaixa({ item }: { item: IndicadorDoPainel }) {
   if (item.previous === null) return null;
   const delta = item.value - item.previous;
   const Icone = delta === 0 ? Minus : delta > 0 ? ArrowUp : ArrowDown;

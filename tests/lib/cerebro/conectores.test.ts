@@ -8,7 +8,7 @@ import { exemplos, lerExemplos, mensagemDoPedido, reiniciarCacheDasInstrucoes, s
 import { cobertura, coberturaLocal, materialDoRelatorio, pesquisarNaBiblioteca, radical, termosDaPesquisa } from '@/lib/biblioteca/pesquisa';
 import { chaveDaResposta, guardarResposta, limparRespostasGuardadas, respostaGuardada } from '@/lib/infra/cache-respostas';
 import { verificarFatos } from '@/lib/seguranca/verificar-fatos';
-import { openDb, setIndicator, upsertDocument } from '@/lib/dados/db';
+import { abrirBanco, gravarIndicador, gravarDocumento } from '@/lib/dados/db';
 
 const CONECTOR = `---
 titulo: RH, recrutamento e qualificação
@@ -94,14 +94,14 @@ test('rules and examples come first and never change between questions; the requ
 test('the library search reads the shelves of the connector, prefers recent texts and returns nothing for absent subjects', () => {
   const pasta = mkdtempSync(path.join(tmpdir(), 'sindi-pesquisa-')); const arquivo = path.join(pasta, 'dados.sqlite');
   try {
-    const db = openDb(arquivo);
-    const noticia = (slug: string, title: string, content: string, publishedAt: string, section = 'noticia') => upsertDocument(db, { source: 'sindeprestem', url: `https://www.sindeprestem.com.br/post/${slug}`, title, content, publishedAt, meta: { section } });
+    const db = abrirBanco(arquivo);
+    const noticia = (slug: string, title: string, content: string, publishedAt: string, section = 'noticia') => gravarDocumento(db, { source: 'sindeprestem', url: `https://www.sindeprestem.com.br/post/${slug}`, title, content, publishedAt, meta: { section } });
     noticia('gestante-2021', 'Judiciário obriga INSS a pagar salário a gestantes', 'Decisão de 2021 sobre gestantes afastadas na pandemia. A estabilidade não foi tratada.', '2021-07-16T12:00:00.000Z');
     noticia('gestante-2026', 'Artigo - Estabilidade da gestante no trabalho temporário', 'Por Vander Morales\nO artigo trata da estabilidade da gestante no trabalho temporário e da insegurança jurídica para as empresas.', '2026-05-29T12:00:00.000Z', 'artigo');
     noticia('nr1-stf', 'Fenaserhtt participa de audiência no STF sobre regras da NR-1', 'A federação participou de audiência pública no STF sobre a NR-1 e os riscos psicossociais.', '2026-09-16T12:00:00.000Z');
     noticia('nr10', 'Curso de NR-10 para eletricistas', 'Treinamento de NR-10.', '2026-09-10T12:00:00.000Z');
-    upsertDocument(db, { source: 'sindeprestem', url: 'https://www.sindeprestem.com.br/noticias/page/3', title: 'Notícias | Sindeprestem | Página 3', content: 'estabilidade gestante trabalho temporário listagem', meta: { section: 'noticia', listing: true } });
-    setIndicator(db, { id: 'bcb.selic-meta', source: 'bcb', group: 'juros', label: 'Meta Selic', value: 15, unit: '% a.a.', period: '2026-10', previous: 15, url: 'https://www.bcb.gov.br' });
+    gravarDocumento(db, { source: 'sindeprestem', url: 'https://www.sindeprestem.com.br/noticias/page/3', title: 'Notícias | Sindeprestem | Página 3', content: 'estabilidade gestante trabalho temporário listagem', meta: { section: 'noticia', listing: true } });
+    gravarIndicador(db, { id: 'bcb.selic-meta', source: 'bcb', group: 'juros', label: 'Meta Selic', value: 15, unit: '% a.a.', period: '2026-10', previous: 15, url: 'https://www.bcb.gov.br' });
     db.close();
     const achados = pesquisarNaBiblioteca('O que mudou na estabilidade gestante e quais cuidados minha empresa deve adotar?', ['artigos', 'noticias'], { arquivo, agora: new Date('2026-10-13') });
     assert.equal(achados[0].title, 'Estabilidade da gestante no trabalho temporário'); assert.match(achados[0].content, /^Artigo do presidente do SINDEPRESTEM em 29\/05\/2026\. /);

@@ -1,7 +1,7 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { comBanco, simularRede, type Rota } from '../../apoio/rede-simulada';
-import { parseDate } from '@/lib/dados/html';
+import { lerData } from '@/lib/dados/html';
 import { bcb } from '@/lib/dados/coletores/bcb';
 import { ibge } from '@/lib/dados/coletores/ibge';
 import { camara } from '@/lib/dados/coletores/camara';
@@ -9,15 +9,15 @@ import { senado } from '@/lib/dados/coletores/senado';
 import { tst } from '@/lib/dados/coletores/tst';
 import { wec } from '@/lib/dados/coletores/wec';
 import type { Coletor } from '@/lib/dados/coletores/tipos';
-import type { Db } from '@/lib/dados/db';
+import type { BancoDeDados } from '@/lib/dados/db';
 
 // Cada coletor roda de verdade (banco SQLite temporário, sem esperas) contra respostas gravadas da fonte: uma boa, uma vazia, uma malformada e uma com erro.
-async function coletar(coletor: Coletor, db: Db, rotas: Rota[], full = false) {
+async function coletar(coletor: Coletor, db: BancoDeDados, rotas: Rota[], full = false) {
   const rede = simularRede(rotas);
   try { return { resultado: await coletor.run({ db, full }), chamadas: rede.chamadas }; } finally { rede.restaurar(); }
 }
-const falha = async (coletor: Coletor, db: Db, rotas: Rota[]) => { const rede = simularRede(rotas); try { return await coletor.run({ db, full: false }).then(() => undefined, e => e as Error); } finally { rede.restaurar(); } };
-const linhas = <T,>(db: Db, sql: string, ...args: (string | number)[]) => db.prepare(sql).all(...args).map(l => ({ ...l })) as T[];
+const falha = async (coletor: Coletor, db: BancoDeDados, rotas: Rota[]) => { const rede = simularRede(rotas); try { return await coletor.run({ db, full: false }).then(() => undefined, e => e as Error); } finally { rede.restaurar(); } };
+const linhas = <T,>(db: BancoDeDados, sql: string, ...args: (string | number)[]) => db.prepare(sql).all(...args).map(l => ({ ...l })) as T[];
 const dd = (diasAtras: number) => { const d = new Date(Date.now() - diasAtras * 86_400_000); return `${String(d.getUTCDate()).padStart(2, '0')}/${String(d.getUTCMonth() + 1).padStart(2, '0')}/${d.getUTCFullYear()}`; };
 
 // ---------------------------------------------------------------- Banco Central
@@ -166,7 +166,7 @@ test('wec: sitemap vazio ou malformado não grava nada; página curta é descart
 
 // ---------------------------------------------------------------- datas das fontes
 test('parseDate: ano de quatro dígitos é lido inteiro (13/11/2026 já foi lido como 2020), o de dois dígitos vira 20xx e texto sem data é ignorado', () => {
-  assert.equal(parseDate('13/11/2026'), '2026-11-13T12:00:00.000Z'); assert.equal(parseDate('Publicado em 05/01/2026 às 10:00'), '2026-01-05T12:00:00.000Z');
-  assert.equal(parseDate('13/11/26'), '2026-11-13T12:00:00.000Z'); assert.equal(parseDate('2026-11-13T09:00:00Z'), '2026-11-13T09:00:00.000Z');
-  assert.equal(parseDate('31/02/2026'), '2026-03-03T12:00:00.000Z', 'data impossível rola para o mês seguinte, como o JavaScript faz; não é erro'); assert.equal(parseDate('sem data'), undefined); assert.equal(parseDate(undefined), undefined);
+  assert.equal(lerData('13/11/2026'), '2026-11-13T12:00:00.000Z'); assert.equal(lerData('Publicado em 05/01/2026 às 10:00'), '2026-01-05T12:00:00.000Z');
+  assert.equal(lerData('13/11/26'), '2026-11-13T12:00:00.000Z'); assert.equal(lerData('2026-11-13T09:00:00Z'), '2026-11-13T09:00:00.000Z');
+  assert.equal(lerData('31/02/2026'), '2026-03-03T12:00:00.000Z', 'data impossível rola para o mês seguinte, como o JavaScript faz; não é erro'); assert.equal(lerData('sem data'), undefined); assert.equal(lerData(undefined), undefined);
 });

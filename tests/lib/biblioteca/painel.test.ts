@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import { mkdtempSync, rmSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import path from 'node:path';
-import { openDb, setIndicator, startRun, finishRun, upsertDocument } from '@/lib/dados/db';
+import { abrirBanco, gravarIndicador, iniciarExecucao, finalizarExecucao, gravarDocumento } from '@/lib/dados/db';
 import { esquecerPainelEmCache, lerPainelEmCache } from '@/lib/dados/painel';
 import { DEFASADA_HORAS, fontesDefasadas } from '@/lib/dados/frescor';
 import { lerDocumento, listarEstante, refDoDocumento, resumoDaBiblioteca } from '@/lib/biblioteca/consulta';
@@ -32,12 +32,12 @@ test('lerPainelEmCache: reaproveita a leitura por 30 s e lê de novo depois; ler
   const pasta = mkdtempSync(path.join(tmpdir(), 'sindi-painel-')); const arquivo = path.join(pasta, 'dados.sqlite');
   try {
     esquecerPainelEmCache();
-    const db = openDb(arquivo);
-    setIndicator(db, { id: 'bcb.selic-meta', source: 'bcb', group: 'Juros', label: 'Meta da taxa Selic', value: 13.75, unit: '% ao ano', period: '17/09/2026', previous: 14, url: 'https://www.bcb.gov.br/' });
-    const rodada = startRun(db, 'bcb'); finishRun(db, rodada, { fetched: 1, changed: 1 });
+    const db = abrirBanco(arquivo);
+    gravarIndicador(db, { id: 'bcb.selic-meta', source: 'bcb', group: 'Juros', label: 'Meta da taxa Selic', value: 13.75, unit: '% ao ano', period: '17/09/2026', previous: 14, url: 'https://www.bcb.gov.br/' });
+    const rodada = iniciarExecucao(db, 'bcb'); finalizarExecucao(db, rodada, { fetched: 1, changed: 1 });
     const t0 = Date.parse('2026-11-20T12:00:00Z');
     assert.equal(lerPainelEmCache(arquivo, t0).indicators[0].value, 13.75);
-    setIndicator(db, { id: 'bcb.selic-meta', source: 'bcb', group: 'Juros', label: 'Meta da taxa Selic', value: 14.25, unit: '% ao ano', period: '29/10/2026', previous: 13.75, url: 'https://www.bcb.gov.br/' });
+    gravarIndicador(db, { id: 'bcb.selic-meta', source: 'bcb', group: 'Juros', label: 'Meta da taxa Selic', value: 14.25, unit: '% ao ano', period: '29/10/2026', previous: 13.75, url: 'https://www.bcb.gov.br/' });
     assert.equal(lerPainelEmCache(arquivo, t0 + 10_000).indicators[0].value, 13.75, 'dentro de 30 s: a leitura guardada');
     assert.equal(lerPainelEmCache(arquivo, t0 + 31_000).indicators[0].value, 14.25, 'depois de 30 s: lê de novo');
     db.close();
@@ -49,8 +49,8 @@ test('lerPainelEmCache: reaproveita a leitura por 30 s e lê de novo depois; ler
 test('biblioteca: o link leva o código do endereço, e um id reaproveitado por outro documento não abre o errado', () => {
   const pasta = mkdtempSync(path.join(tmpdir(), 'sindi-ref-')); const anterior = process.env.SINDI_DATA_DIR; process.env.SINDI_DATA_DIR = pasta;
   try {
-    const db = openDb(path.join(pasta, 'sindi-dados.sqlite')); const site = 'https://www.sindeprestem.com.br';
-    upsertDocument(db, { source: 'sindeprestem', url: `${site}/a.pdf`, title: 'CCT Portaria 2025', content: 'CLÁUSULA PRIMEIRA - ABRANGÊNCIA porteiros', meta: { section: 'convencao', category: 'Portaria', year: 2025 } });
+    const db = abrirBanco(path.join(pasta, 'sindi-dados.sqlite')); const site = 'https://www.sindeprestem.com.br';
+    gravarDocumento(db, { source: 'sindeprestem', url: `${site}/a.pdf`, title: 'CCT Portaria 2025', content: 'CLÁUSULA PRIMEIRA - ABRANGÊNCIA porteiros', meta: { section: 'convencao', category: 'Portaria', year: 2025 } });
     db.close();
     const item = listarEstante(estantePorId('convencoes')!, { facetas: {}, pagina: 1 }).itens[0];
     assert.match(item.ref, /^[0-9a-f]{6}$/); assert.equal(item.ref, refDoDocumento(`${site}/a.pdf`)); assert.equal(refDoDocumento(`${site}/a.pdf#parte-2`), item.ref, 'o fragmento não muda o código');

@@ -1,14 +1,14 @@
 import { createHash } from 'node:crypto';
 import { mkdirSync, readFileSync, renameSync, statSync, writeFileSync } from 'node:fs';
 import path from 'node:path';
-import { dataDir } from '@/lib/dados/db';
+import { pastaDosDados } from '@/lib/dados/db';
 import { trechosDoCerebro, type TrechoDoCerebro } from '@/lib/cerebro/carregar';
 
 const nomeDoModelo = () => process.env.GEMINI_EMBED_MODEL || 'gemini-embedding-001';
 /** Vetores de 768 dimensões (o modelo permite reduzir): índice menor e busca mais rápida. O nome no índice inclui o tamanho, então mudar qualquer um reindexa. */
 const DIMENSOES = 768;
 const modeloDeEmbedding = () => `${nomeDoModelo()}:${DIMENSOES}`;
-export const arquivoDeVetores = () => path.join(dataDir(), 'cerebro-vetores.json');
+export const arquivoDeVetores = () => path.join(pastaDosDados(), 'cerebro-vetores.json');
 type Indice = { modelo: string; vetores: Record<string, { hash: string; vetor: number[] }> };
 
 /** Identificador estável do trecho: arquivo + seção + início do texto; o hash do conteúdo detecta alterações. */

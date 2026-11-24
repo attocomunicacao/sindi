@@ -1,4 +1,4 @@
-import { historicoParaOModelo, recentMessages } from '@/lib/chat/esquema';
+import { historicoParaOModelo, mensagensRecentes } from '@/lib/chat/esquema';
 import { guardarResposta } from '@/lib/infra/cache-respostas';
 import { sistema, exemplos } from '@/lib/cerebro/instrucoes';
 import type { Mensagem } from '@/lib/base/tipos';
@@ -16,7 +16,7 @@ import { registrarUso as registrarUsoReal } from '@/lib/infra/uso';
 
 export const runtime = 'nodejs';
 export const maxDuration = 300;
-const error = erroJson;
+const erro = erroJson;
 
 /**
  * Chat da SINDI. A rota só orquestra; cada etapa mora em src/lib/chat:
@@ -28,27 +28,27 @@ export async function POST(request: Request) {
   const lida = await lerRequisicaoDoChat(request);
   if ('resposta' in lida) return lida.resposta;
   const { mensagens, aquecimento } = lida;
-  const started = Date.now();
+  const inicio = Date.now();
   const registrarUso: typeof registrarUsoReal = aquecimento ? async () => true : registrarUsoReal;
-  const controller = new AbortController();
+  const controlador = new AbortController();
 
-  async function generate(onDelta?: (text: string) => void, onReset?: () => void) {
+  async function gerar(onDelta?: (trecho: string) => void, onReset?: () => void) {
     let concluirGeracao: ((texto?: string) => void) | undefined;
     try {
-      const signal = AbortSignal.any([request.signal, controller.signal, AbortSignal.timeout(90000)]);
+      const sinal = AbortSignal.any([request.signal, controlador.signal, AbortSignal.timeout(90000)]);
       // Cota esgotada: avisa antes de buscar (a busca por significado também gasta o provedor).
       const semCota = await conferirCotaAntes(request, aquecimento);
       if (semCota) return semCota;
       // Dados pessoais e segredos nunca chegam ao modelo: a pergunta e o histórico seguem com o trecho removido.
-      const recentes = recentMessages(mensagens).map(message => ({ ...message, content: redigirDadosSensiveis(message.content) }));
+      const recentes = mensagensRecentes(mensagens).map(mensagem => ({ ...mensagem, content: redigirDadosSensiveis(mensagem.content) }));
       const pergunta = recentes.at(-1)!.content; const historico = historicoParaOModelo(recentes.slice(0, -1));
-      const { situacao, choices, lista, relatorio, conector, anteriores, writing, question } = await decidirSituacao({ mensagens });
+      const { situacao, escolhidas, lista, relatorio, conector, anteriores, ehRedacao, perguntaAtual } = await decidirSituacao({ mensagens });
 
       // O que muda a cada pergunta custa tokens do limite gratuito (as regras e os exemplos vêm sempre iguais, primeiro): as fontes têm orçamento de caracteres
       // e a resposta tem limite de palavras, definido pelo conector da área.
       const base: Mensagem[] = [{ role: 'system', content: sistema() }, ...exemplos(), ...historico as Mensagem[]];
-      const pedido = construirPedido({ writing, lista, relatorio, conector, choices, pergunta });
-      const tentativas = tentativasDeResposta(situacao, choices);
+      const pedido = construirPedido({ ehRedacao, lista, relatorio, conector, escolhidas, pergunta });
+      const tentativas = tentativasDeResposta(situacao, escolhidas);
       const primeira = pedido(tentativas[0].nota, tentativas[0].fontes);
       // Nível por tipo de pedido: o rápido só para o que é curto e roteirizado (saudação, recusa, encaminhamento: o servidor já decidiu o que dizer);
       // o principal para tudo o que exige ler fontes. Medido: nas perguntas sobre a própria SINDI o rápido errou 3 de 10 (chegou a dizer que a SINDI é o sindicato).
@@ -57,11 +57,11 @@ export async function POST(request: Request) {
 
       // Primeira pergunta de uma conversa com as mesmas regras, exemplos e fontes: a resposta já escrita e verificada sai da memória, ou vem de quem está gerando agora.
       const chave = chaveDaGeracao({ mensagens, situacao, modelo: nivel, base, texto: primeira.texto });
-      const reuso = await reaproveitarOuAbrir(chave, signal);
+      const reuso = await reaproveitarOuAbrir(chave, sinal);
       if ('texto' in reuso) {
         onDelta?.(reuso.texto);
-        const metricsRecorded = await registrarUso({ success: true, durationMs: Date.now() - started });
-        return jsonSemCache({ text: reuso.texto, metricsRecorded });
+        const metricasRegistradas = await registrarUso({ success: true, durationMs: Date.now() - inicio });
+        return jsonSemCache({ text: reuso.texto, metricsRecorded: metricasRegistradas });
       }
       concluirGeracao = reuso.concluir;
       // A cota é gasta antes de escrever e verificar os fatos: a geração já consome o limite do provedor, mesmo quando a verificação reprova e manda reescrever.
@@ -69,23 +69,23 @@ export async function POST(request: Request) {
       if ('resposta' in gasto) return gasto.resposta;
 
       const { texto, uso, fontesUsadas, confiavel, provedor } = await escreverComVerificacao({
-        base, tentativas, pedido, primeira, nivel, signal, onDelta, onReset, manterColchetes: writing || PEDE_MODELO.test(question), perguntas: [...anteriores, question].join(' '),
+        base, tentativas, pedido, primeira, nivel, signal: sinal, onDelta, onReset, manterColchetes: ehRedacao || PEDE_MODELO.test(perguntaAtual), perguntas: [...anteriores, perguntaAtual].join(' '),
       });
-      if (!confiavel) { await registrarUso({ success: false, durationMs: Date.now() - started, usage: uso, provedor }); return error('Não foi possível gerar uma resposta confiável. Tente reformular a pergunta.', 502); }
-      const references = !writing && texto.trim() && fontesUsadas.length ? referenciasDasFontes(fontesUsadas) : '';
-      if (references) onDelta?.(references);
-      const metricsRecorded = await registrarUso({ success: Boolean(texto.trim()), durationMs: Date.now() - started, usage: uso, provedor });
-      if (!texto.trim()) return error('Não foi possível gerar uma resposta. Tente novamente.', 502);
-      if (chave && fontesUsadas === choices) { guardarResposta(chave, texto + references); concluirGeracao?.(texto + references); }
-      return jsonSemCache({ text: texto + references, metricsRecorded, restantes: gasto.cota?.restantes });
-    } catch (cause) {
-      await registrarUso({ success: false, durationMs: Date.now() - started });
-      if (cause instanceof LlmError) return error(cause.message, cause.status);
-      if (cause instanceof Error && ['TimeoutError', 'AbortError'].includes(cause.name)) return error('O serviço de IA demorou para responder. Tente novamente.', 504);
-      console.warn('SINDI AI service failure', { type: cause instanceof Error ? cause.name : 'unknown' });
-      return error(MENSAGEM_NEUTRA, 503);
+      if (!confiavel) { await registrarUso({ success: false, durationMs: Date.now() - inicio, usage: uso, provedor }); return erro('Não foi possível gerar uma resposta confiável. Tente reformular a pergunta.', 502); }
+      const referencias = !ehRedacao && texto.trim() && fontesUsadas.length ? referenciasDasFontes(fontesUsadas) : '';
+      if (referencias) onDelta?.(referencias);
+      const metricasRegistradas = await registrarUso({ success: Boolean(texto.trim()), durationMs: Date.now() - inicio, usage: uso, provedor });
+      if (!texto.trim()) return erro('Não foi possível gerar uma resposta. Tente novamente.', 502);
+      if (chave && fontesUsadas === escolhidas) { guardarResposta(chave, texto + referencias); concluirGeracao?.(texto + referencias); }
+      return jsonSemCache({ text: texto + referencias, metricsRecorded: metricasRegistradas, restantes: gasto.cota?.restantes });
+    } catch (causa) {
+      await registrarUso({ success: false, durationMs: Date.now() - inicio });
+      if (causa instanceof LlmError) return erro(causa.message, causa.status);
+      if (causa instanceof Error && ['TimeoutError', 'AbortError'].includes(causa.name)) return erro('O serviço de IA demorou para responder. Tente novamente.', 504);
+      console.warn('SINDI AI service failure', { type: causa instanceof Error ? causa.name : 'unknown' });
+      return erro(MENSAGEM_NEUTRA, 503);
     } finally { concluirGeracao?.(); }
   }
-  if (!request.headers.get('accept')?.includes('application/x-ndjson')) return generate();
-  return respostaEmFluxo(generate, controller);
+  if (!request.headers.get('accept')?.includes('application/x-ndjson')) return gerar();
+  return respostaEmFluxo(gerar, controlador);
 }

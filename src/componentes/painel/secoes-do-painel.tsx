@@ -1,12 +1,12 @@
 import type { ReactNode } from 'react';
 import { linkSeguro } from '@/lib/base/url-segura';
-import type { Painel, PainelNews } from '@/lib/dados/painel';
+import type { Painel, NoticiaDoPainel } from '@/lib/dados/painel';
 import { CLASSE_CARTAO } from '@/componentes/ui/cartao';
 import { NOMES_DAS_FONTES, dataCurta, dataEHora } from '@/componentes/painel/formatacao';
 
 const CLASSE_DA_LISTA = `divide-y divide-slate-200 ${CLASSE_CARTAO}`;
 
-function ItemDeNoticia({ noticia, legenda }: { noticia: PainelNews; legenda: string }) {
+function ItemDeNoticia({ noticia, legenda }: { noticia: NoticiaDoPainel; legenda: string }) {
   return <li className="p-4">
     <a href={linkSeguro(noticia.url)} target="_blank" rel="noreferrer" className="hover:underline">{noticia.title}</a>
     <p className="mt-1 text-xs text-slate-500">{legenda}</p>
@@ -19,7 +19,7 @@ function ListaVazia({ children }: { children: ReactNode }) {
 
 /** Notícias e artigos do sindicato (SINDEPRESTEM). */
 export function NoticiasDoSindicato({ sindicato }: { sindicato: Painel['sindicato'] }) {
-  const legenda = (n: PainelNews) => dataCurta(n.publishedAt);
+  const legenda = (n: NoticiaDoPainel) => dataCurta(n.publishedAt);
   return <section aria-labelledby="sindicato">
     <h2 id="sindicato" className="mb-3 text-lg font-semibold">Notícias do SINDEPRESTEM</h2>
     <ul className={CLASSE_DA_LISTA}>

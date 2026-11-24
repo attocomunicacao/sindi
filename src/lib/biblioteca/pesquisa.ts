@@ -1,6 +1,6 @@
 import { dataBR, mesAno } from '@/lib/base/formato';
 import { PRESIDENTE, RODAPE_INSTITUCIONAL } from '@/lib/base/constantes';
-import { comBancoSomenteLeitura, consultaPorPrefixos, dbPath } from '@/lib/dados/db';
+import { comBancoSomenteLeitura, consultaPorPrefixos, caminhoDoBanco } from '@/lib/dados/db';
 import { fraseDoIndicador } from '@/lib/dados/frase-do-indicador';
 import { normalizar, numeroDaNR, trechosRelevantes } from '@/lib/base/texto';
 import { lerPainel } from '@/lib/dados/painel';
@@ -51,7 +51,7 @@ const frequencias = new Map<string, { peso: number; ate: number }>();
  * Peso de cada termo pela raridade na biblioteca inteira (quanto menos documentos o contêm, mais ele pesa). Termo que não existe na biblioteca pesa muito e nunca
  * é encontrado: assunto ausente não vira acerto por causa das palavras comuns da pergunta. As contagens ficam em memória por uma hora.
  */
-export function pesosDosTermos(termos: string[], arquivo = dbPath()): number[] {
+export function pesosDosTermos(termos: string[], arquivo = caminhoDoBanco()): number[] {
   const agora = Date.now(); const faltam = termos.filter(t => (frequencias.get(`${arquivo}|${radical(t)}`)?.ate ?? 0) < agora);
   // Sem o banco, todos os termos pesam o mesmo.
   if (faltam.length) comBancoSomenteLeitura(arquivo, db => {
@@ -73,7 +73,7 @@ type Linha = { title: string; url: string; content: string; published_at: string
 
 /** `antigos: false` dispensa textos com mais de três anos (quando o conhecimento escrito pela equipe já responde, notícia antiga só acrescenta ruído). */
 export type OpcoesDaPesquisa = { limite?: number; minimo?: number; arquivo?: string; agora?: Date; antigos?: boolean };
-export function pesquisarNaBiblioteca(pergunta: string, estantes: string[], { limite = 2, minimo = 0.6, arquivo = dbPath(), agora = new Date(), antigos = true }: OpcoesDaPesquisa = {}): Passagem[] {
+export function pesquisarNaBiblioteca(pergunta: string, estantes: string[], { limite = 2, minimo = 0.6, arquivo = caminhoDoBanco(), agora = new Date(), antigos = true }: OpcoesDaPesquisa = {}): Passagem[] {
   const termos = termosDaPesquisa(pergunta);
   // "NR-1" não sobrevive como termo (duas letras e um número): vira uma expressão obrigatória no índice e no texto.
   const nr = numeroDaNR(pergunta); const citaNr = nr === undefined ? undefined : new RegExp(`\\bnr[- ]?0?${nr}\\b`);
@@ -130,7 +130,7 @@ const numero = (valor: number, unidade: string) => valor.toLocaleString('pt-BR',
  * Material de um relatório setorial (SINDI Relatórios): os indicadores oficiais mais recentes, as últimas publicações do SINDEPRESTEM e os projetos em tramitação
  * com movimentação recente, cada bloco com a data de referência. O modelo redige o resumo; os números vêm todos daqui, com a fonte.
  */
-export function materialDoRelatorio(pergunta: string, arquivo = dbPath()): Passagem[] {
+export function materialDoRelatorio(pergunta: string, arquivo = caminhoDoBanco()): Passagem[] {
   const painel = lerPainel(arquivo); if (!painel.available) return [];
   const q = normalizar(pergunta); const agora = new Date().toISOString(); const blocos: Passagem[] = [];
   // Pergunta sobre leis e projetos: os projetos vêm primeiro e em maior número, e os indicadores econômicos ficam de fora.

@@ -2,14 +2,14 @@ import { createHash } from 'node:crypto';
 import { DatabaseSync } from 'node:sqlite';
 import { existsSync } from 'node:fs';
 import { RODAPE_INSTITUCIONAL } from '@/lib/base/constantes';
-import { consultaPorPrefixos, dbPath } from '@/lib/dados/db';
-import { lerPainelEmCache, type PainelIndicator } from '@/lib/dados/painel';
+import { consultaPorPrefixos, caminhoDoBanco } from '@/lib/dados/db';
+import { lerPainelEmCache, type IndicadorDoPainel } from '@/lib/dados/painel';
 import { carregarArquivos } from '@/lib/cerebro/carregar';
 import { buscarNoCerebro } from '@/lib/cerebro/buscar';
 import { ESTANTES, estanteDoDocumento, estantePorId, type Estante } from '@/lib/biblioteca/estantes';
 
 export const POR_PAGINA = 24;
-const abrir = () => { try { return existsSync(dbPath()) ? new DatabaseSync(dbPath(), { readOnly: true }) : undefined; } catch { return undefined; } };
+const abrir = () => { try { return existsSync(caminhoDoBanco()) ? new DatabaseSync(caminhoDoBanco(), { readOnly: true }) : undefined; } catch { return undefined; } };
 /** Texto de leitura: sem o rodapé do site e com espaços normalizados. */
 export const limpar = (texto: string) => texto.replace(RODAPE_INSTITUCIONAL, '').replace(/\s+/g, ' ').trim();
 /** Consulta FTS5 segura: só palavras (sem operadores nem aspas vindos do usuário), por prefixo. */
@@ -121,5 +121,5 @@ export function cerebroPorArquivo(): Arquivo[] {
   }
   return [...mapa.values()].sort((a, b) => Number(a.tipo === 'autogerado') - Number(b.tipo === 'autogerado') || a.arquivo.localeCompare(b.arquivo));
 }
-export const indicadores = (): PainelIndicator[] => lerPainelEmCache().indicators;
+export const indicadores = (): IndicadorDoPainel[] => lerPainelEmCache().indicators;
 export { estantePorId };

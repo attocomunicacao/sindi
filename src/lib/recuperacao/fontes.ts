@@ -13,8 +13,8 @@ export function escolherFontes(passages: Passagem[], question: string, maximo = 
   return passages.map(p => ({ ...p, content: limparTrecho(p.content) })).filter(p => p.content.length > 50)
     .sort((a,b) => Number(Boolean(b.pinned)) - Number(Boolean(a.pinned)) || terms.filter(t => normalizar(b.content).includes(t)).length - terms.filter(t => normalizar(a.content).includes(t)).length).slice(0, maximo);
 }
-export function referenciasDasFontes(choices: Passagem[]): string {
-  const unique = [...new Map(choices.map(p => [p.url, p])).values()];
+export function referenciasDasFontes(escolhidas: Passagem[]): string {
+  const unique = [...new Map(escolhidas.map(p => [p.url, p])).values()];
   if (!unique.length) return '';
   return '\n\n' + 'Referências: ' + unique.map(p => {
     const title = /\.pdf$/i.test(p.title) ? 'Publicação do SINDEPRESTEM' : p.title;

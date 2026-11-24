@@ -3,14 +3,14 @@
 // .data/dados/grafo.json (lido pela página /cerebro e pela busca do chat) e o cofre do Obsidian em .data/obsidian/SINDI.
 import { mkdirSync, renameSync, writeFileSync } from 'node:fs';
 import path from 'node:path';
-import { dataDir } from '@/lib/dados/db';
+import { pastaDosDados } from '@/lib/dados/db';
 import { construirGrafo } from '@/lib/grafo/construir';
 import { exportarObsidian } from '@/lib/grafo/obsidian';
 import { arquivoDoGrafo } from '@/lib/grafo/consulta';
 
 const inicio = Date.now();
 const grafo = construirGrafo();
-mkdirSync(dataDir(), { recursive: true });
+mkdirSync(pastaDosDados(), { recursive: true });
 const destino = arquivoDoGrafo();
 writeFileSync(`${destino}.tmp`, JSON.stringify(grafo)); renameSync(`${destino}.tmp`, destino);
 const cofre = path.resolve('.data/obsidian/SINDI');

@@ -12,33 +12,33 @@ import { reiniciarLimitesNaMemoria } from '@/lib/infra/limite-por-minuto';
 import type { Passagem } from '@/lib/base/tipos';
 
 const fonte = (extra: Partial<Passagem> = {}): Passagem => ({ url: '/x', title: 'Fonte X', content: 'conteúdo', fetchedAt: '2026-11-20T00:00:00Z', ...extra });
-const base = { writing: false, lista: false, relatorio: false, conector: undefined, pergunta: 'Qual o prazo?' };
+const base = { ehRedacao: false, lista: false, relatorio: false, conector: undefined, pergunta: 'Qual o prazo?' };
 const requisicao = (corpo: BodyInit | null, cab: Record<string, string> = {}) => new Request('http://localhost/api/chat', { method: 'POST', headers: { origin: 'http://localhost', 'content-type': 'application/json', ...cab }, body: corpo });
 const mensagens = (...textos: string[]) => textos.map((content, i) => ({ role: i % 2 ? 'assistant' as const : 'user' as const, content }));
 
 test('prompt: a orientação vem da ferramenta, da situação, da redação ou do conector, nessa ordem de especificidade, e o limite de palavras segue o tipo de pedido', () => {
-  const choices = [fonte()];
+  const escolhidas = [fonte()];
   const ferramenta = [fonte({ ferramenta: { id: 'cnpj', orientacao: 'Cite só os dados da fonte.' } })];
-  const pedido = (extra: object, nota: string, fontes: Passagem[]) => construirPedido({ ...base, choices, ...extra } as never)(nota, fontes);
+  const pedido = (extra: object, nota: string, fontes: Passagem[]) => construirPedido({ ...base, escolhidas, ...extra } as never)(nota, fontes);
   assert.match(pedido({}, '', ferramenta).texto, /Cite só os dados da fonte\./);
-  assert.match(pedido({}, '', choices).texto, new RegExp(COM_FONTES.slice(0, 30)));
+  assert.match(pedido({}, '', escolhidas).texto, new RegExp(COM_FONTES.slice(0, 30)));
   assert.match(pedido({}, '', []).texto, new RegExp(SEM_FONTES.slice(0, 30)));
-  assert.match(pedido({ lista: true }, '', choices).texto, new RegExp(LISTA.slice(0, 30)));
-  assert.match(pedido({ writing: true }, '', choices).texto, new RegExp(REDACAO.slice(0, 30)));
-  assert.match(pedido({ writing: true }, 'SITUAÇÃO: recusa.', choices).texto, new RegExp(SITUACAO), 'a situação vale mais que a redação');
+  assert.match(pedido({ lista: true }, '', escolhidas).texto, new RegExp(LISTA.slice(0, 30)));
+  assert.match(pedido({ ehRedacao: true }, '', escolhidas).texto, new RegExp(REDACAO.slice(0, 30)));
+  assert.match(pedido({ ehRedacao: true }, 'SITUAÇÃO: recusa.', escolhidas).texto, new RegExp(SITUACAO), 'a situação vale mais que a redação');
   const conector = { id: 'comercial', instrucao: 'Oriente sobre propostas.', modo: 'orientacao', palavras: 70, estantes: [] };
-  assert.match(pedido({ conector }, '', choices).texto, /Oriente sobre propostas\./);
+  assert.match(pedido({ conector }, '', escolhidas).texto, /Oriente sobre propostas\./);
   assert.match(pedido({ conector }, '', []).texto, /Oriente sobre propostas\..*Não há fonte/s, 'sem fonte, o conector de orientação acrescenta a regra de não citar números');
   assert.match(pedido({ conector }, '', [fonte()]).texto, new RegExp(COM_FONTES.slice(0, 30)), 'fontes que não são as escolhidas não usam a orientação do conector');
-  assert.deepEqual([pedido({}, '', choices).palavras, pedido({ lista: true }, '', choices).palavras, pedido({ relatorio: true }, '', choices).palavras, pedido({ conector }, '', choices).palavras, pedido({}, 'SITUAÇÃO: x', choices).palavras], [55, 50, 80, 70, 40]);
+  assert.deepEqual([pedido({}, '', escolhidas).palavras, pedido({ lista: true }, '', escolhidas).palavras, pedido({ relatorio: true }, '', escolhidas).palavras, pedido({ conector }, '', escolhidas).palavras, pedido({}, 'SITUAÇÃO: x', escolhidas).palavras], [55, 50, 80, 70, 40]);
 });
 
 test('situação: dados sensíveis, saudação e fora do escopo são decididos por regra, antes de qualquer busca', async () => {
   const situacao = async (...textos: string[]) => (await decidirSituacao({ mensagens: mensagens(...textos) }));
-  const cpf = await situacao('Meu CPF é 529.982.247-25, pode consultar?'); assert.equal(cpf.situacao, 'dados-sensiveis'); assert.deepEqual(cpf.choices, []);
-  const oi = await situacao('Olá'); assert.equal(oi.situacao, 'saudacao'); assert.equal(oi.writing, false);
+  const cpf = await situacao('Meu CPF é 529.982.247-25, pode consultar?'); assert.equal(cpf.situacao, 'dados-sensiveis'); assert.deepEqual(cpf.escolhidas, []);
+  const oi = await situacao('Olá'); assert.equal(oi.situacao, 'saudacao'); assert.equal(oi.ehRedacao, false);
   const bolo = await situacao('Qual a melhor receita de bolo de cenoura?'); assert.equal(bolo.situacao, 'fora-do-escopo');
-  const redacao = await situacao('Redija um e-mail de boas-vindas'); assert.equal(redacao.writing, true);
+  const redacao = await situacao('Redija um e-mail de boas-vindas'); assert.equal(redacao.ehRedacao, true);
   assert.deepEqual((await situacao('Oi', 'Olá! Como posso ajudar?', 'Qual a receita de bolo de cenoura?')).anteriores, ['Oi']);
 });
 

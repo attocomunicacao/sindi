@@ -7,7 +7,7 @@ import { carregarArquivos, type TrechoDoCerebro } from '@/lib/cerebro/carregar';
 import { conectores } from '@/lib/cerebro/conectores';
 import { arquivoDeVetores, cosseno, idDoTrecho } from '@/lib/cerebro/embeddings';
 import { normalizar } from '@/lib/base/texto';
-import { dbPath } from '@/lib/dados/db';
+import { caminhoDoBanco } from '@/lib/dados/db';
 import { extrairEntidades } from '@/lib/grafo/entidades';
 import type { Aresta, Grafo, No, TipoDeAresta, TipoDeNo } from '@/lib/grafo/tipos';
 
@@ -69,7 +69,7 @@ export function construirGrafo(opcoes: { banco?: string; iteracoes?: number } = 
   } catch { /* sem índice de vetores: o grafo sai sem as ligações por significado */ }
 
   // Documentos da biblioteca, entidades e links.
-  const banco = opcoes.banco === undefined ? dbPath() : opcoes.banco;
+  const banco = opcoes.banco === undefined ? caminhoDoBanco() : opcoes.banco;
   const porUrl = new Map<string, string>();
   const citacoes = new Map<string, { rotulo: string; tipo: TipoDeNo; docs: Set<string>; proprio?: string }>();
   const linksDoSite: [string, string[]][] = [];

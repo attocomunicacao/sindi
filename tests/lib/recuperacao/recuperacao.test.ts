@@ -11,7 +11,7 @@ test('missing facts fail the evidence gate even when generic institutional words
   assert.equal(evidenciaSuficiente(passages, 'Como o SINDEPRESTEM pode ajudar minha empresa?'), true);
   assert.equal(evidenciaSuficiente([], 'trabalho temporário'), false);
 });
-import { siteUrl, pdfUrl, extractHtml } from '@/lib/recuperacao/legado/extract';
+import { urlDoSite, urlDoPdf, extrairHtml } from '@/lib/recuperacao/legado/extract';
 import { limparTrecho, escolherFontes, referenciasDasFontes, trechoDeContato } from '@/lib/recuperacao/fontes';
 import { CONTATOS_OFICIAIS } from '@/lib/seguranca/verificar-fatos';
 test('references remain separate from prose and noisy PDF indexes are excluded', () => {
@@ -26,14 +26,14 @@ test('references remain separate from prose and noisy PDF indexes are excluded',
 });
 
 test('collector restricts domains, protocols, tracking URLs and external documents', () => {
-  assert.equal(siteUrl('/noticias?utm_source=x#top'), `${SITE}/noticias`);
-  for (const url of ['http://127.0.0.1/a', 'https://evil.example/a', 'https://www.sindeprestem.com.br.evil.example', 'https://u:p@www.sindeprestem.com.br/a']) assert.equal(siteUrl(url), null);
-  assert.equal(pdfUrl('https://docs.wixstatic.com/ugd/file.pdf'), 'https://docs.wixstatic.com/ugd/file.pdf');
-  assert.equal(pdfUrl('https://evil.example/document.pdf'), null);
+  assert.equal(urlDoSite('/noticias?utm_source=x#top'), `${SITE}/noticias`);
+  for (const url of ['http://127.0.0.1/a', 'https://evil.example/a', 'https://www.sindeprestem.com.br.evil.example', 'https://u:p@www.sindeprestem.com.br/a']) assert.equal(urlDoSite(url), null);
+  assert.equal(urlDoPdf('https://docs.wixstatic.com/ugd/file.pdf'), 'https://docs.wixstatic.com/ugd/file.pdf');
+  assert.equal(urlDoPdf('https://evil.example/document.pdf'), null);
 });
 test('extracts visible content, source links, dates and contact footer without scripts/forms', () => {
   const html = '<html><head><title>Contato</title><script type="application/ld+json">{"datePublished":"2026-10-01"}</script></head><body><nav>Menu</nav><main><h1>Contato</h1><p>Texto público.</p><script>segredo</script><form>não coletar</form><a href="/juridico">Jurídico</a></main><footer>Av. São Luís, 258 - 18º Andar - Centro Histórico de São Paulo, São Paulo - SP</footer></body></html>';
-  const result = extractHtml(html, `${SITE}/contato`);
+  const result = extrairHtml(html, `${SITE}/contato`);
   assert.match(result.content, /Texto público/); assert.doesNotMatch(result.content, /segredo|não coletar|Menu/);
   assert.deepEqual(result.links, [`${SITE}/juridico`]); assert.equal(result.publishedAt, '2026-10-01T00:00:00.000Z');
 });

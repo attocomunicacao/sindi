@@ -1,6 +1,6 @@
 import { lerPainelEmCache } from '@/lib/dados/painel';
 import { montarDashboard } from '@/lib/dados/dashboard';
-import { dashboardPdf } from '@/lib/dados/dashboard-pdf';
+import { pdfDoDashboard } from '@/lib/dados/dashboard-pdf';
 import { erroJson, guardaDeLeitura, respostaPdf } from '@/lib/http/guarda';
 
 export const runtime = 'nodejs';
@@ -15,7 +15,7 @@ export async function GET(request: Request) {
     if (!pronto || Date.now() - pronto.quando > 5 * 60_000) {
       const dashboard = montarDashboard(lerPainelEmCache());
       if (!dashboard) return erroJson('Painel sem dados.', 503);
-      pronto = { quando: Date.now(), bytes: await dashboardPdf(dashboard) };
+      pronto = { quando: Date.now(), bytes: await pdfDoDashboard(dashboard) };
     }
     return respostaPdf(pronto.bytes, 'painel-sindi.pdf');
   } catch { return erroJson('Não foi possível gerar o PDF.', 500); }

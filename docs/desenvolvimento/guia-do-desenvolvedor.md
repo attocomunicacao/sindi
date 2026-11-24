@@ -30,7 +30,7 @@ src/
     cerebro/              carregar, buscar (palavras + significado), conectores, instrucoes, embeddings, gerar, publicar, casos
     grafo/                construir, entidades, consulta (chat), obsidian, arquitetura
     biblioteca/           estantes de /base e a pesquisa que o chat faz nelas
-    dados/                coletores/ (dados públicos), db (SQLite), painel, dashboard(-pdf), sync, http (politeFetch)
+    dados/                coletores/ (dados públicos), db (SQLite), painel, dashboard(-pdf), sync, http (buscarComEducacao)
     agentes/              orquestrador de especialistas do chat
     pdf/                  base única de PDF (A4, paleta, seguro, Documento); orcamento e painel (dados/dashboard-pdf) só fornecem conteúdo
     ferramentas/          contrato (tipos.ts) e registro (registro.ts); cada ferramenta com chat.executar
@@ -87,7 +87,7 @@ Siga esta ordem; o teste `tests/ferramentas/ferramentas.test.ts` confere os iten
 - [ ] Nenhum segredo no código, no log, na URL ou no navegador; nenhuma variável `NEXT_PUBLIC_` com segredo.
 - [ ] Não há log de conteúdo de conversa, de IP nem de dados do usuário.
 - [ ] Links externos passam por `linkSeguro`; endereços vindos de fontes externas só são aceitos como http(s)/ftp, sem credenciais.
-- [ ] Se a ferramenta busca algo na rede: https, sem credenciais, sem IP/host interno, com limite de tamanho e de tempo (ver `politeFetch` em `src/lib/dados/http.ts`).
+- [ ] Se a ferramenta busca algo na rede: https, sem credenciais, sem IP/host interno, com limite de tamanho e de tempo (ver `buscarComEducacao` em `src/lib/dados/http.ts`).
 - [ ] Se gera PDF: `respostaPdf`, sem cache, com limite por minuto.
 - [ ] Se grava arquivo: nome sem entrada do usuário, teto de tamanho e de quantidade.
 - [ ] Se usa o provedor de IA: passa pela cota; o custo em tokens do pedido é conhecido (o nível gratuito é limitado).

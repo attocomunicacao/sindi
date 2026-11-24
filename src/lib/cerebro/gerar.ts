@@ -2,7 +2,7 @@ import { PRESIDENTE, SITE } from '@/lib/base/constantes';
 import { dataBR } from '@/lib/base/formato';
 // Gera os arquivos autogerados do cérebro da SINDI (cerebro/auto/*.md) a partir dos dados coletados.
 // Os arquivos curados, na pasta cerebro/, nunca são alterados por esta geração.
-import type { Db } from '@/lib/dados/db';
+import type { BancoDeDados } from '@/lib/dados/db';
 import { contatoDaFonte } from '@/lib/cerebro/contato-do-site';
 
 /** Convenções "vigentes" e "recentes" são as do ano anterior em diante: a regra acompanha o calendário em vez de um ano fixo no código. */
@@ -18,7 +18,7 @@ const BASE = `SELECT title, url, content, published_at, json_extract(meta,'$.cat
 const SO_PDF = "url LIKE '%.pdf'";
 const SO_POSTS = "url LIKE '%/post/%' AND published_at IS NOT NULL";
 /** Documentos de uma seção do site do sindicato (`filtroUrl` e `ordem` são trechos fixos de SQL, nunca texto de usuário). */
-const documentosDaSecao = (db: Db, secao: string, filtroUrl: string, ordem: string, limite?: number) =>
+const documentosDaSecao = (db: BancoDeDados, secao: string, filtroUrl: string, ordem: string, limite?: number) =>
   db.prepare(`${BASE} WHERE source = 'sindeprestem' AND json_extract(meta,'$.section') = ? AND ${filtroUrl} ORDER BY ${ordem}${limite ? ` LIMIT ${limite}` : ''}`).all(secao) as Linha[];
 const linhasDe = (texto: string) => texto.split('\n').map(l => l.trim()).filter(Boolean);
 const compacto = (texto: string, limite: number) => { const t = texto.replace(/\s+/g, ' ').trim(); return t.length > limite ? t.slice(0, limite).replace(/\s+\S*$/, '') + ' […]' : t; };
@@ -27,14 +27,14 @@ const sem = (texto: string, ...padroes: RegExp[]) => padroes.reduce((t, p) => t.
 
 /** O que cada arquivo precisa do banco e da data da geração. */
 type Contexto = {
-  db: Db; hoje: string;
+  db: BancoDeDados; hoje: string;
   /** Texto de uma página do site já coletada (sem o rodapé institucional); vazio se ela ainda não foi coletada. */
   pagina: (caminho: string) => string;
   /** Rodapé institucional guardado na página de contato; vazio (e a geração segue) se a página ainda não foi coletada. */
   rodapeDoContato: () => string;
   cabecalho: (titulo: string, fonte: string, gatilhos: string[], prioridade?: number) => string;
 };
-function contextoDe(db: Db, hoje: string): Contexto {
+function contextoDe(db: BancoDeDados, hoje: string): Contexto {
   return {
     db, hoje,
     pagina: caminho => (db.prepare("SELECT content FROM documents WHERE source = 'sindeprestem' AND url LIKE ?").get('%' + caminho) as { content: string } | undefined)?.content.split('Rodapé institucional')[0] ?? '',
@@ -223,7 +223,7 @@ ${linha('regimentos', 'Regimentos', 'Regimento Interno da Câmara, do Senado e R
 }
 
 /** Gera todos os arquivos autogerados em memória: { "institucional.md": "...", ... }. */
-export function gerarArquivos(db: Db, hoje = new Date().toISOString().slice(0, 10)): Record<string, string> {
+export function gerarArquivos(db: BancoDeDados, hoje = new Date().toISOString().slice(0, 10)): Record<string, string> {
   const contexto = contextoDe(db, hoje);
   const gravar = (texto: string) => texto.trimEnd() + String.fromCharCode(10);
   return {

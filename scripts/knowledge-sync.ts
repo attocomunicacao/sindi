@@ -9,8 +9,8 @@ import { setDefaultResultOrder } from 'node:dns';
 import { SITE } from '@/lib/base/constantes';
 import type { DocumentoDoEspelho, EspelhoDoSite } from '@/lib/base/tipos';
 import { fatiarTexto } from '@/lib/recuperacao/legado/espelho';
-import { siteUrl, pdfUrl, extractHtml } from '@/lib/recuperacao/legado/extract';
-import { supabaseRequest } from '@/lib/recuperacao/legado/supabase';
+import { urlDoSite, urlDoPdf, extrairHtml } from '@/lib/recuperacao/legado/extract';
+import { requisitarSupabase } from '@/lib/recuperacao/legado/supabase';
 
 const directory = '.data/knowledge';
 const agent = 'SINDI-Knowledge/1.0';
@@ -44,7 +44,7 @@ const robots = new Map<string, ReturnType<typeof robotsParser>>();
 let nextRequest = 0;
 async function download(url: string, headers: Record<string, string> = {}, checkRobots = true) {
   const robotsUrl = new URL(url).pathname === '/robots.txt' && ['www.sindeprestem.com.br', 'docs.wixstatic.com', 'www.sindeprestem.org.br'].includes(new URL(url).hostname);
-  if (!siteUrl(url) && !pdfUrl(url) && !robotsUrl) throw new Error('URL fora da lista permitida');
+  if (!urlDoSite(url) && !urlDoPdf(url) && !robotsUrl) throw new Error('URL fora da lista permitida');
   const origin = new URL(url).origin;
   if (checkRobots) {
     if (!robots.has(origin)) {
@@ -65,7 +65,7 @@ async function download(url: string, headers: Record<string, string> = {}, check
   if (!response) throw new Error('Falha de rede');
   if ([301,302,303,307,308].includes(response.status)) {
     const target = new URL(response.headers.get('location') || '', url).href;
-    if (target === url || (!siteUrl(target) && !pdfUrl(target))) throw new Error('Redirecionamento não permitido');
+    if (target === url || (!urlDoSite(target) && !urlDoPdf(target))) throw new Error('Redirecionamento não permitido');
     // One hop; refusing loops avoids unbounded fetches.
     await response.body?.cancel().catch(() => {});
     const redirected = await downloadOnce(target, headers);
@@ -104,8 +104,8 @@ async function discover() {
     if (seen.size > 50) throw new Error('Sitemaps excedem limite operacional');
     const r = await download(url); if (!r.ok) throw new Error(`Sitemap HTTP ${r.status}`);
     const $ = load((await bytes(r)).toString('utf8'), { xml: true });
-    if ($('sitemapindex').length) $('sitemap > loc').each((_, el) => { const u = siteUrl($(el).text()); if (u) sitemapQueue.push(u); });
-    else $('url').each((_, el) => { const u = siteUrl($(el).find('loc').text()); if (u) urls.set(u, $(el).find('lastmod').text()); });
+    if ($('sitemapindex').length) $('sitemap > loc').each((_, el) => { const u = urlDoSite($(el).text()); if (u) sitemapQueue.push(u); });
+    else $('url').each((_, el) => { const u = urlDoSite($(el).find('loc').text()); if (u) urls.set(u, $(el).find('lastmod').text()); });
   }
   for (const pathname of ['', '/contato', '/noticias', '/convencoes-coletivas', '/juridico', '/cartilhas']) urls.set(`${SITE}${pathname}`, '');
   return urls;
@@ -163,7 +163,7 @@ async function run() {
     const signature = `${process.env.SUPABASE_URL}:${document.hash}:${document.checkedAt.slice(0, 10)}:${document.status}`;
     if (cloudState[document.url] === signature) { uploaded++; return; }
     try {
-      await supabaseRequest('rpc/upsert_sindi_document', { document: { ...document, chunks: fatiarTexto(document.content) } }, true);
+      await requisitarSupabase('rpc/upsert_sindi_document', { document: { ...document, chunks: fatiarTexto(document.content) } }, true);
       cloudState[document.url] = signature; uploaded++;
     } catch { cloudErrors++; failures.push({ url: document.url, reason: 'Supabase indisponível: espelho local preservado' }); }
   }
@@ -193,7 +193,7 @@ async function run() {
           extracted = { title: decodeURIComponent(new URL(url).pathname.split('/').pop() || 'Documento PDF'), content: await textoDoPdf(data), links: [], external: [], publishedAt: undefined };
         } else {
           if (!type.includes('text/html')) throw new Error('Formato não suportado');
-          extracted = extractHtml(data.toString('utf8'), url);
+          extracted = extrairHtml(data.toString('utf8'), url);
         }
         if (extracted.content.length < 40) throw new Error(pdf ? 'PDF sem texto: precisa de OCR' : 'Página sem texto: precisa de revisão');
         if (extracted.content.length > 1500000) throw new Error('Texto excede limite operacional');
@@ -220,7 +220,7 @@ async function run() {
     changed, unchanged, skipped, uploaded, cloudErrors, cloudConfigured: cloud, incomplete: truncated || stopping || failures.length > 0,
     failures, externalLinks: [...external], intervalMinutes: 15 };
   await atomic(`${directory}/status.json`, report);
-  if (cloud) try { await supabaseRequest('rpc/record_sindi_sync', { summary: { ...report, failures: failures.slice(0,20), externalLinks: external.size } }, true); } catch { /* Local report remains available. */ }
+  if (cloud) try { await requisitarSupabase('rpc/record_sindi_sync', { summary: { ...report, failures: failures.slice(0,20), externalLinks: external.size } }, true); } catch { /* Local report remains available. */ }
   await log(JSON.stringify({ ...report, failures: report.failures.length, externalLinks: report.externalLinks.length }));
 }
 try {

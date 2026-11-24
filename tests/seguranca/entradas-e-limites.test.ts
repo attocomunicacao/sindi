@@ -8,7 +8,7 @@ import { urlDeDocumentoValida } from '@/lib/dados/url-documento';
 import { limitarPorMinuto, reiniciarLimitesNaMemoria } from '@/lib/infra/limite-por-minuto';
 import { pedidoLocal } from '@/lib/atualizacao';
 import { arquivoDoCache, podarCache } from '@/lib/biblioteca/pdf';
-import { destinoPermitido, hostInterno, politeFetch } from '@/lib/dados/http';
+import { destinoPermitido, hostInterno, buscarComEducacao } from '@/lib/dados/http';
 
 const pedido = (cabecalhos: Record<string, string> = {}) => new Request('http://localhost/api/x', { headers: cabecalhos });
 
@@ -80,10 +80,10 @@ test('politeFetch: segue redirecionamento só para destino permitido e não tent
       if (String(url).endsWith('/http')) return new Response(null, { status: 301, headers: { location: 'http://exemplo.gov.br/' } });
       return new Response('conteúdo ok');
     }) as typeof fetch;
-    const ok = await politeFetch('https://www.ibge.gov.br/entrada', { minMs: 0, respectRobots: false });
+    const ok = await buscarComEducacao('https://www.ibge.gov.br/entrada', { minMs: 0, respectRobots: false });
     assert.equal(await ok.text(), 'conteúdo ok'); assert.deepEqual(visitados, ['https://www.ibge.gov.br/entrada', 'https://servicodados.ibge.gov.br/destino']);
-    await assert.rejects(politeFetch('https://www.ibge.gov.br/mal', { minMs: 0, respectRobots: false }), /interno/);
-    await assert.rejects(politeFetch('https://www.ibge.gov.br/http', { minMs: 0, respectRobots: false }), /HTTPS/);
+    await assert.rejects(buscarComEducacao('https://www.ibge.gov.br/mal', { minMs: 0, respectRobots: false }), /interno/);
+    await assert.rejects(buscarComEducacao('https://www.ibge.gov.br/http', { minMs: 0, respectRobots: false }), /HTTPS/);
     assert.ok(!visitados.includes('https://169.254.169.254/latest/meta-data'), 'o destino interno nunca é acessado');
   } finally { globalThis.fetch = original; }
 });

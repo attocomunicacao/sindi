@@ -1,4 +1,4 @@
-import { recentMessages } from '@/lib/chat/historico';
+import { mensagensRecentes } from '@/lib/chat/historico';
 
 export type MensagemDaConversa = { role: 'user' | 'assistant'; content: string };
 
@@ -14,7 +14,7 @@ export async function pedirResposta(conversa: MensagemDaConversa[], interrupcao:
   const resposta = await fetch('/api/chat', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json', Accept: 'application/x-ndjson' },
-    body: JSON.stringify({ messages: recentMessages(conversa) }),
+    body: JSON.stringify({ messages: mensagensRecentes(conversa) }),
     signal: AbortSignal.any([interrupcao, AbortSignal.timeout(TEMPO_MAXIMO_MS)]),
   });
   if (!resposta.ok) {

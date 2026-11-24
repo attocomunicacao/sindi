@@ -1,12 +1,12 @@
 import { numeroDoIndicador } from '@/lib/base/formato';
-import type { PainelIndicator } from '@/lib/dados/painel';
+import type { IndicadorDoPainel } from '@/lib/dados/painel';
 
 const ROTULO_DA_FONTE: Record<string, string> = { bcb: 'Banco Central', ibge: 'IBGE', caged: 'Novo CAGED (Ministério do Trabalho e Emprego)' };
 /**
  * Um indicador como frase completa, com o sentido do número já dito ("abriu", "fechou", "subiu", "caiu"). Um modelo pequeno copia bem uma frase, mas erra ao
  * interpretar sinal e variação: aqui a conta e a comparação são feitas pelo código, e o modelo só escolhe e redige.
  */
-export function fraseDoIndicador(i: PainelIndicator): string {
+export function fraseDoIndicador(i: IndicadorDoPainel): string {
   const numero = (valor: number) => numeroDoIndicador(Math.abs(valor), i.unit, 'pt-BR');
   const fonte = ROTULO_DA_FONTE[i.source] ?? i.source.toUpperCase();
   if (/vagas/.test(i.unit)) {

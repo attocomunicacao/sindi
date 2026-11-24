@@ -18,4 +18,4 @@ Nada abaixo foi apagado nem renomeado: a execução foi conservadora, sem confir
 - `scripts/knowledge-sync.ts`, `scripts/start-knowledge.ps1`, `scripts/start-knowledge.vbs`, `scripts/configure-knowledge.ps1`, `scripts/operacao/create-share-banner.mjs`.
 - Scripts npm `knowledge:sync` e `knowledge:watch`.
 - `src/lib/recuperacao/legado/{extract,status,supabase}.ts`; arquivos em disco `.data/usage.json` e `.data/knowledge/` (renomear exige migração).
-- Identificadores internos em `src/lib/dados/sync.ts` (`SyncOptions`, `collectors`, `timeoutMs`, `concurrency`, `syncAll`) e correlatos.
+- Campos de opções em `src/lib/dados/sync.ts` (`only`, `full`, `collectors`, `timeoutMs`, `concurrency`; tipo `OpcoesDeSincronizacao`) e os de `OpcoesDeBusca` em `dados/http.ts` (`minMs`, `respectRobots`), além dos campos de tipos que viram JSON ou colunas SQLite.

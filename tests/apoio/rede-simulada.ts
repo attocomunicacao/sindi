@@ -1,7 +1,7 @@
 import { mkdtempSync, rmSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import path from 'node:path';
-import { openDb } from '@/lib/dados/db';
+import { abrirBanco } from '@/lib/dados/db';
 
 /** Resposta simulada de uma fonte externa: JSON, texto (HTML, XML) ou um `Response` pronto (para status e cabeçalhos). */
 export type RespostaSimulada = Response | { json: unknown; status?: number } | { texto: string; status?: number; tipo?: string };
@@ -29,10 +29,10 @@ export function simularRede(rotas: Rota[]) {
 }
 
 /** Banco SQLite temporário e sem esperas entre requisições (SINDI_HTTP_PAUSA_MS=0) para rodar um coletor de verdade, e a limpeza no fim. */
-export async function comBanco(fn: (db: ReturnType<typeof openDb>) => Promise<void>) {
+export async function comBanco(fn: (db: ReturnType<typeof abrirBanco>) => Promise<void>) {
   const pasta = mkdtempSync(path.join(tmpdir(), 'sindi-coletor-')); const antes = { dados: process.env.SINDI_DATA_DIR, pausa: process.env.SINDI_HTTP_PAUSA_MS };
   process.env.SINDI_DATA_DIR = pasta; process.env.SINDI_HTTP_PAUSA_MS = '0';
-  const db = openDb(path.join(pasta, 'dados.sqlite'));
+  const db = abrirBanco(path.join(pasta, 'dados.sqlite'));
   try { await fn(db); } finally {
     db.close(); rmSync(pasta, { recursive: true, force: true });
     if (antes.dados === undefined) delete process.env.SINDI_DATA_DIR; else process.env.SINDI_DATA_DIR = antes.dados;

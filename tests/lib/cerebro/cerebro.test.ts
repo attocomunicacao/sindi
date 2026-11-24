@@ -169,13 +169,13 @@ test('questions unrelated to the sector are flagged out of scope, while sector, 
   for (const q of ['Quanto é o piso da portaria?', 'Posso contratar um temporário?', 'Redija um e-mail sobre feriados', 'Traduza este texto para inglês', 'Qual a Selic?', 'ok', 'Como organizar uma apresentação para a diretoria?', 'Me ajude com um e-mail']) assert.equal(foraDoEscopo(q), false, q);
 });
 test('position questions list the president\'s articles and news on the topic, in the entity\'s own words', async () => {
-  const { openDb, upsertDocument } = await import('@/lib/dados/db');
+  const { abrirBanco, gravarDocumento } = await import('@/lib/dados/db');
   const { trechosDePosicionamento } = await import('@/lib/recuperacao/sindicato');
   const diretorio = mkdtempSync(path.join(tmpdir(), 'sindi-cerebro-pos-')); const arquivo = path.join(diretorio, 'dados.sqlite');
   try {
-    const db = openDb(arquivo); const SITE = 'https://www.sindeprestem.com.br';
-    upsertDocument(db, { source: 'sindeprestem', url: `${SITE}/post/escala`, title: 'Artigo - Fim da escala 6x1', content: 'Ninguém é contra trabalhar menos, mas o método importa. Por Vander Morales', publishedAt: '2026-06-01T12:00:00.000Z', meta: { section: 'artigo' } });
-    upsertDocument(db, { source: 'sindeprestem', url: `${SITE}/post/curso`, title: 'Curso sobre jornada', content: 'Curso presencial sobre jornada e controle de ponto.', publishedAt: '2026-05-01T12:00:00.000Z', meta: { section: 'noticia' } });
+    const db = abrirBanco(arquivo); const SITE = 'https://www.sindeprestem.com.br';
+    gravarDocumento(db, { source: 'sindeprestem', url: `${SITE}/post/escala`, title: 'Artigo - Fim da escala 6x1', content: 'Ninguém é contra trabalhar menos, mas o método importa. Por Vander Morales', publishedAt: '2026-06-01T12:00:00.000Z', meta: { section: 'artigo' } });
+    gravarDocumento(db, { source: 'sindeprestem', url: `${SITE}/post/curso`, title: 'Curso sobre jornada', content: 'Curso presencial sobre jornada e controle de ponto.', publishedAt: '2026-05-01T12:00:00.000Z', meta: { section: 'noticia' } });
     db.close();
     const passagens = trechosDePosicionamento('Qual o posicionamento do sindicato sobre a escala 6x1?', arquivo).passages;
     const resposta = passagens.map(p => `${p.title} ${p.content}`).join(' ');

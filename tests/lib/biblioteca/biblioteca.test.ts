@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import { mkdtempSync, rmSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import path from 'node:path';
-import { openDb, upsertDocument } from '@/lib/dados/db';
+import { abrirBanco, gravarDocumento } from '@/lib/dados/db';
 import { buscarNaBiblioteca, consultaFts, lerDocumento, listarEstante, partesDoTrecho, resumoDaBiblioteca } from '@/lib/biblioteca/consulta';
 import { ESTANTES, estanteDoDocumento, estantePorId } from '@/lib/biblioteca/estantes';
 
@@ -28,12 +28,12 @@ test('every document is cataloged on exactly one existing shelf', () => {
 test('the library lists shelves, filters by facet, searches with highlights and reads a document', () => {
   const pasta = mkdtempSync(path.join(tmpdir(), 'sindi-biblioteca-')); const anterior = process.env.SINDI_DATA_DIR; process.env.SINDI_DATA_DIR = pasta;
   try {
-    const db = openDb(path.join(pasta, 'sindi-dados.sqlite'));
+    const db = abrirBanco(path.join(pasta, 'sindi-dados.sqlite'));
     const site = 'https://www.sindeprestem.com.br';
-    upsertDocument(db, { source: 'sindeprestem', url: `${site}/a.pdf`, title: 'CCT Portaria 2025', content: 'Capa registrada no MTE. CLÁUSULA PRIMEIRA - ABRANGÊNCIA A convenção abrange porteiros e controladores de acesso do Estado de São Paulo.', meta: { section: 'convencao', category: 'Portaria', year: 2025, type: 'Convenção coletiva' } });
-    upsertDocument(db, { source: 'sindeprestem', url: `${site}/b.pdf`, title: 'CCT Geral 2023', content: 'Texto da convenção geral sobre terceirização e trabalho temporário.', meta: { section: 'convencao', category: 'Geral', year: 2023, type: 'Convenção coletiva' } });
-    upsertDocument(db, { source: 'sindeprestem', url: `${site}/lista`, title: 'Lista', content: 'Página de listagem de convenções', meta: { section: 'convencao', listing: true } });
-    upsertDocument(db, { source: 'mte', url: 'https://gov.br/x/normas-regulamentadoras-vigentes/nr-1', title: 'Norma Regulamentadora No. 1 (NR-1)', content: 'A NR-1 estabelece disposições gerais sobre segurança e saúde no trabalho.', meta: { kind: 'assunto' } });
+    gravarDocumento(db, { source: 'sindeprestem', url: `${site}/a.pdf`, title: 'CCT Portaria 2025', content: 'Capa registrada no MTE. CLÁUSULA PRIMEIRA - ABRANGÊNCIA A convenção abrange porteiros e controladores de acesso do Estado de São Paulo.', meta: { section: 'convencao', category: 'Portaria', year: 2025, type: 'Convenção coletiva' } });
+    gravarDocumento(db, { source: 'sindeprestem', url: `${site}/b.pdf`, title: 'CCT Geral 2023', content: 'Texto da convenção geral sobre terceirização e trabalho temporário.', meta: { section: 'convencao', category: 'Geral', year: 2023, type: 'Convenção coletiva' } });
+    gravarDocumento(db, { source: 'sindeprestem', url: `${site}/lista`, title: 'Lista', content: 'Página de listagem de convenções', meta: { section: 'convencao', listing: true } });
+    gravarDocumento(db, { source: 'mte', url: 'https://gov.br/x/normas-regulamentadoras-vigentes/nr-1', title: 'Norma Regulamentadora No. 1 (NR-1)', content: 'A NR-1 estabelece disposições gerais sobre segurança e saúde no trabalho.', meta: { kind: 'assunto' } });
     db.close();
 
     const resumo = resumoDaBiblioteca();

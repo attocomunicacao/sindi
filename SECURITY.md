@@ -27,7 +27,7 @@ A geração e a busca por significado usam a API do Gemini no nível gratuito, s
 ## Proteções de rotas e coleta
 - `/api/atualizar` (dispara a coleta de dados) só responde no próprio computador: Host local e nenhum cabeçalho de repasse (Cloudflare, Vercel). O Host sozinho não basta.
 - PDFs (`/api/orcamento/pdf`, `/api/painel/pdf`, `/api/biblioteca/pdf/[id]`) têm limite por minuto por visitante (`src/lib/infra/limite-por-minuto.ts`); o PDF do painel fica pronto por 5 minutos e a cópia em disco dos PDFs da biblioteca tem validade (7 dias) e teto de arquivos e de bytes.
-- A coleta de dados públicos (`politeFetch`) segue redirecionamentos à mão, validando cada destino (https, sem credenciais, porta 443, fora da rede interna e de IPs literais) e lê o corpo com teto de 30 MB mesmo sem `content-length`. Limite: não há proteção contra DNS que aponte um nome público para um endereço interno.
+- A coleta de dados públicos (`buscarComEducacao`) segue redirecionamentos à mão, validando cada destino (https, sem credenciais, porta 443, fora da rede interna e de IPs literais) e lê o corpo com teto de 30 MB mesmo sem `content-length`. Limite: não há proteção contra DNS que aponte um nome público para um endereço interno.
 - Endereços de documentos coletados só são guardados se forem http, https ou ftp, sem credenciais, e todo link externo da biblioteca e do painel passa por `linkSeguro` (esquemas como `javascript:` viram `#`).
 - A leitura do Supabase usa só a chave publicável; a Secret key fica restrita ao coletor que grava. `/api/conhecimento` público devolve apenas `available` e `phase`.
 

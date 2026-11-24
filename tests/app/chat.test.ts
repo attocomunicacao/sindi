@@ -1,12 +1,12 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { chatSchema, historicoParaOModelo, recentMessages } from '@/lib/chat/esquema';
+import { chatSchema, historicoParaOModelo, mensagensRecentes } from '@/lib/chat/esquema';
 import { POST } from '@/app/api/chat/route';
 import { reiniciarCotaNaMemoria } from '@/lib/infra/cota';
 const body = { messages: [{ role: 'user', content: 'Redija uma mensagem de saudação.' }] };
 test('bounded context preserves complete turns without imposing a message quota', () => {
   const messages = Array.from({ length: 21 }, (_, i) => ({ role: i % 2 ? 'assistant' : 'user', content: String(i).repeat(1000) }));
-  const recent = recentMessages(messages);
+  const recent = mensagensRecentes(messages);
   assert.equal(recent.length, 7);
   assert.equal(recent[0].role, 'user');
   assert.equal(recent.at(-1)?.content, messages.at(-1)?.content.slice(0, 1500));

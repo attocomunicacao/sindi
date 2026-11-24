@@ -1,5 +1,5 @@
 import { ehPercentual, numeroCompacto, numeroComCasas } from '@/lib/base/formato';
-import type { Painel, PainelIndicator } from '@/lib/dados/painel';
+import type { Painel, IndicadorDoPainel } from '@/lib/dados/painel';
 
 /** Modelo do dashboard: calculado só a partir dos indicadores coletados (valor atual e anterior), usado pela tela e pelo PDF. */
 export type Sentido = 'alta' | 'queda' | 'estavel';
@@ -18,10 +18,10 @@ const KPI_ROTULOS: Record<string, string> = { 'caged.saldo': 'Saldo de emprego f
 
 const pct = (v: number) => `${numeroComCasas(v, 2)}%`;
 const inteiro = (v: number) => numeroComCasas(v, 0);
-const formatar = (i: PainelIndicator, v: number) => ehPercentual(i.unit) ? pct(v) : inteiro(v);
+const formatar = (i: IndicadorDoPainel, v: number) => ehPercentual(i.unit) ? pct(v) : inteiro(v);
 const sinal = (v: number, texto: string) => `${v > 0 ? '+' : v < 0 ? '−' : ''}${texto}`;
 
-function delta(i: PainelIndicator): { texto: string | null; sentido: Sentido } {
+function delta(i: IndicadorDoPainel): { texto: string | null; sentido: Sentido } {
   if (i.previous === null) return { texto: null, sentido: 'estavel' };
   const d = i.value - i.previous;
   if (Math.abs(d) < 1e-9) return { texto: ehPercentual(i.unit) ? '0,00 p.p.' : '0', sentido: 'estavel' };
@@ -32,7 +32,7 @@ const FONTES: Record<string, string> = { bcb: 'Banco Central', ibge: 'IBGE', cag
 const MESES = ['jan', 'fev', 'mar', 'abr', 'mai', 'jun', 'jul', 'ago', 'set', 'out', 'nov', 'dez'];
 /** "202608" vira "ago/26". */
 export const rotuloDoMes = (periodo: string) => /^\d{6}$/.test(periodo) ? `${MESES[Number(periodo.slice(4)) - 1] ?? periodo.slice(4)}/${periodo.slice(2, 4)}` : periodo;
-const par = (i: PainelIndicator): Par => { const d = delta(i); const alta = ALTA_FAVORAVEL[i.id];
+const par = (i: IndicadorDoPainel): Par => { const d = delta(i); const alta = ALTA_FAVORAVEL[i.id];
   return { rotulo: NOMES[i.id] ?? i.label, atual: i.value, anterior: i.previous, atualTexto: formatar(i, i.value), anteriorTexto: i.previous === null ? null : formatar(i, i.previous), url: i.url, periodo: i.period, fonte: FONTES[i.source] ?? i.source,
     delta: d.texto, sentido: d.sentido, favoravel: d.sentido === 'estavel' || alta === undefined ? null : (d.sentido === 'alta') === alta }; };
 

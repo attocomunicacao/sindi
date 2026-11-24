@@ -4,25 +4,25 @@ import { existsSync, mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync
 import { tmpdir } from 'node:os';
 import path from 'node:path';
 import { PDFDocument } from 'pdf-lib';
-import { abandonarExecucoes, falhasSeguidas, finishRun, openDb, podarExecucoes, startRun } from '@/lib/dados/db';
-import { syncAll } from '@/lib/dados/sync';
+import { abandonarExecucoes, falhasSeguidas, finalizarExecucao, abrirBanco, podarExecucoes, iniciarExecucao } from '@/lib/dados/db';
+import { sincronizarTudo } from '@/lib/dados/sync';
 import { dataIso, listaOuErro } from '@/lib/dados/http';
-import { pdfToText } from '@/lib/dados/legal';
+import { pdfParaTexto } from '@/lib/dados/legal';
 import type { Coletor } from '@/lib/dados/coletores/tipos';
 
 const atraso = (ms: number) => new Promise(r => setTimeout(r, ms));
-async function comBanco(fn: (db: ReturnType<typeof openDb>, pasta: string) => Promise<void>) {
+async function comBanco(fn: (db: ReturnType<typeof abrirBanco>, pasta: string) => Promise<void>) {
   const pasta = mkdtempSync(path.join(tmpdir(), 'sindi-robustez-')); const anterior = process.env.SINDI_DATA_DIR; process.env.SINDI_DATA_DIR = pasta;
-  const db = openDb(path.join(pasta, 'dados.sqlite'));
+  const db = abrirBanco(path.join(pasta, 'dados.sqlite'));
   try { await fn(db, pasta); } finally { db.close(); if (anterior === undefined) delete process.env.SINDI_DATA_DIR; else process.env.SINDI_DATA_DIR = anterior; rmSync(pasta, { recursive: true, force: true }); }
 }
 const coletor = (source: string, run: Coletor['run']): Coletor => ({ source, label: source.toUpperCase(), run });
-const ultimaExecucao = (db: ReturnType<typeof openDb>, source: string) => ({ ...(db.prepare('SELECT status, error FROM runs WHERE source = ? ORDER BY id DESC LIMIT 1').get(source) as { status: string; error: string | null }) });
+const ultimaExecucao = (db: ReturnType<typeof abrirBanco>, source: string) => ({ ...(db.prepare('SELECT status, error FROM runs WHERE source = ? ORDER BY id DESC LIMIT 1').get(source) as { status: string; error: string | null }) });
 
 test('coleta: um coletor que trava estoura o tempo e os outros seguem; erro vira registro, não exceção', async () => {
   await comBanco(async db => {
     const logs: string[] = [];
-    const resultado = await syncAll(db, { log: m => logs.push(m), timeoutMs: 60, collectors: [
+    const resultado = await sincronizarTudo(db, { log: m => logs.push(m), timeoutMs: 60, collectors: [
       coletor('lento', () => new Promise(() => {})), coletor('bom', async () => ({ fetched: 3, changed: 1 })), coletor('quebrado', async () => { throw new Error('HTTP 500 em api.exemplo'); }),
     ] });
     assert.deepEqual(resultado.map(r => [r.source, r.error ?? null]), [['lento', 'tempo esgotado (0 min)'], ['bom', null], ['quebrado', 'HTTP 500 em api.exemplo']]);
@@ -35,9 +35,9 @@ test('coleta: no máximo N coletores ao mesmo tempo, e todos rodam', async () =>
   await comBanco(async db => {
     let ativos = 0; let pico = 0; const rodaram: string[] = [];
     const lento = (nome: string) => coletor(nome, async () => { ativos++; pico = Math.max(pico, ativos); await atraso(25); ativos--; rodaram.push(nome); return { fetched: 1, changed: 0 }; });
-    await syncAll(db, { concurrency: 2, collectors: ['a', 'b', 'c', 'd', 'e', 'f'].map(lento) });
+    await sincronizarTudo(db, { concurrency: 2, collectors: ['a', 'b', 'c', 'd', 'e', 'f'].map(lento) });
     assert.equal(pico, 2); assert.equal(rodaram.length, 6);
-    await syncAll(db, { concurrency: 3, only: ['a', 'b', 'c'], collectors: ['a', 'b', 'c', 'd'].map(lento) });
+    await sincronizarTudo(db, { concurrency: 3, only: ['a', 'b', 'c'], collectors: ['a', 'b', 'c', 'd'].map(lento) });
     assert.equal(rodaram.length, 9, '`only` filtra os coletores');
   });
 });
@@ -46,10 +46,10 @@ test('coleta: falhas seguidas são contadas, destacadas no log depois de três e
   await comBanco(async db => {
     const logs: string[] = []; let quebrar = true;
     const instavel = coletor('fonte', async () => { if (quebrar) throw new Error('fora do ar'); return { fetched: 1, changed: 1 }; });
-    for (let i = 0; i < 3; i++) await syncAll(db, { log: m => logs.push(m), collectors: [instavel] });
+    for (let i = 0; i < 3; i++) await sincronizarTudo(db, { log: m => logs.push(m), collectors: [instavel] });
     assert.equal(falhasSeguidas(db, 'fonte'), 3);
     assert.ok(logs.filter(l => /falhas seguidas/.test(l)).length === 1, 'só a terceira falha é destacada'); assert.match(logs.at(-1)!, /3 falhas seguidas: a fonte precisa de atenção/);
-    quebrar = false; await syncAll(db, { collectors: [instavel] });
+    quebrar = false; await sincronizarTudo(db, { collectors: [instavel] });
     assert.equal(falhasSeguidas(db, 'fonte'), 0);
     assert.equal(falhasSeguidas(db, 'sem-historico'), 0);
   });
@@ -57,7 +57,7 @@ test('coleta: falhas seguidas são contadas, destacadas no log depois de três e
 
 test('execuções que ficaram "running" (processo encerrado) são fechadas, e o histórico antigo é podado sem perder a última coleta ok', async () => {
   await comBanco(async db => {
-    startRun(db, 'orfa'); // fica "running"
+    iniciarExecucao(db, 'orfa'); // fica "running"
     assert.equal(abandonarExecucoes(db), 1);
     assert.deepEqual(ultimaExecucao(db, 'orfa'), { status: 'error', error: 'interrompida (o processo foi encerrado)' });
     const velho = new Date(Date.now() - 200 * 86_400_000).toISOString();
@@ -70,7 +70,7 @@ test('execuções que ficaram "running" (processo encerrado) são fechadas, e o 
     assert.equal((db.prepare("SELECT count(*) AS n FROM runs WHERE source = 'antiga' AND status = 'ok'").get() as { n: number }).n, 1, 'a última coleta ok sobrevive');
     assert.ok((db.prepare("SELECT count(*) AS n FROM runs WHERE source = 'antiga'").get() as { n: number }).n <= 52);
     assert.equal((db.prepare("SELECT count(*) AS n FROM runs WHERE source = 'nova'").get() as { n: number }).n, 3, 'o histórico recente fica inteiro');
-    const run = startRun(db, 'x'); finishRun(db, run, { fetched: 1, changed: 0 }); assert.equal(ultimaExecucao(db, 'x').status, 'ok');
+    const run = iniciarExecucao(db, 'x'); finalizarExecucao(db, run, { fetched: 1, changed: 0 }); assert.equal(ultimaExecucao(db, 'x').status, 'ok');
   });
 });
 
@@ -87,8 +87,8 @@ test('PDF: o teto de páginas limita o texto extraído', async () => {
   for (const t of ['Primeira pagina', 'Segunda pagina', 'Terceira pagina']) doc.addPage().drawText(t);
   const bytes = new Uint8Array(await doc.save());
   // O leitor de PDF toma posse do buffer (ele fica inutilizável depois): cada leitura recebe a sua cópia.
-  const tudo = await pdfToText(new Uint8Array(bytes)); assert.match(tudo, /Primeira/); assert.match(tudo, /Terceira/);
-  const so = await pdfToText(new Uint8Array(bytes), { paginas: 1 }); assert.match(so, /Primeira/); assert.doesNotMatch(so, /Segunda|Terceira/);
+  const tudo = await pdfParaTexto(new Uint8Array(bytes)); assert.match(tudo, /Primeira/); assert.match(tudo, /Terceira/);
+  const so = await pdfParaTexto(new Uint8Array(bytes), { paginas: 1 }); assert.match(so, /Primeira/); assert.doesNotMatch(so, /Segunda|Terceira/);
 });
 
 test('cérebro: erro na reavaliação depois de gravar restaura a versão anterior (e repassa o erro); pasta interrompida é recuperada', async () => {

@@ -11,10 +11,10 @@ export type Tentativa = { nota: string; fontes: Passagem[] };
  * Verificação de fatos: e-mail, site, telefone, valor, número ou lei que não conste nas fontes indica invenção do modelo. Nesse caso o modelo reescreve, com a correção; se ainda
  * falhar, escreve sem afirmar nada além do contato oficial. A resposta nunca é um texto fixo do servidor.
  */
-export function tentativasDeResposta(situacao: Situacao | undefined, choices: Passagem[]): Tentativa[] {
+export function tentativasDeResposta(situacao: Situacao | undefined, escolhidas: Passagem[]): Tentativa[] {
   return [
-    { nota: situacao ? notaDaSituacao(situacao) : '', fontes: choices },
-    { nota: notaDaSituacao('correcao') + (situacao ? notaDaSituacao(situacao) : ''), fontes: choices },
+    { nota: situacao ? notaDaSituacao(situacao) : '', fontes: escolhidas },
+    { nota: notaDaSituacao('correcao') + (situacao ? notaDaSituacao(situacao) : ''), fontes: escolhidas },
     { nota: notaDaSituacao('sem-fonte'), fontes: [trechoDeContato()] },
   ];
 }

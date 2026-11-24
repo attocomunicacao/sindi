@@ -3,54 +3,54 @@ import assert from 'node:assert/strict';
 import { mkdtempSync, rmSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import path from 'node:path';
-import { categoryOf, cleanPdfText, documentEntries, entryTitle, isArticle, isBare, isMonthOnly, kindOf, lawIdentifier, sectionFor, titleFromPdfText, yearOf } from '@/lib/dados/sindicato';
-import { openDb, upsertDocument } from '@/lib/dados/db';
+import { categoriaDe, limparTextoDePdf, entradasDeDocumentos, tituloDaEntrada, ehArtigo, semSignificado, soTemMes, tipoDe, identificadorDaNorma, secaoDe, tituloPeloTextoDoPdf, anoDe } from '@/lib/dados/sindicato';
+import { abrirBanco, gravarDocumento } from '@/lib/dados/db';
 import { trechosDeClausula } from '@/lib/recuperacao/convencoes';
 import { trechosDoSindicato } from '@/lib/recuperacao/sindicato';
 import { trechosDeDocumentos } from '@/lib/recuperacao/documentos';
 
 const SITE = 'https://www.sindeprestem.com.br';
 test('site pages and posts are classified by section; articles are the ones signed by the president', () => {
-  assert.equal(sectionFor(`${SITE}/convencoes-coletivas`, 'x', ''), 'convencao');
-  assert.equal(sectionFor(`${SITE}/institucional-do-sindeprestem-sindicat`, 'x', ''), 'institucional');
-  assert.equal(sectionFor(`${SITE}/contato`, 'x', ''), 'contato');
-  assert.equal(sectionFor(`${SITE}/noticias/page/3`, 'x', ''), 'noticia');
-  assert.equal(sectionFor(`${SITE}/post/a`, 'Artigo - Inclusão que exclui', 'texto'), 'artigo');
-  assert.equal(sectionFor(`${SITE}/post/b`, 'O Estado sou eu', 'Texto do artigo.\n\nPor Vander Morales - Presidente'), 'artigo');
-  assert.equal(sectionFor(`${SITE}/post/c`, 'Sindeprestem recebe deputado', 'A diretoria recebeu o deputado.'), 'noticia');
-  assert.equal(isArticle('Reunião mensal', 'sem assinatura'), false);
+  assert.equal(secaoDe(`${SITE}/convencoes-coletivas`, 'x', ''), 'convencao');
+  assert.equal(secaoDe(`${SITE}/institucional-do-sindeprestem-sindicat`, 'x', ''), 'institucional');
+  assert.equal(secaoDe(`${SITE}/contato`, 'x', ''), 'contato');
+  assert.equal(secaoDe(`${SITE}/noticias/page/3`, 'x', ''), 'noticia');
+  assert.equal(secaoDe(`${SITE}/post/a`, 'Artigo - Inclusão que exclui', 'texto'), 'artigo');
+  assert.equal(secaoDe(`${SITE}/post/b`, 'O Estado sou eu', 'Texto do artigo.\n\nPor Vander Morales - Presidente'), 'artigo');
+  assert.equal(secaoDe(`${SITE}/post/c`, 'Sindeprestem recebe deputado', 'A diretoria recebeu o deputado.'), 'noticia');
+  assert.equal(ehArtigo('Reunião mensal', 'sem assinatura'), false);
 });
 test('document links keep their label; bare years and months take the group header', () => {
   const html = `<html><body><div><div>CCT PORTARIA</div><a href="/_files/ugd/a96667_aaa.pdf">2025</a><a href="/_files/ugd/a96667_bbb.pdf">Aditivo à CCT - Portaria - 2026</a>
     <div>DECRETO Nº 10.854/2021</div><div>2026</div><a href="/_files/ugd/a96667_ccc.pdf">janeiro</a></div></body></html>`;
-  const entries = documentEntries(html);
+  const entries = entradasDeDocumentos(html);
   assert.equal(entries.length, 3);
-  assert.equal(entryTitle(entries[0]), 'CCT PORTARIA — 2025');
-  assert.equal(entryTitle(entries[1]), 'Aditivo à CCT - Portaria - 2026');
-  assert.equal(entryTitle(entries[2]), 'DECRETO Nº 10.854/2021 — janeiro de 2026');
-  assert.equal(isBare('2025/2026'), true); assert.equal(isBare('Convenção Coletiva - Geral'), false);
+  assert.equal(tituloDaEntrada(entries[0]), 'CCT PORTARIA — 2025');
+  assert.equal(tituloDaEntrada(entries[1]), 'Aditivo à CCT - Portaria - 2026');
+  assert.equal(tituloDaEntrada(entries[2]), 'DECRETO Nº 10.854/2021 — janeiro de 2026');
+  assert.equal(semSignificado('2025/2026'), true); assert.equal(semSignificado('Convenção Coletiva - Geral'), false);
 });
 test('convention category comes from the title, or from the document text when the title is generic', () => {
-  assert.equal(categoryOf('Convenção Coletiva - PROMOTORES DE CRÉDITO - 2025/2026'), 'Promotores de crédito');
-  assert.equal(categoryOf('CCT POUPATEMPO E DETRAN — cct 2025'), 'Poupatempo');
-  assert.equal(categoryOf('ERRATA – DATA BASE 1° DE JANEIRO DE 2026', 'CONVENÇÃO COLETIVA DE TRABALHO PORTARIA E CONTROLE DE ACESSO'), 'Portaria');
-  assert.equal(categoryOf('ERRATA'), 'Outras');
-  assert.equal(yearOf('Convenção Coletiva - Geral - 2025/2026'), 2026); assert.equal(kindOf('Aditivo à CCT - Geral - 2026'), 'Aditivo');
+  assert.equal(categoriaDe('Convenção Coletiva - PROMOTORES DE CRÉDITO - 2025/2026'), 'Promotores de crédito');
+  assert.equal(categoriaDe('CCT POUPATEMPO E DETRAN — cct 2025'), 'Poupatempo');
+  assert.equal(categoriaDe('ERRATA – DATA BASE 1° DE JANEIRO DE 2026', 'CONVENÇÃO COLETIVA DE TRABALHO PORTARIA E CONTROLE DE ACESSO'), 'Portaria');
+  assert.equal(categoriaDe('ERRATA'), 'Outras');
+  assert.equal(anoDe('Convenção Coletiva - Geral - 2025/2026'), 2026); assert.equal(tipoDe('Aditivo à CCT - Geral - 2026'), 'Aditivo');
 });
 test('booklet and law titles are read from the PDF text, and page markers are removed', () => {
   const text = '-- 1 of 24 --\n\nSEGURANÇA\nE EFICIÊNCIA\nCARTILHA DO\nBOMBEIRO\nCIVIL\n\n-- 2 of 24 --\n';
-  assert.match(titleFromPdfText(text, 'fallback'), /CARTILHA/);
-  assert.equal(titleFromPdfText('-- 1 of 3 --\n', 'fallback'), 'fallback');
-  assert.equal(cleanPdfText('a\n-- 1 of 2 --\nb'), 'a\n\nb'.replace('\n\n', '\n\n'));
-  assert.equal(lawIdentifier('DECRETO Nº 10.854, DE 10 DE NOVEMBRO DE 2021'), 'DECRETO Nº 10.854');
-  assert.equal(isMonthOnly('abril de 2024'), true);
+  assert.match(tituloPeloTextoDoPdf(text, 'fallback'), /CARTILHA/);
+  assert.equal(tituloPeloTextoDoPdf('-- 1 of 3 --\n', 'fallback'), 'fallback');
+  assert.equal(limparTextoDePdf('a\n-- 1 of 2 --\nb'), 'a\n\nb'.replace('\n\n', '\n\n'));
+  assert.equal(identificadorDaNorma('DECRETO Nº 10.854, DE 10 DE NOVEMBRO DE 2021'), 'DECRETO Nº 10.854');
+  assert.equal(soTemMes('abril de 2024'), true);
 });
 test('own documents become passages with official titles, grouped, and clause questions go to text search', () => {
   const directory = mkdtempSync(path.join(tmpdir(), 'sindi-own-')); const file = path.join(directory, 'dados.sqlite');
   try {
-    const db = openDb(file);
+    const db = abrirBanco(file);
     const add = (url: string, title: string, section: string, extra: Record<string, unknown> = {}, published?: string) =>
-      upsertDocument(db, { source: 'sindeprestem', url, title, content: 'texto ' + title, publishedAt: published, meta: { section, ...extra } });
+      gravarDocumento(db, { source: 'sindeprestem', url, title, content: 'texto ' + title, publishedAt: published, meta: { section, ...extra } });
     add(`${SITE}/_files/ugd/p25.pdf`, 'Convenção Coletiva - Portaria - 2025/2026', 'convencao', { category: 'Portaria', year: 2026, region: 'São Paulo' });
     add(`${SITE}/_files/ugd/g25.pdf`, 'Convenção Coletiva - Geral - 2025/2026', 'convencao', { category: 'Geral', year: 2026, region: 'São Paulo' });
     add(`${SITE}/_files/ugd/p20.pdf`, 'CCT PORTARIA — 2020', 'convencao', { category: 'Portaria', year: 2020 });
@@ -80,11 +80,11 @@ test('own documents become passages with official titles, grouped, and clause qu
 test('clause questions return passages of the right agreement for the model, never a finished text', () => {
   const directory = mkdtempSync(path.join(tmpdir(), 'sindi-own2-')); const file = path.join(directory, 'dados.sqlite');
   try {
-    const db = openDb(file);
+    const db = abrirBanco(file);
     const NL = String.fromCharCode(10);
-    upsertDocument(db, { source: 'sindeprestem', url: `${SITE}/institucional-do-sindeprestem-sindicat`, title: 'Institucional', content: ['Sindicato das Empresas de Terceirização e Trabalho Temporário do Estado de São Paulo', 'Sobre o SINDEPRESTEM', 'Combate a precarização e defende a segurança jurídica.', 'Missão', 'Melhorar o ambiente de negócios.', 'Visão', 'Ser a principal liderança.', 'Valores', 'Compromisso e respeito.', 'Rodapé institucional: x'].join(NL), meta: { section: 'institucional' } });
+    gravarDocumento(db, { source: 'sindeprestem', url: `${SITE}/institucional-do-sindeprestem-sindicat`, title: 'Institucional', content: ['Sindicato das Empresas de Terceirização e Trabalho Temporário do Estado de São Paulo', 'Sobre o SINDEPRESTEM', 'Combate a precarização e defende a segurança jurídica.', 'Missão', 'Melhorar o ambiente de negócios.', 'Visão', 'Ser a principal liderança.', 'Valores', 'Compromisso e respeito.', 'Rodapé institucional: x'].join(NL), meta: { section: 'institucional' } });
     const body = ['TERMOS GERAIS', ...Array.from({ length: 200 }, (_, i) => `linha de texto ${i}`), 'CLÁUSULA TERCEIRA - SALÁRIOS PROFISSIONAIS', 'PISO SALARIAL', 'Porteiro R$ 1.912,07', 'Zelador R$ 2.018,19', 'Outra cláusula sobre férias.'].join(NL);
-    upsertDocument(db, { source: 'sindeprestem', url: `${SITE}/_files/ugd/p26.pdf`, title: 'Convenção Coletiva - Portaria - 2025/2026', content: body, meta: { section: 'convencao', category: 'Portaria', year: 2026, type: 'Convenção coletiva' } });
+    gravarDocumento(db, { source: 'sindeprestem', url: `${SITE}/_files/ugd/p26.pdf`, title: 'Convenção Coletiva - Portaria - 2025/2026', content: body, meta: { section: 'convencao', category: 'Portaria', year: 2026, type: 'Convenção coletiva' } });
     db.close();
     const clause = trechosDeClausula('Qual o piso salarial da convenção coletiva da Portaria 2026?', file).passages[0];
     assert.match(clause?.content ?? '', /R\$ 1\.912,07/); assert.match(clause?.url ?? '', /p26\.pdf/);

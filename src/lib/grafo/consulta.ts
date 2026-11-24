@@ -2,7 +2,7 @@ import { existsSync, readFileSync, statSync } from 'node:fs';
 import path from 'node:path';
 import { DatabaseSync } from 'node:sqlite';
 import { limpar, refDoDocumento } from '@/lib/biblioteca/consulta';
-import { dataDir, dbPath } from '@/lib/dados/db';
+import { pastaDosDados, caminhoDoBanco } from '@/lib/dados/db';
 import type { Passagem } from '@/lib/base/tipos';
 import { extrairEntidades } from '@/lib/grafo/entidades';
 import type { Grafo, No } from '@/lib/grafo/tipos';
@@ -12,7 +12,7 @@ import type { Grafo, No } from '@/lib/grafo/tipos';
  * entidade — notícias, artigos, cartilhas e o próprio projeto — mesmo que as palavras da pergunta não estejam no título deles. Esses trechos entram como
  * **candidatos**: quem decide se vão ao modelo é a mesma régua de cobertura da busca (src/lib/recuperacao/recuperar.ts), e a verificação de fatos continua valendo.
  */
-export const arquivoDoGrafo = () => path.join(dataDir(), 'grafo.json');
+export const arquivoDoGrafo = () => path.join(pastaDosDados(), 'grafo.json');
 
 let cache: { mtime: number; grafo: Grafo; verificadoEm: number; vizinhos: Map<string, string[]> } | undefined;
 /** O grafo em memória, relido quando o arquivo muda (conferência a cada 5 s). `undefined` se ainda não foi gerado (`npm run grafo:gerar`). */
@@ -45,9 +45,9 @@ export function documentosDasEntidades(pergunta: string, limite = 4): No[] {
 
 /** Trecho de cada documento ligado, em volta da primeira menção à entidade (o modelo lê pouco: até 1.200 caracteres por fonte). */
 export function documentosPeloGrafo(pergunta: string, limite = 4): Passagem[] {
-  const nos = documentosDasEntidades(pergunta, limite); if (!nos.length || !existsSync(dbPath())) return [];
+  const nos = documentosDasEntidades(pergunta, limite); if (!nos.length || !existsSync(caminhoDoBanco())) return [];
   const entidades = extrairEntidades(pergunta, 4);
-  const db = new DatabaseSync(dbPath(), { readOnly: true });
+  const db = new DatabaseSync(caminhoDoBanco(), { readOnly: true });
   try {
     const consulta = db.prepare('SELECT url, title, content, published_at, fetched_at FROM documents WHERE rowid = ?');
     return nos.flatMap(n => {

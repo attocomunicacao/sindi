@@ -1,6 +1,6 @@
 import { timingSafeEqual } from 'node:crypto';
 import type { z } from 'zod';
-import { chatSchema } from '@/lib/chat';
+import { chatSchema } from '@/lib/chat/esquema';
 import { erroJson, guardaDeEscrita } from '@/lib/http/guarda';
 import { inteiro } from '@/lib/ia/tipos';
 

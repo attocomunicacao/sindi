@@ -3,16 +3,17 @@ import assert from 'node:assert/strict';
 import { mkdtempSync, mkdirSync, writeFileSync, rmSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import path from 'node:path';
-import { gerarTexto, MENSAGEM_NEUTRA } from '../src/lib/ia/cascata';
-import { enderecoDoOllama, provedoresAtivos } from '../src/lib/ia/provedores';
-import { podeTentar, registrarFalha, registrarTentativa, reiniciarSaude } from '../src/lib/ia/saude';
-import { LlmError } from '../src/lib/ia/tipos';
-import { cotaDisponivel, consumirCota, ipDoPedido, reiniciarCotaNaMemoria } from '../src/lib/cota';
-import { blocoDeFontes, mensagemDoPedido, neutralizarMarcadores } from '../src/lib/cerebro/instrucoes';
-import { carregarArquivos } from '../src/lib/cerebro/carregar';
-import { POST } from '../src/app/api/chat/route';
-import { limparRespostasGuardadas } from '../src/lib/cache-respostas';
-import { reiniciarLimitesNaMemoria } from '../src/lib/limite';
+import { gerarTexto, MENSAGEM_NEUTRA } from '@/lib/ia/cascata';
+import { enderecoDoOllama, provedoresAtivos } from '@/lib/ia/provedores';
+import { podeTentar, registrarFalha, registrarTentativa, reiniciarSaude } from '@/lib/ia/saude';
+import { LlmError } from '@/lib/ia/tipos';
+import { cotaDisponivel, consumirCota, reiniciarCotaNaMemoria } from '@/lib/infra/cota';
+import { ipDoPedido } from '@/lib/http/ip';
+import { blocoDeFontes, mensagemDoPedido, neutralizarMarcadores } from '@/lib/cerebro/instrucoes';
+import { carregarArquivos } from '@/lib/cerebro/carregar';
+import { POST } from '@/app/api/chat/route';
+import { limparRespostasGuardadas } from '@/lib/infra/cache-respostas';
+import { reiniciarLimitesNaMemoria } from '@/lib/infra/limite-por-minuto';
 
 // ------------------------------------------------------------------------------------------------ apoio
 const PROVEDORES = ['GEMINI_API_KEY', 'GROQ_API_KEY', 'OPENROUTER_API_KEY', 'MISTRAL_API_KEY', 'CLOUDFLARE_API_TOKEN', 'CLOUDFLARE_ACCOUNT_ID', 'ANTHROPIC_API_KEY', 'SINDI_OLLAMA_URL', 'SINDI_CASCATA'];

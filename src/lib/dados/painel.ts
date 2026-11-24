@@ -2,7 +2,7 @@ import { SITE } from '@/lib/base/constantes';
 import { DatabaseSync } from 'node:sqlite';
 import type { PassagemFixa } from '@/lib/base/tipos';
 import { existsSync } from 'node:fs';
-import { dbPath, falhasSeguidas } from './db';
+import { dbPath, falhasSeguidas } from '@/lib/dados/db';
 import { numeroDoIndicador } from '@/lib/base/formato';
 
 export type PainelIndicator = { id: string; group: string; label: string; value: number; unit: string; period: string; previous: number | null; source: string; url: string; fetchedAt: string };

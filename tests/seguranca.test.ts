@@ -3,11 +3,12 @@ import assert from 'node:assert/strict';
 import { mkdtempSync, rmSync, writeFileSync, existsSync, utimesSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import path from 'node:path';
-import { linkSeguro, urlDeDocumentoValida } from '../src/lib/url-segura';
-import { limitarPorMinuto, reiniciarLimitesNaMemoria } from '../src/lib/limite';
-import { pedidoLocal } from '../src/lib/atualizacao';
-import { arquivoDoCache, podarCache } from '../src/lib/biblioteca/pdf';
-import { destinoPermitido, hostInterno, politeFetch } from '../src/lib/dados/http';
+import { linkSeguro } from '@/lib/base/url-segura';
+import { urlDeDocumentoValida } from '@/lib/dados/url-documento';
+import { limitarPorMinuto, reiniciarLimitesNaMemoria } from '@/lib/infra/limite-por-minuto';
+import { pedidoLocal } from '@/lib/atualizacao';
+import { arquivoDoCache, podarCache } from '@/lib/biblioteca/pdf';
+import { destinoPermitido, hostInterno, politeFetch } from '@/lib/dados/http';
 
 const pedido = (cabecalhos: Record<string, string> = {}) => new Request('http://localhost/api/x', { headers: cabecalhos });
 

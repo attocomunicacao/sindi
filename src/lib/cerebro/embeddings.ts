@@ -1,8 +1,8 @@
 import { createHash } from 'node:crypto';
 import { mkdirSync, readFileSync, renameSync, statSync, writeFileSync } from 'node:fs';
 import path from 'node:path';
-import { dataDir } from '../dados/db';
-import { trechosDoCerebro, type Trecho } from './carregar';
+import { dataDir } from '@/lib/dados/db';
+import { trechosDoCerebro, type Trecho } from '@/lib/cerebro/carregar';
 
 const NOME_DO_MODELO = process.env.GEMINI_EMBED_MODEL || 'gemini-embedding-001';
 /** Vetores de 768 dimensões (o modelo permite reduzir): índice menor e busca mais rápida. O nome no índice inclui o tamanho, então mudar qualquer um reindexa. */

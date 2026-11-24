@@ -1,6 +1,6 @@
-import { contagem, esperaDoCabecalho, inteiro, LlmError, NOME_DE_MODELO, type Nivel, type OpcoesDeGeracao, type Provedor, type Resultado } from './tipos';
+import { contagem, esperaDoCabecalho, inteiro, LlmError, NOME_DE_MODELO, type Nivel, type OpcoesDeGeracao, type Provedor, type Resultado } from '@/lib/ia/tipos';
 import type { Mensagem } from '@/lib/base/tipos';
-import { lerSse } from './sse';
+import { lerSse } from '@/lib/ia/sse';
 
 /**
  * Um adaptador para todos os provedores que seguem a API de chat da OpenAI (`POST {base}/chat/completions`, SSE com `data: [DONE]`): Groq, OpenRouter,

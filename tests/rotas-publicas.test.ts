@@ -1,12 +1,12 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { GET as painel } from '../src/app/api/painel/route';
-import { GET as painelPdf } from '../src/app/api/painel/pdf/route';
-import { GET as usage } from '../src/app/api/usage/route';
-import { GET as knowledge } from '../src/app/api/knowledge/route';
-import { GET as atualizarEstado, POST as atualizar } from '../src/app/api/atualizar/route';
-import { GET as bibliotecaPdf } from '../src/app/api/biblioteca/pdf/[id]/route';
-import { reiniciarLimitesNaMemoria } from '../src/lib/limite';
+import { GET as painel } from '@/app/api/painel/route';
+import { GET as painelPdf } from '@/app/api/painel/pdf/route';
+import { GET as usage } from '@/app/api/uso/route';
+import { GET as knowledge } from '@/app/api/knowledge/route';
+import { GET as atualizarEstado, POST as atualizar } from '@/app/api/atualizar/route';
+import { GET as bibliotecaPdf } from '@/app/api/biblioteca/pdf/[id]/route';
+import { reiniciarLimitesNaMemoria } from '@/lib/infra/limite-por-minuto';
 
 const get = (url: string, cabecalhos: Record<string, string> = {}) => new Request(url, { headers: cabecalhos });
 const ctx = (id: string) => ({ params: Promise.resolve({ id }) });
@@ -28,12 +28,12 @@ test('/api/painel e /api/knowledge: respondem sem expor estado interno e têm li
   });
 });
 
-test('/api/usage: devolve os 30 dias ou um erro em JSON (nunca texto solto) e respeita o limite', async () => {
+test('/api/uso: devolve os 30 dias ou um erro em JSON (nunca texto solto) e respeita o limite', async () => {
   await semUpstash(async () => {
-    const r = await usage(get('http://localhost/api/usage')); assert.ok([200, 503].includes(r.status));
+    const r = await usage(get('http://localhost/api/uso')); assert.ok([200, 503].includes(r.status));
     const dados = await r.json(); assert.ok(r.status === 200 ? Array.isArray(dados.days) : typeof dados.error === 'string');
-    for (let i = 0; i < 120; i++) await usage(get('http://localhost/api/usage', { 'x-real-ip': '198.51.100.10' }));
-    assert.equal((await usage(get('http://localhost/api/usage', { 'x-real-ip': '198.51.100.10' }))).status, 429);
+    for (let i = 0; i < 120; i++) await usage(get('http://localhost/api/uso', { 'x-real-ip': '198.51.100.10' }));
+    assert.equal((await usage(get('http://localhost/api/uso', { 'x-real-ip': '198.51.100.10' }))).status, 429);
   });
 });
 

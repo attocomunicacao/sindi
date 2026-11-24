@@ -1,5 +1,5 @@
 // Sem dependências: o modo "Arquitetura" da página /cerebro desenha este grafo fixo, sem ir ao servidor.
-import type { Aresta, No } from './tipos';
+import type { Aresta, No } from '@/lib/grafo/tipos';
 
 /**
  * O caminho de uma pergunta pela SINDI, como rede: guarda → orquestrador → especialistas → fontes → redação em cascata → verificação → resposta.

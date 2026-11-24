@@ -5,12 +5,12 @@
  * - `GEMINI_MODEL`: modelo das respostas com fatos.
  * - `GEMINI_MODEL_RAPIDO`: opcional, para saudação, recusa e encaminhamento. Vazio usa só o principal.
  */
-import { contagem, inteiro, LlmError, NOME_DE_MODELO, type Nivel, type OpcoesDeGeracao, type Provedor, type Resultado } from './ia/tipos';
+import { contagem, inteiro, LlmError, NOME_DE_MODELO, type Nivel, type OpcoesDeGeracao, type Provedor, type Resultado } from '@/lib/ia/tipos';
 import type { Mensagem } from '@/lib/base/tipos';
-import { lerSse } from './ia/sse';
-import { entrarNaVez, sairDaVez } from './ia/vez';
+import { lerSse } from '@/lib/ia/sse';
+import { entrarNaVez, sairDaVez } from '@/lib/ia/vez';
 
-export { LlmError } from './ia/tipos';
+export { LlmError } from '@/lib/ia/tipos';
 export const MODELO_PADRAO = 'gemini-3.5-flash-lite';
 export const modeloPrincipal = () => process.env.GEMINI_MODEL || MODELO_PADRAO;
 export const modeloRapido = () => process.env.GEMINI_MODEL_RAPIDO ?? '';
@@ -108,7 +108,7 @@ export const provedorGemini: Provedor = {
 };
 
 /** Chamada direta ao Gemini com fila (sem cascata). Mantida para scripts e testes do provedor; o chat usa `gerarTexto` de src/lib/ia/cascata.ts. */
-export async function gerarTexto(messages: Mensagem[], signal: AbortSignal, onDelta?: (text: string) => void, opcoes?: OpcoesDeGeracao, modelo?: string) {
+export async function gerarTextoGemini(messages: Mensagem[], signal: AbortSignal, onDelta?: (text: string) => void, opcoes?: OpcoesDeGeracao, modelo?: string) {
   if (!chaveConfigurada()) throw new LlmError('O serviço de IA ainda não foi configurado (GEMINI_API_KEY).', 503, 'configuracao');
   await entrarNaVez(signal);
   try { return await gerarNoGemini(messages, signal, onDelta, opcoes, modelo); } finally { sairDaVez(); }

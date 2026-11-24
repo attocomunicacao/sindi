@@ -1,6 +1,6 @@
-import { getJson } from '../http';
-import { upsertDocument } from '../db';
-import { LEGISLATIVE_KEYWORDS, type Collector } from './types';
+import { getJson } from '@/lib/dados/http';
+import { upsertDocument } from '@/lib/dados/db';
+import { LEGISLATIVE_KEYWORDS, type Collector } from '@/lib/dados/collectors/types';
 
 type Process = { id: number; identificacao: string; ementa: string; autoria?: string; situacaoAtual?: string; dataApresentacao?: string; dataSituacaoAtual?: string; tramitando?: string; tipoDocumento?: string };
 

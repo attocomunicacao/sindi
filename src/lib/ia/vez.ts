@@ -1,4 +1,4 @@
-import { inteiro, LlmError } from './tipos';
+import { inteiro, LlmError } from '@/lib/ia/tipos';
 
 /**
  * Poucas gerações ao mesmo tempo por processo (os níveis gratuitos limitam requisições por minuto, e o modelo local usa o processador inteiro) e uma fila curta:

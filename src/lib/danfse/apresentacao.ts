@@ -8,9 +8,9 @@
  *
  * Sem I/O e sem data atual: o mesmo XML produz sempre o mesmo documento.
  */
-import * as f from './formato';
-import { resolverMunicipio } from './localidades';
-import { MARCA_DAGUA, type InfNFSe, type NFSe, type Parte, type SituacaoNota } from './modelo';
+import * as f from '@/lib/danfse/formato';
+import { resolverMunicipio } from '@/lib/danfse/localidades';
+import { MARCA_DAGUA, type InfNFSe, type NFSe, type Parte, type SituacaoNota } from '@/lib/danfse/modelo';
 
 const MAX_DESCRICAO = 1300;
 const MAX_INFO_COMPL = 2000;

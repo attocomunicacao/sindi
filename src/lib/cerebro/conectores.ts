@@ -1,7 +1,7 @@
 import { readdirSync, readFileSync, statSync } from 'node:fs';
 import path from 'node:path';
-import { normalize } from '../knowledge/core';
-import { lerCabecalho, pastaCerebro } from './carregar';
+import { normalize } from '@/lib/knowledge/core';
+import { lerCabecalho, pastaCerebro } from '@/lib/cerebro/carregar';
 
 /**
  * Conector: um arquivo de `cerebro/conectores/` que liga um tipo de pergunta às estantes da biblioteca onde está a resposta e à instrução curta de como responder.

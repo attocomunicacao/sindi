@@ -1,7 +1,7 @@
-import { deleteMissing, due, getState, setState, upsertDocument } from '../db';
-import { politeFetch } from '../http';
-import { decodeHtml, htmlToLines, splitArticles } from '../legal';
-import type { Collector } from './types';
+import { deleteMissing, due, getState, setState, upsertDocument } from '@/lib/dados/db';
+import { politeFetch } from '@/lib/dados/http';
+import { decodeHtml, htmlToLines, splitArticles } from '@/lib/dados/legal';
+import type { Collector } from '@/lib/dados/collectors/types';
 
 export const CONSTITUICAO_URL = 'https://www.planalto.gov.br/ccivil_03/constituicao/constituicao.htm';
 const DAY = 24 * 60 * 60 * 1000;

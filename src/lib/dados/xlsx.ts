@@ -1,7 +1,7 @@
 import writeExcelFile from 'write-excel-file/node';
 import { rename } from 'node:fs/promises';
 import path from 'node:path';
-import { dataDir, type Db } from './db';
+import { dataDir, type Db } from '@/lib/dados/db';
 
 export const xlsxPath = () => path.join(dataDir(), 'sindi-dados.xlsx');
 /** O SINDEPRESTEM tem uma aba por seção do site (o campo meta.section é definido pelo coletor). */

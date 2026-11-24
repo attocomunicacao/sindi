@@ -3,7 +3,7 @@ import { sufficientEvidence } from '@/lib/knowledge/core';
 import type { Passagem } from '@/lib/base/tipos';
 import { retrieveKnowledge } from '@/lib/knowledge/retrieve';
 import { escolherConector, type Conector } from '@/lib/cerebro/conectores';
-import { MAXIMO_DE_FONTES, WRITING } from './prompt';
+import { MAXIMO_DE_FONTES, WRITING } from '@/lib/chat/prompt';
 
 // Decide, por regras, o que fazer com a pergunta: dados sensíveis, caso jurídico, saudação, fora do escopo ou busca de fontes. Nenhuma resposta é escrita aqui.
 

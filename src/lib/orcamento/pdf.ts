@@ -1,8 +1,8 @@
 import { createHash } from 'node:crypto';
-import tabela from './tabela.json';
-import { AJUSTES_TABELA } from './catalogo';
-import { HORAS_NOTURNAS_PADRAO, type OrcamentoEntrada, type PostoCalculado, type Resultado } from './calculo';
-import { COR, Documento, moeda, numero, percentual } from './pdf-base';
+import tabela from '@/lib/orcamento/tabela.json';
+import { AJUSTES_TABELA } from '@/lib/orcamento/catalogo';
+import { HORAS_NOTURNAS_PADRAO, type OrcamentoEntrada, type PostoCalculado, type Resultado } from '@/lib/orcamento/calculo';
+import { COR, Documento, moeda, numero, percentual } from '@/lib/orcamento/pdf-base';
 
 export type Cliente = { empresa?: string; contato?: string; local?: string; observacoes?: string };
 

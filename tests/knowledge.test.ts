@@ -1,7 +1,7 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { SITE } from '@/lib/base/constantes';
-import { chunks, searchSnapshot, contextText, sufficientEvidence, type KnowledgeDocument } from '../src/lib/knowledge/core';
+import { chunks, searchSnapshot, contextText, sufficientEvidence, type KnowledgeDocument } from '@/lib/knowledge/core';
 test('missing facts fail the evidence gate even when generic institutional words match', () => {
   const passages = [{ url: `${SITE}/contato`, title: 'Contato', content: 'Sindicato com sede em São Paulo. Trabalho temporário e serviços jurídicos.', fetchedAt: '2026-10-10' }];
   assert.equal(sufficientEvidence(passages, 'Qual é o nome do robô que limpa a sede do SINDEPRESTEM?'), false);
@@ -9,8 +9,8 @@ test('missing facts fail the evidence gate even when generic institutional words
   assert.equal(sufficientEvidence(passages, 'Como o SINDEPRESTEM pode ajudar minha empresa?'), true);
   assert.equal(sufficientEvidence([], 'trabalho temporário'), false);
 });
-import { siteUrl, pdfUrl, extractHtml } from '../src/lib/knowledge/extract';
-import { cleanExcerpt, sourceChoices, sourceReferences } from '../src/lib/knowledge/grounded';
+import { siteUrl, pdfUrl, extractHtml } from '@/lib/knowledge/extract';
+import { cleanExcerpt, sourceChoices, sourceReferences } from '@/lib/knowledge/grounded';
 test('references remain separate from prose and noisy PDF indexes are excluded', () => {
   assert.equal(cleanExcerpt('ÍNDICE\n42\n40\n38\nconceito\nlegislação\ntrabalho temporário'), '');
   assert.equal(cleanExcerpt('interfe-\nrência da Justiça do Trabalho.\n34 | SINDEPRESTEM'), 'interferência da Justiça do Trabalho.');
@@ -45,10 +45,10 @@ test('retrieval excludes removed sources, handles English contact queries and tr
   assert.match(searchSnapshot(snapshot, 'endereço')[0].content, /Rua Nova/);
 });
 
-import { contactFromSource } from '../src/lib/knowledge/retrieve';
-import { calculoDoOrcamento } from '../src/lib/orcamento/ferramenta';
-import { executarFerramentas } from '../src/lib/ferramentas/registro';
-import { casoJuridicoIndividual } from '../src/lib/knowledge/grounded';
+import { contactFromSource } from '@/lib/knowledge/retrieve';
+import { calculoDoOrcamento } from '@/lib/orcamento/ferramenta';
+import { executarFerramentas } from '@/lib/ferramentas/registro';
+import { casoJuridicoIndividual } from '@/lib/knowledge/grounded';
 test('the contact file of the brain is generated from the official page text', () => {
   const contact = 'Setor Administrativo\n\n(11) 3215-8250\n\nsindeprestem@x.br\n\nLigarE-mail\n\nRodapé institucional: Segunda a Sexta das 08:30 Às 17:30';
   const text = contactFromSource(contact, 'pt') || '';

@@ -1,8 +1,8 @@
 /**
  * Limite de pedidos por minuto, por visitante, para rotas que gastam processador ou rede (geração de PDF, download de documentos). Janela fixa, em memória do processo:
- * é uma proteção contra laços de requisição, não uma cota. O IP vem do mesmo cabeçalho configurado para a cota de mensagens (ver cota.ts).
+ * é uma proteção contra laços de requisição, não uma cota. O IP vem do mesmo cabeçalho configurado para a cota de mensagens (ver http/ip.ts).
  */
-import { ipDoPedido } from './cota';
+import { ipDoPedido } from '@/lib/http/ip';
 const janelas = new Map<string, { inicio: number; usados: number }>();
 const MAXIMO_DE_CHAVES = 20_000;
 export function limitarPorMinuto(request: Request, nome: string, maximo: number, agora = Date.now()): { ok: boolean; reiniciaEmSegundos: number } {

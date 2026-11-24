@@ -1,5 +1,5 @@
-import { abrirGeracao, cacheLigado, chaveDaResposta, esperarIgual, respostaGuardada } from '@/lib/cache-respostas';
-import { consumirCota, cotaDisponivel, mensagemDeCota, type ResultadoCota } from '@/lib/cota';
+import { abrirGeracao, cacheLigado, chaveDaResposta, esperarIgual, respostaGuardada } from '@/lib/infra/cache-respostas';
+import { consumirCota, cotaDisponivel, mensagemDeCota, type ResultadoCota } from '@/lib/infra/cota';
 import type { Situacao } from '@/lib/knowledge/grounded';
 
 /** Chave da memória de respostas: só a primeira pergunta de uma conversa (não depende de histórico) e nunca a que traz dados sensíveis. */

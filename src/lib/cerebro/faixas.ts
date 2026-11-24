@@ -1,7 +1,7 @@
 import { SITE } from '@/lib/base/constantes';
 import type { Passagem } from '@/lib/base/tipos';
-import { normalize } from '../knowledge/core';
-import { trechosDoCerebro } from './carregar';
+import { normalize } from '@/lib/knowledge/core';
+import { trechosDoCerebro } from '@/lib/cerebro/carregar';
 
 /**
  * Contribuições do sindicato por faixa. As tabelas têm dezenas de linhas e o modelo pequeno erra a faixa quando as recebe inteiras; aqui a SINDI acha a linha

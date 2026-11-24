@@ -1,6 +1,6 @@
-import { getJson, listaOuErro } from '../http';
-import { setIndicator } from '../db';
-import type { Collector } from './types';
+import { getJson, listaOuErro } from '@/lib/dados/http';
+import { setIndicator } from '@/lib/dados/db';
+import type { Collector } from '@/lib/dados/collectors/types';
 
 /**
  * Meta Selic (série 432 do SGS/Banco Central). A série é diária e repete a meta vigente também em datas futuras;

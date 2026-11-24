@@ -1,7 +1,7 @@
 import { z } from 'zod';
-import { CATEGORIAS_INSUMO, funcaoPorId } from './catalogo';
-import { ISS_PERMITIDO } from './calculo';
-import { tributacaoSchema } from '../tributos/schema';
+import { CATEGORIAS_INSUMO, funcaoPorId } from '@/lib/orcamento/catalogo';
+import { ISS_PERMITIDO } from '@/lib/orcamento/calculo';
+import { tributacaoSchema } from '@/lib/tributos/schema';
 
 // Texto livre do solicitante: sem caracteres de controle e com tamanho limitado (vai para o PDF, nunca é gravado).
 const texto = (max: number) => z.string().trim().max(max).transform(v => v.replace(/[\u0000-\u001f\u007f]/g, ' ').replace(/\s+/g, ' ').trim()).optional();

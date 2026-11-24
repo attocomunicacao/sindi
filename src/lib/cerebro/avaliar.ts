@@ -1,9 +1,9 @@
 import { readFileSync } from 'node:fs';
 import path from 'node:path';
-import { retrieveKnowledge } from '../knowledge/retrieve';
-import { casoJuridicoIndividual, sourceChoices } from '../knowledge/grounded';
-import { sufficientEvidence } from '../knowledge/core';
-import { pastaCerebro } from './carregar';
+import { retrieveKnowledge } from '@/lib/knowledge/retrieve';
+import { casoJuridicoIndividual, sourceChoices } from '@/lib/knowledge/grounded';
+import { sufficientEvidence } from '@/lib/knowledge/core';
+import { pastaCerebro } from '@/lib/cerebro/carregar';
 
 export type Caso = { pergunta: string; espera: string[]; nao: string[]; categoria?: string };
 export type ResultadoCaso = { pergunta: string; ok: boolean; origem: string; faltam: string[]; proibidos: string[]; evidencia: string; categoria?: string };

@@ -1,8 +1,8 @@
-import { provedoresAtivos } from './provedores';
+import { provedoresAtivos } from '@/lib/ia/provedores';
 import type { Mensagem } from '@/lib/base/tipos';
-import { podeTentar, registrarFalha, registrarSucesso, registrarTentativa } from './saude';
-import { LlmError, type Nivel, type OpcoesDeGeracao, type Resultado } from './tipos';
-import { entrarNaVez, sairDaVez } from './vez';
+import { podeTentar, registrarFalha, registrarSucesso, registrarTentativa } from '@/lib/ia/saude';
+import { LlmError, type Nivel, type OpcoesDeGeracao, type Resultado } from '@/lib/ia/tipos';
+import { entrarNaVez, sairDaVez } from '@/lib/ia/vez';
 
 /**
  * A cascata de provedores: o chat pede um texto e esta função tenta, em ordem, cada provedor configurado (`SINDI_CASCATA`), pulando os que estão de castigo
@@ -14,7 +14,7 @@ import { entrarNaVez, sairDaVez } from './vez';
  * - O modelo local (Ollama) é sempre o último degrau, e é tentado mesmo de castigo se ninguém mais pôde ser tentado.
  */
 export const MENSAGEM_NEUTRA = 'A SINDI está com muita procura agora. Tente novamente em instantes.';
-export { LlmError } from './tipos';
+export { LlmError } from '@/lib/ia/tipos';
 
 /** O nível rápido só é usado quando foi pedido explicitamente (no Gemini, era assim: só com `GEMINI_MODEL_RAPIDO`). */
 export const rapidoLigado = () => Boolean(process.env.GEMINI_MODEL_RAPIDO) || process.env.SINDI_NIVEL_RAPIDO === '1';

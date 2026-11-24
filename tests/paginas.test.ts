@@ -2,8 +2,8 @@ import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { existsSync, readFileSync } from 'node:fs';
 import path from 'node:path';
-import { PAGINAS, paginaDe, paginasDoMenu, rotaDe, rotasSemPrevia } from '../src/lib/paginas';
-import robots from '../src/app/robots';
+import { PAGINAS, paginaDe, paginasDoMenu, rotaDe, rotasSemPrevia } from '@/lib/paginas';
+import robots from '@/app/robots';
 
 test('registro de páginas: ids e rotas únicos, e toda rota tem uma página em src/app', () => {
   assert.equal(new Set(PAGINAS.map(p => p.id)).size, PAGINAS.length); assert.equal(new Set(PAGINAS.map(p => p.rota)).size, PAGINAS.length);

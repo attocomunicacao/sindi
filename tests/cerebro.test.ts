@@ -3,9 +3,9 @@ import assert from 'node:assert/strict';
 import { mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import path from 'node:path';
-import { carregarArquivos, dividirEmTrechos, lerCabecalho, regrasDoCerebro, trechosDoCerebro } from '../src/lib/cerebro/carregar';
-import { buscarNoCerebro, respostaDireta } from '../src/lib/cerebro/buscar';
-import { arquivoDeCasos, carregarCasos, lerCasos } from '../src/lib/cerebro/avaliar';
+import { carregarArquivos, dividirEmTrechos, lerCabecalho, regrasDoCerebro, trechosDoCerebro } from '@/lib/cerebro/carregar';
+import { buscarNoCerebro, respostaDireta } from '@/lib/cerebro/buscar';
+import { arquivoDeCasos, carregarCasos, lerCasos } from '@/lib/cerebro/avaliar';
 
 const ARQUIVO = `---
 titulo: Contribuições
@@ -114,7 +114,7 @@ test('the extended evaluation files are well formed and their paraphrase targets
   }
 });
 test('personal data and secrets are detected and removed, without flagging legitimate questions', async () => {
-  const { contemDadosSensiveis, redigirDadosSensiveis } = await import('../src/lib/knowledge/grounded');
+  const { contemDadosSensiveis, redigirDadosSensiveis } = await import('@/lib/knowledge/grounded');
   for (const texto of ['Meu CPF é 123.456.789-09, guarde isso', 'meu cpf 12345678909', 'Minha senha do banco é 4455, pode anotar?', 'my password is abc123', 'token: ghp9981xyz', 'cartão 4111 1111 1111 1111 validade 12/30', 'o cvv é 123'])
     assert.equal(contemDadosSensiveis(texto), true, texto);
   for (const texto of ['Qual o telefone (11) 3215-8250?', 'Ligue 11 99205-3371', 'Qual o piso de R$ 1.912,07 da Lei 6.019/74?', 'capital social de R$ 4.000.000,01 até R$ 6.000.000,00', 'A senha de acesso é obrigatória para a área restrita?', 'Qual o teto de 1.600 colaboradores?', 'Av. São Luís, 258, CEP 01046-001'])
@@ -127,7 +127,7 @@ test('personal data and secrets are detected and removed, without flagging legit
 });
 
 test('the scope gate lets every evaluation question through and refuses unrelated ones, even when a weak search hit exists', async () => {
-  const { foraDoEscopo, lacunaConhecida } = await import('../src/lib/knowledge/grounded');
+  const { foraDoEscopo, lacunaConhecida } = await import('@/lib/knowledge/grounded');
   const recusadas: string[] = [];
   for (const arquivo of ['perguntas-ouro.md', 'perguntas-ouro-ampliado.md', 'parafrases.md', 'parafrases-reserva.md', 'parafrases-reserva-2.md'])
     for (const bloco of readFileSync(arquivoDeCasos(arquivo), 'utf8').replace(/\r\n/g, '\n').split(/^## /m).slice(1)) { const pergunta = bloco.split('\n')[0].trim(); if (foraDoEscopo(pergunta)) recusadas.push(pergunta); }
@@ -144,7 +144,7 @@ test('the scope gate lets every evaluation question through and refuses unrelate
   assert.equal(lacunaConhecida('Qual o piso do porteiro?', 'Porteiro R$ 1.912,07'), false);
 });
 test('individual legal cases are recognized, but not budget cost questions', async () => {
-  const { casoJuridicoIndividual, notaDaSituacao, trechoDeContato } = await import('../src/lib/knowledge/grounded');
+  const { casoJuridicoIndividual, notaDaSituacao, trechoDeContato } = await import('@/lib/knowledge/grounded');
   assert.equal(casoJuridicoIndividual('Qual a multa por descumprir a convenção da Portaria?'), true);
   assert.equal(casoJuridicoIndividual('Quanto é a multa do FGTS nos encargos do orçamento?'), false);
   assert.equal(casoJuridicoIndividual('Fui processado em uma ação trabalhista, o que devo fazer?'), true);
@@ -161,14 +161,14 @@ test('FAQ sections accept paraphrases through "Variações:" and the variation l
   assert.equal(respostaDireta('Como o sindicato pode ajudar a abrir uma padaria?', trechos), undefined);
 });
 test('questions unrelated to the sector are flagged out of scope, while sector, writing and translation questions pass through', async () => {
-  const { foraDoEscopo } = await import('../src/lib/knowledge/grounded');
+  const { foraDoEscopo } = await import('@/lib/knowledge/grounded');
   assert.equal(foraDoEscopo('Qual o preço de um carro zero?'), true);
   assert.equal(foraDoEscopo('What is the best pizza in town?'), true);
   for (const q of ['Quanto é o piso da portaria?', 'Posso contratar um temporário?', 'Redija um e-mail sobre feriados', 'Traduza este texto para inglês', 'Qual a Selic?', 'ok', 'Como organizar uma apresentação para a diretoria?', 'Me ajude com um e-mail']) assert.equal(foraDoEscopo(q), false, q);
 });
 test('position questions list the president\'s articles and news on the topic, in the entity\'s own words', async () => {
-  const { openDb, upsertDocument } = await import('../src/lib/dados/db');
-  const { posicionamentoPassages } = await import('../src/lib/dados/painel');
+  const { openDb, upsertDocument } = await import('@/lib/dados/db');
+  const { posicionamentoPassages } = await import('@/lib/dados/painel');
   const diretorio = mkdtempSync(path.join(tmpdir(), 'sindi-cerebro-pos-')); const arquivo = path.join(diretorio, 'dados.sqlite');
   try {
     const db = openDb(arquivo); const SITE = 'https://www.sindeprestem.com.br';
@@ -185,7 +185,7 @@ test('position questions list the president\'s articles and news on the topic, i
 });
 
 test('auto-generated files are published only when valid and are rolled back when the evaluation gets worse', async () => {
-  const { publicarCerebro, MINIMOS } = await import('../src/lib/cerebro/publicar');
+  const { publicarCerebro, MINIMOS } = await import('@/lib/cerebro/publicar');
   const { readFileSync, existsSync } = await import('node:fs');
   const pasta = mkdtempSync(path.join(tmpdir(), 'sindi-cerebro-pub-')); const anteriorEnv = process.env.SINDI_CEREBRO_DIR; process.env.SINDI_CEREBRO_DIR = pasta;
   mkdirSync(path.join(pasta, 'auto'));
@@ -213,8 +213,8 @@ test('auto-generated files are published only when valid and are rolled back whe
 });
 
 test('hybrid search finds a passage by meaning when the words do not match, and falls back to words without embeddings', async () => {
-  const { buscarHibrido } = await import('../src/lib/cerebro/buscar');
-  const { cosseno, indexarCerebro, idDoTrecho } = await import('../src/lib/cerebro/embeddings');
+  const { buscarHibrido } = await import('@/lib/cerebro/buscar');
+  const { cosseno, indexarCerebro, idDoTrecho } = await import('@/lib/cerebro/embeddings');
   const pasta = mkdtempSync(path.join(tmpdir(), 'sindi-cerebro-emb-')); const antes = { dados: process.env.SINDI_DATA_DIR, fetch: globalThis.fetch, chave: process.env.GEMINI_API_KEY };
   process.env.SINDI_DATA_DIR = pasta; process.env.GEMINI_API_KEY = 'chave-de-teste';
   const trechos = dividirEmTrechos(`## Telefone e horário de atendimento\nLigue para (11) 3215-8250 de segunda a sexta.\n\n## Contribuição associativa\nVence todo dia 15 conforme o capital social.`, 'faq.md', { gatilhos: [], tipo: 'curado', prioridade: 1, direta: false, semantica: true });
@@ -233,7 +233,7 @@ test('hybrid search finds a passage by meaning when the words do not match, and 
 });
 
 test('the fact checker blocks e-mails, sites, phones, amounts and laws that are not in the sources', async () => {
-  const { verificarFatos } = await import('../src/lib/knowledge/grounded');
+  const { verificarFatos } = await import('@/lib/knowledge/grounded');
   const fontes = 'Piso de Porteiro R$ 1.912,07. Setor Jurídico: juridico@sindeprestem.com.br. A Lei nº 6.019/1974 regula o trabalho temporário. Telefone (11) 3215-8250.';
   assert.deepEqual(verificarFatos('O piso é R$ 1.912,07 (Lei 6.019). Escreva para juridico@sindeprestem.com.br ou ligue (11) 3215-8250. Veja www.sindeprestem.com.br/contato e www.tst.jus.br.', fontes), { ok: true, inventados: [] });
   assert.equal(verificarFatos('Sem fatos específicos, apenas orientações gerais.', fontes).ok, true);
@@ -244,7 +244,7 @@ test('the fact checker blocks e-mails, sites, phones, amounts and laws that are 
 });
 
 test('contribution questions with a capital or head count get only the matching table row, with the due dates', async () => {
-  const { capitalDaPergunta, colaboradoresDaPergunta, faixasDeContribuicao } = await import('../src/lib/cerebro/faixas');
+  const { capitalDaPergunta, colaboradoresDaPergunta, faixasDeContribuicao } = await import('@/lib/cerebro/faixas');
   assert.equal(capitalDaPergunta('Quanto pago com capital social de R$ 800 mil?'), 800000);
   assert.equal(capitalDaPergunta('empresa com capital social de R$ 1,5 milhão'), 1500000);
   assert.equal(capitalDaPergunta('capital social de R$ 4.000.000,01'), 4000000.01);

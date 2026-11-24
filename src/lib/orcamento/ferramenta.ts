@@ -1,6 +1,6 @@
 import type { Ferramenta } from '@/lib/ferramentas/tipos';
 import type { Passagem } from '@/lib/base/tipos';
-import { orcamentoAnswer } from './interpretar';
+import { orcamentoAnswer } from '@/lib/orcamento/interpretar';
 
 /** Como o modelo apresenta o resultado do cálculo: números exatos da fonte, sem recalcular, e o aviso de que é estimativa. */
 export const ORIENTACAO_DO_ORCAMENTO = 'Apresente o resultado com os números exatos da fonte, sem arredondar nem recalcular. Diga que é uma estimativa e que a ferramenta permite ajustar os postos e baixar o orçamento em PDF.';

@@ -1,7 +1,7 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { erroJson, guardaDeEscrita, guardaDeLeitura, lerJsonLimitado, origemPermitida, respostaPdf } from '../src/lib/http/guarda';
-import { reiniciarLimitesNaMemoria } from '../src/lib/limite';
+import { erroJson, guardaDeEscrita, guardaDeLeitura, lerJsonLimitado, origemPermitida, respostaPdf } from '@/lib/http/guarda';
+import { reiniciarLimitesNaMemoria } from '@/lib/infra/limite-por-minuto';
 
 const post = (corpo: BodyInit | null, cabecalhos: Record<string, string> = {}) =>
   new Request('http://localhost/api/x', { method: 'POST', headers: { origin: 'http://localhost', 'content-type': 'application/json', ...cabecalhos }, body: corpo });

@@ -1,4 +1,4 @@
-import { conectores, pontuarConectores, type Conector } from '../cerebro/conectores';
+import { conectores, pontuarConectores, type Conector } from '@/lib/cerebro/conectores';
 
 /**
  * A orquestra de especialistas do chat. Cada conector de `cerebro/conectores/` é um especialista de uma área (legislação, inteligência setorial, comercial,

@@ -3,9 +3,9 @@ import assert from 'node:assert/strict';
 import { mkdtempSync, rmSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import path from 'node:path';
-import { openDb, upsertDocument } from '../src/lib/dados/db';
-import { buscarNaBiblioteca, consultaFts, lerDocumento, listarEstante, partesDoTrecho, resumoDaBiblioteca } from '../src/lib/biblioteca/consulta';
-import { ESTANTES, estanteDoDocumento, estantePorId } from '../src/lib/biblioteca/estantes';
+import { openDb, upsertDocument } from '@/lib/dados/db';
+import { buscarNaBiblioteca, consultaFts, lerDocumento, listarEstante, partesDoTrecho, resumoDaBiblioteca } from '@/lib/biblioteca/consulta';
+import { ESTANTES, estanteDoDocumento, estantePorId } from '@/lib/biblioteca/estantes';
 
 test('library searches use only words, so user input cannot inject FTS operators', () => {
   assert.equal(consultaFts('terceirização NR-1'), '"terceirizacao"* AND "nr"*');

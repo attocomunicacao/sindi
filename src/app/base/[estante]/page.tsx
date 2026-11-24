@@ -1,4 +1,4 @@
-import { linkSeguro } from '@/lib/url-segura';
+import { linkSeguro } from '@/lib/base/url-segura';
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import { ArrowUpRight } from 'lucide-react';

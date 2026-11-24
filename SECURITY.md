@@ -9,7 +9,7 @@ Ao reportar, descreva o que foi encontrado, como reproduzir e o impacto, **sem i
 Está no escopo: o site e a API (chat, orçamento, painel, biblioteca, rotas de PDF), a coleta de dados públicos, a base de conhecimento e a configuração de publicação (túnel, Vercel). Fora do escopo: os serviços de terceiros em si (Google, Vercel, Cloudflare, Supabase, Upstash) e ataques que exijam acesso físico ao computador que hospeda a SINDI.
 
 ## Resumo do modelo de segurança
-- **Sem login e sem histórico de conversas.** O chat é público; há cota de mensagens por IP e global por dia (`src/lib/cota.ts`) e limite por minuto nas demais rotas. Painel `/uso` público só com agregados (sem conteúdo, IP ou chave); métricas em `.data` ou Redis.
+- **Sem login e sem histórico de conversas.** O chat é público; há cota de mensagens por IP e global por dia (`src/lib/infra/cota.ts`) e limite por minuto nas demais rotas. Painel `/uso` público só com agregados (sem conteúdo, IP ou chave); métricas em `.data` ou Redis.
 - **Segredos só no servidor**, em variáveis de ambiente privadas (`.env.local`, nunca versionado). A chave do Gemini nunca vai ao navegador, à URL nem aos logs.
 - **Privacidade da IA:** cada pergunta é enviada à API do Gemini (Google). No nível gratuito o Google pode usar esse conteúdo para melhorar seus produtos. A SINDI remove dados pessoais e segredos antes do envio (`redigirDadosSensiveis`), a tela avisa para não enviar dados pessoais ou confidenciais.
 - **Validação de entrada e de origem** em toda rota (`src/lib/http/guarda.ts`). Uma falha na coleta não bloqueia a geração das respostas.
@@ -26,7 +26,7 @@ A geração e a busca por significado usam a API do Gemini no nível gratuito, s
 
 ## Proteções de rotas e coleta
 - `/api/atualizar` (dispara a coleta de dados) só responde no próprio computador: Host local e nenhum cabeçalho de repasse (Cloudflare, Vercel). O Host sozinho não basta.
-- PDFs (`/api/orcamento/pdf`, `/api/painel/pdf`, `/api/biblioteca/pdf/[id]`) têm limite por minuto por visitante (`src/lib/limite.ts`); o PDF do painel fica pronto por 5 minutos e a cópia em disco dos PDFs da biblioteca tem validade (7 dias) e teto de arquivos e de bytes.
+- PDFs (`/api/orcamento/pdf`, `/api/painel/pdf`, `/api/biblioteca/pdf/[id]`) têm limite por minuto por visitante (`src/lib/infra/limite-por-minuto.ts`); o PDF do painel fica pronto por 5 minutos e a cópia em disco dos PDFs da biblioteca tem validade (7 dias) e teto de arquivos e de bytes.
 - A coleta de dados públicos (`politeFetch`) segue redirecionamentos à mão, validando cada destino (https, sem credenciais, porta 443, fora da rede interna e de IPs literais) e lê o corpo com teto de 30 MB mesmo sem `content-length`. Limite: não há proteção contra DNS que aponte um nome público para um endereço interno.
 - Endereços de documentos coletados só são guardados se forem http, https ou ftp, sem credenciais, e todo link externo da biblioteca e do painel passa por `linkSeguro` (esquemas como `javascript:` viram `#`).
 - A leitura do Supabase usa só a chave publicável; a Secret key fica restrita ao coletor que grava. `/api/knowledge` público devolve apenas `available` e `phase`.

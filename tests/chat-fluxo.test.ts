@@ -1,9 +1,9 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { POST } from '../src/app/api/chat/route';
-import { limparRespostasGuardadas } from '../src/lib/cache-respostas';
-import { reiniciarCotaNaMemoria } from '../src/lib/cota';
-import { LeitorDoChat, type EventoDoChat } from '../src/lib/chat-stream';
+import { POST } from '@/app/api/chat/route';
+import { limparRespostasGuardadas } from '@/lib/infra/cache-respostas';
+import { reiniciarCotaNaMemoria } from '@/lib/infra/cota';
+import { LeitorDoChat, type EventoDoChat } from '@/lib/chat/leitor-ndjson';
 
 const sse = (texto: string) => `data: ${JSON.stringify({ candidates: [{ content: { parts: [{ text: texto }] }, finishReason: 'STOP' }], usageMetadata: { promptTokenCount: 50, candidatesTokenCount: 8, totalTokenCount: 58 } })}\n\n`;
 const respostaJson = (texto: string) => Response.json({ candidates: [{ content: { parts: [{ text: texto }] }, finishReason: 'STOP' }], usageMetadata: { promptTokenCount: 50, candidatesTokenCount: 8, totalTokenCount: 58 } });

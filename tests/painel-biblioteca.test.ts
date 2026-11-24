@@ -3,11 +3,11 @@ import assert from 'node:assert/strict';
 import { mkdtempSync, rmSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import path from 'node:path';
-import { openDb, setIndicator, startRun, finishRun, upsertDocument } from '../src/lib/dados/db';
-import { esquecerPainelEmCache, readPainelEmCache } from '../src/lib/dados/painel';
-import { DEFASADA_HORAS, fontesDefasadas } from '../src/lib/dados/frescor';
-import { lerDocumento, listarEstante, refDoDocumento, resumoDaBiblioteca } from '../src/lib/biblioteca/consulta';
-import { estantePorId } from '../src/lib/biblioteca/estantes';
+import { openDb, setIndicator, startRun, finishRun, upsertDocument } from '@/lib/dados/db';
+import { esquecerPainelEmCache, readPainelEmCache } from '@/lib/dados/painel';
+import { DEFASADA_HORAS, fontesDefasadas } from '@/lib/dados/frescor';
+import { lerDocumento, listarEstante, refDoDocumento, resumoDaBiblioteca } from '@/lib/biblioteca/consulta';
+import { estantePorId } from '@/lib/biblioteca/estantes';
 
 const hora = 3_600_000;
 

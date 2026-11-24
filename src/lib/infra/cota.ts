@@ -4,11 +4,12 @@
  *
  * - `SINDI_COTA_IP_DIA` (padrão 20) e `SINDI_COTA_GLOBAL_DIA` (padrão 300): mensagens por dia. `0` desliga o limite correspondente.
  * - Com Redis (Upstash) a contagem é compartilhada entre processos e sobrevive a reinícios; sem ele, fica na memória deste processo.
- * - IP do visitante: ver `ipDoPedido` (repasse assinado da Vercel, `SINDI_IP_HEADER` ou `cf-connecting-ip`).
+ * - IP do visitante: ver `ipDoPedido` em `src/lib/http/ip.ts` (repasse assinado da Vercel, `SINDI_IP_HEADER` ou `cf-connecting-ip`).
  * - O dia vira à meia-noite de São Paulo, o mesmo dia das métricas de uso.
  */
-import { createHash, timingSafeEqual } from 'node:crypto';
-import { redis, redisConfigurado } from './redis';
+import { createHash } from 'node:crypto';
+import { redis, redisConfigurado } from '@/lib/infra/redis';
+import { ipDoPedido } from '@/lib/http/ip';
 
 const FUSO = 'America/Sao_Paulo';
 export type ResultadoCota = { ok: boolean; restantes?: number; limite?: number; reiniciaEmSegundos: number; motivo?: 'ip' | 'global' };
@@ -23,27 +24,6 @@ export function segundosAteOReinicio(agora = new Date()) {
   return Math.max(1, 86400 - (partes.hour * 3600 + partes.minute * 60 + partes.second));
 }
 
-/** O pedido veio pelo repasse da Vercel (deployment/vercel-proxy), que assina com `SINDI_REPASSE_SEGREDO`: só então o IP que ele informa é confiável. */
-function repasseConfiavel(request: Request) {
-  const esperado = process.env.SINDI_REPASSE_SEGREDO ?? ''; const recebido = request.headers.get('x-sindi-repasse') ?? '';
-  return esperado.length >= 32 && recebido.length === esperado.length && timingSafeEqual(Buffer.from(recebido), Buffer.from(esperado));
-}
-/**
- * IP do visitante. Ordem de confiança:
- * 1. repasse assinado da Vercel (`x-sindi-ip`, com o segredo certo);
- * 2. `SINDI_IP_HEADER`, se configurado (só esse cabeçalho);
- * 3. `cf-connecting-ip` primeiro, porque o túnel da Cloudflare o escreve e quem chama o túnel direto não consegue forjá-lo; depois os da Vercel.
- * Sem nenhum, todos caem em um mesmo grupo, que só o teto geral limita.
- */
-export function ipDoPedido(request: Request) {
-  if (repasseConfiavel(request)) { const ip = request.headers.get('x-sindi-ip')?.split(',')[0]?.trim(); if (ip && ip.length <= 64) return ip; }
-  const nomes = process.env.SINDI_IP_HEADER ? [process.env.SINDI_IP_HEADER] : ['cf-connecting-ip', 'x-vercel-forwarded-for', 'x-real-ip'];
-  for (const nome of nomes) {
-    const valor = request.headers.get(nome)?.split(',')[0]?.trim();
-    if (valor && valor.length <= 64) return valor;
-  }
-  return 'desconhecido';
-}
 const chaveDe = (tipo: string, dia: string, alvo = '') => `sindi:cota:${tipo}:${dia}:${alvo ? createHash('sha256').update(`${process.env.SINDI_COTA_SAL ?? ''}|${dia}|${alvo}`).digest('hex').slice(0, 32) : 'todos'}`;
 
 // Contagem em memória (sem Redis): só vale para este processo e é descartada quando o dia muda.

@@ -1,6 +1,6 @@
-import { dataIso, getJson, listaOuErro } from '../http';
-import { upsertDocument, type Db } from '../db';
-import { LEGISLATIVE_KEYWORDS, type Collector } from './types';
+import { dataIso, getJson, listaOuErro } from '@/lib/dados/http';
+import { upsertDocument, type Db } from '@/lib/dados/db';
+import { LEGISLATIVE_KEYWORDS, type Collector } from '@/lib/dados/collectors/types';
 
 const BASE = 'https://dadosabertos.camara.leg.br/api/v2';
 type Listed = { id: number; siglaTipo: string; numero: number; ano: number; ementa: string };

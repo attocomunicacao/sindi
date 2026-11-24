@@ -1,6 +1,6 @@
 import { mkdirSync, rmSync, writeFileSync } from 'node:fs';
 import path from 'node:path';
-import { LEGENDA, type Grafo, type No, type TipoDeNo } from './tipos';
+import { LEGENDA, type Grafo, type No, type TipoDeNo } from '@/lib/grafo/tipos';
 
 /**
  * Exporta o grafo como um cofre do Obsidian: uma nota por nó, com `[[ligações]]` para os vizinhos e etiquetas por tipo. Abrir a pasta no Obsidian e usar

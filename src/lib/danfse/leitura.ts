@@ -10,7 +10,7 @@
  * ficam `undefined` (não viram 0,00%).
  */
 import { XMLParser, XMLValidator } from 'fast-xml-parser';
-import { ErroDanfse, type Emitente, type Endereco, type EnderecoParte, type InfDPS, type InfNFSe, type IBSCBS, type Parte, type Servico, type TribFed, type TribMun } from './modelo';
+import { ErroDanfse, type Emitente, type Endereco, type EnderecoParte, type InfDPS, type InfNFSe, type IBSCBS, type Parte, type Servico, type TribFed, type TribMun } from '@/lib/danfse/modelo';
 
 export const TAMANHO_MAXIMO_XML = 5 * 1024 * 1024;
 

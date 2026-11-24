@@ -1,6 +1,7 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { consumirCota, diaDaCota, ipDoPedido, mensagemDeCota, reiniciarCotaNaMemoria, segundosAteOReinicio } from '../src/lib/cota';
+import { consumirCota, diaDaCota, mensagemDeCota, reiniciarCotaNaMemoria, segundosAteOReinicio } from '@/lib/infra/cota';
+import { ipDoPedido } from '@/lib/http/ip';
 
 const pedido = (cabecalhos: Record<string, string> = {}) => new Request('http://localhost/api/chat', { method: 'POST', headers: cabecalhos });
 async function comAmbiente(vars: Record<string, string | undefined>, fn: () => Promise<void>) {

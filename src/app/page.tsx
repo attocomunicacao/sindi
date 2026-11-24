@@ -1,7 +1,7 @@
 'use client';
 import { useEffect, useRef, useState } from 'react';
-import { recentMessages } from '@/lib/chat-historico';
-import { LeitorDoChat, textoParaLeitor } from '@/lib/chat-stream';
+import { recentMessages } from '@/lib/chat/historico';
+import { LeitorDoChat, textoParaLeitor } from '@/lib/chat/leitor-ndjson';
 import { sortearSugestoes } from '@/lib/sugestoes';
 import { ArrowUp, ArrowUpRight, Square } from 'lucide-react';
 import { Button } from '@/components/ui/button';

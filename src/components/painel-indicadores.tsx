@@ -1,4 +1,4 @@
-import { linkSeguro } from '@/lib/url-segura';
+import { linkSeguro } from '@/lib/base/url-segura';
 import { ArrowDownRight, ArrowUpRight, Download, Minus } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import type { Dashboard, Kpi, Par, Serie } from '@/lib/dados/dashboard';

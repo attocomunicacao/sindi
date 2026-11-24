@@ -2,25 +2,27 @@ import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { PDFArray, PDFDocument, PDFName } from 'pdf-lib';
 import { NextRequest } from 'next/server';
-import { POST as chat } from '../src/app/api/chat/route';
-import { POST as calcular } from '../src/app/api/orcamento/calcular/route';
-import { POST as gerarPdf } from '../src/app/api/orcamento/pdf/route';
-import { POST as atualizar } from '../src/app/api/atualizar/route';
-import { GET as usage } from '../src/app/api/usage/route';
-import { GET as knowledge } from '../src/app/api/knowledge/route';
-import { GET as painel } from '../src/app/api/painel/route';
-import { GET as catalogo } from '../src/app/api/orcamento/catalogo/route';
-import { sistema } from '../src/lib/cerebro/instrucoes';
-import { contemDadosSensiveis, redigirDadosSensiveis } from '../src/lib/knowledge/grounded';
-import { allowedChatOrigin } from '../src/lib/origin';
-import { hostLocal, pedidoLocal } from '../src/lib/atualizacao';
-import { destinoPermitido, hostInterno, politeFetch } from '../src/lib/dados/http';
-import { pdfPermitido } from '../src/lib/biblioteca/pdf';
-import { linkSeguro, urlDeDocumentoValida } from '../src/lib/url-segura';
-import { consumirCota, ipDoPedido, reiniciarCotaNaMemoria } from '../src/lib/cota';
-import { reiniciarLimitesNaMemoria } from '../src/lib/limite';
-import { limparRespostasGuardadas } from '../src/lib/cache-respostas';
-import { proxy } from '../src/proxy';
+import { POST as chat } from '@/app/api/chat/route';
+import { POST as calcular } from '@/app/api/orcamento/calcular/route';
+import { POST as gerarPdf } from '@/app/api/orcamento/pdf/route';
+import { POST as atualizar } from '@/app/api/atualizar/route';
+import { GET as usage } from '@/app/api/uso/route';
+import { GET as knowledge } from '@/app/api/knowledge/route';
+import { GET as painel } from '@/app/api/painel/route';
+import { GET as catalogo } from '@/app/api/orcamento/catalogo/route';
+import { sistema } from '@/lib/cerebro/instrucoes';
+import { contemDadosSensiveis, redigirDadosSensiveis } from '@/lib/knowledge/grounded';
+import { allowedChatOrigin } from '@/lib/infra/origem';
+import { hostLocal, pedidoLocal } from '@/lib/atualizacao';
+import { destinoPermitido, hostInterno, politeFetch } from '@/lib/dados/http';
+import { pdfPermitido } from '@/lib/biblioteca/pdf';
+import { linkSeguro } from '@/lib/base/url-segura';
+import { urlDeDocumentoValida } from '@/lib/dados/url-documento';
+import { consumirCota, reiniciarCotaNaMemoria } from '@/lib/infra/cota';
+import { ipDoPedido } from '@/lib/http/ip';
+import { reiniciarLimitesNaMemoria } from '@/lib/infra/limite-por-minuto';
+import { limparRespostasGuardadas } from '@/lib/infra/cache-respostas';
+import { proxy } from '@/proxy';
 import config from '../next.config';
 
 // ------------------------------------------------------------------------------------------------ ambiente
@@ -164,7 +166,7 @@ test('logs: nenhuma saída do servidor contém o texto da pergunta, o dado pesso
 test('segredos: a chave do provedor e o token do Redis nunca aparecem em corpo ou cabeçalho de resposta, inclusive quando o provedor devolve a chave num erro', async () => {
   await comAmbiente({ UPSTASH_REDIS_REST_URL: 'https://redis.example', UPSTASH_REDIS_REST_TOKEN: 'TOKEN-REDIS-SECRETO-123' }, async () => {
     globalThis.fetch = (async () => new Response(JSON.stringify({ error: { message: `API key not valid: ${CHAVE}` } }), { status: 403 })) as typeof fetch;
-    const respostas: Response[] = [await chat(requisicao(JSON.stringify(mensagens('Oi')))), await chat(requisicao('x'.repeat(2_000_000))), await usage(new Request('http://localhost/api/usage')), await knowledge(new Request('http://localhost/api/knowledge')),
+    const respostas: Response[] = [await chat(requisicao(JSON.stringify(mensagens('Oi')))), await chat(requisicao('x'.repeat(2_000_000))), await usage(new Request('http://localhost/api/uso')), await knowledge(new Request('http://localhost/api/knowledge')),
       await painel(new Request('http://localhost/api/painel')), await catalogo(new Request('http://localhost/api/orcamento/catalogo'))];
     for (const r of respostas) { const texto = await r.text() + JSON.stringify([...r.headers]); for (const segredo of [CHAVE, 'AIzaSy', 'TOKEN-REDIS-SECRETO-123']) assert.ok(!texto.includes(segredo), `resposta ${r.status} vaza ${segredo}`); }
   });

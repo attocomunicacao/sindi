@@ -1,4 +1,4 @@
-import { aliquotaNfse, arred2, ErroTributario, num, somar } from './decimal';
+import { aliquotaNfse, arred2, ErroTributario, num, somar } from '@/lib/tributos/decimal';
 import { brl, pontos } from '@/lib/base/formato';
 
 /**

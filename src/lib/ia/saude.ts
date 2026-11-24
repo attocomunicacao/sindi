@@ -1,4 +1,4 @@
-import { inteiro, type LlmError } from './tipos';
+import { inteiro, type LlmError } from '@/lib/ia/tipos';
 
 /**
  * Saúde de cada provedor, em memória do processo: um disjuntor (quem falhou fica de fora por um tempo) e contadores próprios de pedidos por minuto e por dia,

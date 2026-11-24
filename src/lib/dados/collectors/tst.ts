@@ -1,7 +1,7 @@
-import { getText } from '../http';
-import { extractArticle, linksFrom } from '../html';
-import { hasDocument, upsertDocument } from '../db';
-import type { Collector } from './types';
+import { getText } from '@/lib/dados/http';
+import { extractArticle, linksFrom } from '@/lib/dados/html';
+import { hasDocument, upsertDocument } from '@/lib/dados/db';
+import type { Collector } from '@/lib/dados/collectors/types';
 
 const HOME = 'https://www.tst.jus.br/noticias';
 const isArticle = (u: URL) => u.hostname === 'www.tst.jus.br' && /^\/-\/[^/]+$/.test(u.pathname);

@@ -1,6 +1,6 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { SUGESTOES, sortearSugestoes } from '../src/lib/sugestoes';
+import { SUGESTOES, sortearSugestoes } from '@/lib/sugestoes';
 
 test('o conjunto de sugestões não repete perguntas e inclui as três originais', () => {
   assert.equal(new Set(SUGESTOES).size, SUGESTOES.length);

@@ -2,8 +2,8 @@
 // Uso: npm run verificar:funcional [-- --base=http://localhost:3000] [-- --chat]
 //   --chat  inclui uma pergunta real ao chat (gasta uma mensagem da cota e uma requisição do limite gratuito do Gemini)
 // Sai com código 1 se algum item falhar. Não escreve nada; só lê o servidor. Antes de gerar PDFs e cálculos, usa a origem do próprio servidor (como o navegador).
-import { FERRAMENTAS } from '../../src/lib/ferramentas/registro';
-import { PAGINAS } from '../../src/lib/paginas';
+import { FERRAMENTAS } from '@/lib/ferramentas/registro';
+import { PAGINAS } from '@/lib/paginas';
 
 const argumentos = process.argv.slice(2);
 const base = (argumentos.find(a => a.startsWith('--base='))?.slice(7) ?? `http://localhost:${process.env.PORT ?? 3000}`).replace(/\/$/, '');
@@ -28,7 +28,7 @@ await verificar('robots.txt', async () => { const r = await pedir('/robots.txt')
 
 // ---- API pública de leitura
 await verificar('GET /api/painel', async () => { const r = await pedir('/api/painel'); const d = await r.json(); exigir(r.status === 200 && 'available' in d && Array.isArray(d.indicators), 'formato inesperado'); return d.available ? `${d.indicators.length} indicadores` : 'sem dados coletados'; });
-await verificar('GET /api/usage', async () => { const r = await pedir('/api/usage'); const d = await r.json(); exigir([200, 503].includes(r.status), `status ${r.status}`); exigir(r.status === 503 ? typeof d.error === 'string' : Array.isArray(d.days), 'formato inesperado'); });
+await verificar('GET /api/uso', async () => { const r = await pedir('/api/uso'); const d = await r.json(); exigir([200, 503].includes(r.status), `status ${r.status}`); exigir(r.status === 503 ? typeof d.error === 'string' : Array.isArray(d.days), 'formato inesperado'); });
 await verificar('GET /api/knowledge expõe só available e phase', async () => { const d = await (await pedir('/api/knowledge')).json(); exigir(JSON.stringify(Object.keys(d).sort()) === '["available","phase"]', `campos: ${Object.keys(d).join(',')}`); });
 await verificar('GET /api/atualizar', async () => { const r = await pedir('/api/atualizar'); const d = await r.json(); exigir(r.status === 200 && typeof d.permitido === 'boolean', 'formato inesperado'); return d.permitido ? 'permitido (acesso local)' : 'não permitido'; });
 await verificar('GET /api/biblioteca/pdf/0x10 recusa id inválido', async () => { const r = await pedir('/api/biblioteca/pdf/0x10'); exigir(r.status === 400, `status ${r.status}`); exigir((await r.json()).error === 'Documento inválido.', 'mensagem inesperada'); });

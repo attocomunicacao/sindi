@@ -3,17 +3,17 @@ import assert from 'node:assert/strict';
 import { mkdtempSync, readFileSync, readdirSync, rmSync, writeFileSync, existsSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import path from 'node:path';
-import { openDb, upsertDocument } from '../src/lib/dados/db';
-import { extrairEntidades } from '../src/lib/grafo/entidades';
-import { construirGrafo } from '../src/lib/grafo/construir';
-import { exportarObsidian } from '../src/lib/grafo/obsidian';
-import { arquivoDoGrafo, documentosPeloGrafo, esquecerGrafo } from '../src/lib/grafo/consulta';
-import { grafoDaArquitetura } from '../src/lib/grafo/arquitetura';
-import { estantesDaOrquestra, montarOrquestra } from '../src/lib/agentes/orquestrador';
-import { conectores } from '../src/lib/cerebro/conectores';
-import { linksDoSite } from '../src/lib/dados/collectors/sindeprestem';
-import { GET } from '../src/app/api/cerebro/grafo/route';
-import { reiniciarLimitesNaMemoria } from '../src/lib/limite';
+import { openDb, upsertDocument } from '@/lib/dados/db';
+import { extrairEntidades } from '@/lib/grafo/entidades';
+import { construirGrafo } from '@/lib/grafo/construir';
+import { exportarObsidian } from '@/lib/grafo/obsidian';
+import { arquivoDoGrafo, documentosPeloGrafo, esquecerGrafo } from '@/lib/grafo/consulta';
+import { grafoDaArquitetura } from '@/lib/grafo/arquitetura';
+import { estantesDaOrquestra, montarOrquestra } from '@/lib/agentes/orquestrador';
+import { conectores } from '@/lib/cerebro/conectores';
+import { linksDoSite } from '@/lib/dados/collectors/sindeprestem';
+import { GET } from '@/app/api/cerebro/grafo/route';
+import { reiniciarLimitesNaMemoria } from '@/lib/infra/limite-por-minuto';
 
 test('entidades: leis (com e sem ponto, ano de 2 dígitos, "de 1974"), NRs, projetos e apelidos; sem falsos positivos em números soltos', () => {
   const ids = (t: string) => extrairEntidades(t).map(e => e.id);

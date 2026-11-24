@@ -3,13 +3,13 @@ import assert from 'node:assert/strict';
 import { mkdtempSync, rmSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import path from 'node:path';
-import { decodeHtml, splitArticles } from '../src/lib/dados/legal';
-import { deleteMissing, due, enqueue, getSeries, markFetched, nextQueued, openDb, setSeries, setState, upsertDocument } from '../src/lib/dados/db';
-import { addLine, emptyAggregate, net, monthLabel } from '../src/lib/dados/collectors/caged';
-import { isNewsArticle, isSubjectPage, parseGovBr, titleFromSlug } from '../src/lib/dados/collectors/mte';
-import { REGIMENTS, pdfLinks } from '../src/lib/dados/collectors/regimentos';
-import { articleKey, indicatorPassages, lawPassages, nrNumber, nrPassages, termosDoDocumento, trechosRelevantes } from '../src/lib/dados/painel';
-import { setIndicator } from '../src/lib/dados/db';
+import { decodeHtml, splitArticles } from '@/lib/dados/legal';
+import { deleteMissing, due, enqueue, getSeries, markFetched, nextQueued, openDb, setSeries, setState, upsertDocument } from '@/lib/dados/db';
+import { addLine, emptyAggregate, net, monthLabel } from '@/lib/dados/collectors/caged';
+import { isNewsArticle, isSubjectPage, parseGovBr, titleFromSlug } from '@/lib/dados/collectors/mte';
+import { REGIMENTS, pdfLinks } from '@/lib/dados/collectors/regimentos';
+import { articleKey, indicatorPassages, lawPassages, nrNumber, nrPassages, termosDoDocumento, trechosRelevantes } from '@/lib/dados/painel';
+import { setIndicator } from '@/lib/dados/db';
 
 test('windows-1252 pages are decoded without replacement characters', () => {
   const bytes = Uint8Array.from([0x53, 0xe3, 0x6f, 0x20, 0x64, 0x69, 0x72, 0x65, 0x69, 0x74, 0x6f, 0x73]); // "São direitos"

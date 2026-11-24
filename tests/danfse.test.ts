@@ -2,12 +2,12 @@ import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import { PDFDocument } from 'pdf-lib';
-import { gerarDanfse, ErroDanfse } from '../src/lib/danfse';
-import { lerNFSe, repararEcomercial } from '../src/lib/danfse/leitura';
-import { apresentar, prepararNFSe, exibirPisCofins, montarLinhaTotaisTributos } from '../src/lib/danfse/apresentacao';
-import * as f from '../src/lib/danfse/formato';
-import { resolverMunicipio } from '../src/lib/danfse/localidades';
-import { calcularAlocacaoTexto, montarLayoutPagina } from '../src/lib/danfse/pdf';
+import { gerarDanfse, ErroDanfse } from '@/lib/danfse';
+import { lerNFSe, repararEcomercial } from '@/lib/danfse/leitura';
+import { apresentar, prepararNFSe, exibirPisCofins, montarLinhaTotaisTributos } from '@/lib/danfse/apresentacao';
+import * as f from '@/lib/danfse/formato';
+import { resolverMunicipio } from '@/lib/danfse/localidades';
+import { calcularAlocacaoTexto, montarLayoutPagina } from '@/lib/danfse/pdf';
 
 const XML = readFileSync(new URL('./fixtures/nfse-exemplo.xml', import.meta.url), 'utf8');
 const texto = (bytes: Uint8Array) => new TextDecoder('latin1').decode(bytes);

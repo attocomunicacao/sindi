@@ -2,9 +2,9 @@ import './setup-dom';
 import { test, afterEach } from 'node:test';
 import assert from 'node:assert/strict';
 import { cleanup, render, screen } from '@testing-library/react';
-import { ChatMessage } from '../src/components/chat-message';
-import { PainelFull } from '../src/components/painel-view';
-import { emptyPainel, type Painel } from '../src/lib/dados/painel';
+import { ChatMessage } from '@/components/chat-message';
+import { PainelFull } from '@/components/painel-view';
+import { emptyPainel, type Painel } from '@/lib/dados/painel';
 
 afterEach(() => { cleanup(); });
 

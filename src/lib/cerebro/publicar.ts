@@ -1,9 +1,9 @@
 import { cpSync, existsSync, mkdirSync, readFileSync, renameSync, rmSync, writeFileSync } from 'node:fs';
 import path from 'node:path';
-import type { Db } from '../dados/db';
-import { avaliarCasos, carregarCasos, type ResultadoCaso } from './avaliar';
-import { pastaCerebro, reiniciarCacheDoCerebro } from './carregar';
-import { gerarArquivos } from './gerar';
+import type { Db } from '@/lib/dados/db';
+import { avaliarCasos, carregarCasos, type ResultadoCaso } from '@/lib/cerebro/avaliar';
+import { pastaCerebro, reiniciarCacheDoCerebro } from '@/lib/cerebro/carregar';
+import { gerarArquivos } from '@/lib/cerebro/gerar';
 
 /** Tamanho mínimo plausível de cada arquivo gerado: um arquivo vazio ou muito menor indica que a coleta falhou. */
 export const MINIMOS: Record<string, number> = { 'institucional.md': 2500, 'contribuicoes.md': 1500, 'convencoes.md': 8000, 'juridico.md': 800, 'cartilhas.md': 1500, 'artigos-e-noticias.md': 4000, 'fontes-de-dados.md': 1500 };

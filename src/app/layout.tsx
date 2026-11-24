@@ -1,5 +1,5 @@
 import type { Metadata, Viewport } from 'next';
-import './globals.css';
+import '@/app/globals.css';
 import { connection } from 'next/server';
 import { SiteHeader } from '@/components/site-header';
 import { IndicatorStrip } from '@/components/painel-view';

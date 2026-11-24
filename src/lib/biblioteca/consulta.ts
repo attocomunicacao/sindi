@@ -1,11 +1,11 @@
 import { createHash } from 'node:crypto';
 import { DatabaseSync } from 'node:sqlite';
 import { existsSync } from 'node:fs';
-import { dbPath } from '../dados/db';
-import { readPainelEmCache, type PainelIndicator } from '../dados/painel';
-import { carregarArquivos } from '../cerebro/carregar';
-import { buscarNoCerebro } from '../cerebro/buscar';
-import { ESTANTES, estanteDoDocumento, estantePorId, type Estante } from './estantes';
+import { dbPath } from '@/lib/dados/db';
+import { readPainelEmCache, type PainelIndicator } from '@/lib/dados/painel';
+import { carregarArquivos } from '@/lib/cerebro/carregar';
+import { buscarNoCerebro } from '@/lib/cerebro/buscar';
+import { ESTANTES, estanteDoDocumento, estantePorId, type Estante } from '@/lib/biblioteca/estantes';
 
 export const POR_PAGINA = 24;
 const abrir = () => { try { return existsSync(dbPath()) ? new DatabaseSync(dbPath(), { readOnly: true }) : undefined; } catch { return undefined; } };

@@ -2,8 +2,8 @@ import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import { PDFDocument } from 'pdf-lib';
-import { POST as danfse } from '../src/app/api/danfse/route';
-import { reiniciarLimitesNaMemoria } from '../src/lib/limite';
+import { POST as danfse } from '@/app/api/danfse/route';
+import { reiniciarLimitesNaMemoria } from '@/lib/infra/limite-por-minuto';
 
 const XML = readFileSync(new URL('./fixtures/nfse-exemplo.xml', import.meta.url), 'utf8');
 const requisicao = (init: { origem?: string | null; tipo?: string | null; corpo?: BodyInit; ip?: string } = {}) => {

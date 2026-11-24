@@ -1,17 +1,17 @@
-import { abandonarExecucoes, falhasSeguidas, finishRun, podarExecucoes, startRun, type Db } from './db';
-import { exportWorkbook } from './xlsx';
-import { bcb } from './collectors/bcb';
-import { camara } from './collectors/camara';
-import { ibge } from './collectors/ibge';
-import { senado } from './collectors/senado';
-import { sindeprestem } from './collectors/sindeprestem';
-import { tst } from './collectors/tst';
-import { wec } from './collectors/wec';
-import { caged } from './collectors/caged';
-import { constituicao } from './collectors/constituicao';
-import { mte } from './collectors/mte';
-import { regimentos } from './collectors/regimentos';
-import type { Collector } from './collectors/types';
+import { abandonarExecucoes, falhasSeguidas, finishRun, podarExecucoes, startRun, type Db } from '@/lib/dados/db';
+import { exportWorkbook } from '@/lib/dados/xlsx';
+import { bcb } from '@/lib/dados/collectors/bcb';
+import { camara } from '@/lib/dados/collectors/camara';
+import { ibge } from '@/lib/dados/collectors/ibge';
+import { senado } from '@/lib/dados/collectors/senado';
+import { sindeprestem } from '@/lib/dados/collectors/sindeprestem';
+import { tst } from '@/lib/dados/collectors/tst';
+import { wec } from '@/lib/dados/collectors/wec';
+import { caged } from '@/lib/dados/collectors/caged';
+import { constituicao } from '@/lib/dados/collectors/constituicao';
+import { mte } from '@/lib/dados/collectors/mte';
+import { regimentos } from '@/lib/dados/collectors/regimentos';
+import type { Collector } from '@/lib/dados/collectors/types';
 
 export const COLLECTORS: Collector[] = [sindeprestem, ibge, bcb, camara, senado, tst, wec, mte, caged, constituicao, regimentos];
 

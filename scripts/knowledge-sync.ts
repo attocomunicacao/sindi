@@ -7,9 +7,9 @@ import { PDFParse } from 'pdf-parse';
 import { Agent, setGlobalDispatcher } from 'undici';
 import { setDefaultResultOrder } from 'node:dns';
 import { SITE } from '@/lib/base/constantes';
-import { chunks, type KnowledgeDocument, type KnowledgeSnapshot } from '../src/lib/knowledge/core';
-import { siteUrl, pdfUrl, extractHtml } from '../src/lib/knowledge/extract';
-import { supabaseRequest } from '../src/lib/knowledge/supabase';
+import { chunks, type KnowledgeDocument, type KnowledgeSnapshot } from '@/lib/knowledge/core';
+import { siteUrl, pdfUrl, extractHtml } from '@/lib/knowledge/extract';
+import { supabaseRequest } from '@/lib/knowledge/supabase';
 
 const directory = '.data/knowledge';
 const agent = 'SINDI-Knowledge/1.0';

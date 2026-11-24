@@ -1,7 +1,7 @@
-import { provedorGemini } from '@/lib/gemini';
-import { provedorAnthropic } from './anthropic';
-import { provedorCompat } from './openai-compat';
-import { inteiro, type Nivel, type Provedor } from './tipos';
+import { provedorGemini } from '@/lib/ia/gemini';
+import { provedorAnthropic } from '@/lib/ia/anthropic';
+import { provedorCompat } from '@/lib/ia/openai-compat';
+import { inteiro, type Nivel, type Provedor } from '@/lib/ia/tipos';
 
 /**
  * Os degraus da cascata. Cada provedor só entra se a credencial estiver no ambiente do servidor (nunca `NEXT_PUBLIC_`). Padrões de modelo conferidos na

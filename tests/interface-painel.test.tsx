@@ -2,8 +2,8 @@ import { definirAbaOculta } from './setup-dom';
 import { test, afterEach } from 'node:test';
 import assert from 'node:assert/strict';
 import { cleanup, fireEvent, render, screen, waitFor } from '@testing-library/react';
-import { PainelFull } from '../src/components/painel-view';
-import { emptyPainel, type Painel } from '../src/lib/dados/painel';
+import { PainelFull } from '@/components/painel-view';
+import { emptyPainel, type Painel } from '@/lib/dados/painel';
 
 const original = globalThis.fetch;
 afterEach(() => { cleanup(); globalThis.fetch = original; definirAbaOculta(false); });

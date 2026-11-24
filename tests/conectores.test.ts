@@ -3,12 +3,12 @@ import assert from 'node:assert/strict';
 import { mkdtempSync, rmSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import path from 'node:path';
-import { conectores, escolherConector, lerConector, pedeRelatorio, reiniciarCacheDosConectores } from '../src/lib/cerebro/conectores';
-import { exemplos, lerExemplos, mensagemDoPedido, reiniciarCacheDasInstrucoes, sistema, textoDasFontes } from '../src/lib/cerebro/instrucoes';
-import { cobertura, coberturaLocal, materialDoRelatorio, pesquisarNaBiblioteca, radical, termosDaPesquisa } from '../src/lib/biblioteca/pesquisa';
-import { chaveDaResposta, guardarResposta, limparRespostasGuardadas, respostaGuardada } from '../src/lib/cache-respostas';
-import { verificarFatos } from '../src/lib/knowledge/grounded';
-import { openDb, setIndicator, upsertDocument } from '../src/lib/dados/db';
+import { conectores, escolherConector, lerConector, pedeRelatorio, reiniciarCacheDosConectores } from '@/lib/cerebro/conectores';
+import { exemplos, lerExemplos, mensagemDoPedido, reiniciarCacheDasInstrucoes, sistema, textoDasFontes } from '@/lib/cerebro/instrucoes';
+import { cobertura, coberturaLocal, materialDoRelatorio, pesquisarNaBiblioteca, radical, termosDaPesquisa } from '@/lib/biblioteca/pesquisa';
+import { chaveDaResposta, guardarResposta, limparRespostasGuardadas, respostaGuardada } from '@/lib/infra/cache-respostas';
+import { verificarFatos } from '@/lib/knowledge/grounded';
+import { openDb, setIndicator, upsertDocument } from '@/lib/dados/db';
 
 const CONECTOR = `---
 titulo: RH, recrutamento e qualificação

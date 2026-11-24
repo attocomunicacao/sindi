@@ -1,8 +1,8 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { chatSchema, historicoParaOModelo, recentMessages } from '../src/lib/chat';
-import { POST } from '../src/app/api/chat/route';
-import { reiniciarCotaNaMemoria } from '../src/lib/cota';
+import { chatSchema, historicoParaOModelo, recentMessages } from '@/lib/chat/esquema';
+import { POST } from '@/app/api/chat/route';
+import { reiniciarCotaNaMemoria } from '@/lib/infra/cota';
 const body = { messages: [{ role: 'user', content: 'Redija uma mensagem de saudação.' }] };
 test('bounded context preserves complete turns without imposing a message quota', () => {
   const messages = Array.from({ length: 21 }, (_, i) => ({ role: i % 2 ? 'assistant' : 'user', content: String(i).repeat(1000) }));
@@ -85,19 +85,19 @@ test('message quota: per-person limit answers 429 with Retry-After, and the warm
   } finally { globalThis.fetch = originalFetch; process.env = saved; reiniciarCotaNaMemoria(); }
 });
 test('an answer cut by the token limit ends at the last complete sentence, without an empty list item or a dangling heading', async () => {
-  const { ateAUltimaFrase } = await import('../src/lib/chat/prompt');
+  const { ateAUltimaFrase } = await import('@/lib/chat/prompt');
   assert.equal(ateAUltimaFrase('1. Funções.\n2. Turnos.\nPara estruturar a proposta:\n1. Apresentação.\n2. Escopo.\n3.'), '1. Funções.\n2. Turnos.\nPara estruturar a proposta:\n1. Apresentação.\n2. Escopo.');
   assert.equal(ateAUltimaFrase('Primeira frase completa. Segunda frase também completa.\nPara estruturar:'), 'Primeira frase completa. Segunda frase também completa.');
   assert.equal(ateAUltimaFrase('O contrato é escrito e fica com a tomadora. Ele contém o prazo e o va'), 'O contrato é escrito e fica com a tomadora.');
 });
 test('answers drop "[placeholder]" fields unless the user asked for a template, and repeated list numbers are merged', async () => {
-  const { limparResposta } = await import('../src/lib/chat/prompt');
+  const { limparResposta } = await import('@/lib/chat/prompt');
   assert.equal(limparResposta('O prazo é de 180 dias [nome do cliente], prorrogável.', false), 'O prazo é de 180 dias, prorrogável.');
   assert.equal(limparResposta('Assunto: Apresentação da [nome da empresa]', true), 'Assunto: Apresentação da [nome da empresa]');
   assert.equal(limparResposta('1. 1. Qual sua experiência?\n2. 2. Qual sua disponibilidade?'), '1. Qual sua experiência?\n2. Qual sua disponibilidade?');
   assert.equal(limparResposta('1. Apresentação da empresa: [nome], [tempo de atuação], [registros].\n2. Escopo: funções e turnos.', false), '1. Apresentação da empresa.\n2. Escopo: funções e turnos.');
   assert.equal(limparResposta('Olá, [cliente].\nAtenciosamente,\n[nome]\n\nSINDI', true), 'Olá, [cliente].\nAtenciosamente,\n[nome]');
-  const { obrigacaoLegalDeContratacao } = await import('../src/lib/knowledge/grounded');
+  const { obrigacaoLegalDeContratacao } = await import('@/lib/knowledge/grounded');
   for (const p of ['Minha empresa é obrigada a contratar aprendizes?', 'Posso pedir antecedentes criminais ao candidato?', 'Sou obrigado a cumprir cota de PcD?']) assert.equal(obrigacaoLegalDeContratacao(p), true, p);
   for (const p of ['Como atrair jovens aprendizes para vagas?', 'Como incluir pessoas com deficiência no processo seletivo?']) assert.equal(obrigacaoLegalDeContratacao(p), false, p);
 });

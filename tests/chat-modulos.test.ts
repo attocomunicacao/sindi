@@ -1,14 +1,14 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { construirPedido, COM_FONTES, LISTA, REDACAO, SEM_FONTES, SITUACAO } from '../src/lib/chat/prompt';
-import { decidirSituacao } from '../src/lib/chat/situacao';
-import { lerRequisicaoDoChat } from '../src/lib/chat/requisicao';
-import { chaveDaGeracao, gastarCota, reaproveitarOuAbrir } from '../src/lib/chat/respostas';
-import { escreverComVerificacao, tentativasDeResposta } from '../src/lib/chat/geracao';
-import { respostaEmFluxo } from '../src/lib/chat/stream';
-import { limparRespostasGuardadas, guardarResposta, chaveDaResposta } from '../src/lib/cache-respostas';
-import { reiniciarCotaNaMemoria } from '../src/lib/cota';
-import { reiniciarLimitesNaMemoria } from '../src/lib/limite';
+import { construirPedido, COM_FONTES, LISTA, REDACAO, SEM_FONTES, SITUACAO } from '@/lib/chat/prompt';
+import { decidirSituacao } from '@/lib/chat/situacao';
+import { lerRequisicaoDoChat } from '@/lib/chat/requisicao';
+import { chaveDaGeracao, gastarCota, reaproveitarOuAbrir } from '@/lib/chat/respostas';
+import { escreverComVerificacao, tentativasDeResposta } from '@/lib/chat/geracao';
+import { respostaEmFluxo } from '@/lib/chat/stream';
+import { limparRespostasGuardadas, guardarResposta, chaveDaResposta } from '@/lib/infra/cache-respostas';
+import { reiniciarCotaNaMemoria } from '@/lib/infra/cota';
+import { reiniciarLimitesNaMemoria } from '@/lib/infra/limite-por-minuto';
 import type { Passagem } from '@/lib/base/tipos';
 
 const fonte = (extra: Partial<Passagem> = {}): Passagem => ({ url: '/x', title: 'Fonte X', content: 'conteúdo', fetchedAt: '2026-11-20T00:00:00Z', ...extra });

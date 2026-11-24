@@ -22,7 +22,7 @@ antes de mostrá-la (e-mail, site, telefone, valor, número e lei precisam const
 | `src/lib/http/guarda.ts` | Proteções de rota: origem, tipo, limite por minuto, tamanho do corpo, erro JSON, PDF |
 | `src/lib/paginas.ts` | Registro das páginas (menu, marca, `robots.txt`, 404) |
 | `src/lib/ia/` | Cascata de provedores de IA: tipos, adaptadores (OpenAI-compatível, Anthropic), disjuntor e limites conhecidos, fila |
-| `src/lib/gemini.ts`, `cota.ts`, `limite.ts`, `redis.ts` | Provedor Gemini, cota de mensagens, limite por minuto, Redis (Upstash) |
+| `src/lib/ia/gemini.ts`, `infra/cota.ts`, `infra/limite-por-minuto.ts`, `infra/redis.ts`, `http/ip.ts` | Provedor Gemini, cota de mensagens, limite por minuto, Redis (Upstash) |
 | `src/lib/grafo/`, `src/lib/agentes/` | Grafo do cérebro (construção, entidades, Obsidian, consulta do chat) e orquestra de especialistas |
 | `src/lib/cerebro/`, `knowledge/` | Conectores, busca (palavras + significado), verificação de fatos, trechos |
 | `src/lib/dados/`, `biblioteca/` | Coleta de dados públicos (SQLite), painel, biblioteca |
@@ -90,14 +90,14 @@ Siga esta ordem; o teste `tests/ferramentas.test.ts` confere os itens 2, 3, 5 e 
 ## 5. Convenções do projeto
 
 - Respostas da SINDI nunca são texto fixo do servidor: o servidor decide e busca, o modelo escreve, a verificação confere (`AGENTS.md`).
-- Sem cota por usuário na aplicação foi uma decisão antiga, revertida em 19/11/2026: há cota por IP e global (`src/lib/cota.ts`), porque o provedor é um nível gratuito.
+- Sem cota por usuário na aplicação foi uma decisão antiga, revertida em 19/11/2026: há cota por IP e global (`src/lib/infra/cota.ts`), porque o provedor é um nível gratuito.
 - Dados pessoais e segredos são removidos antes de chegar ao modelo (`redigirDadosSensiveis`). No nível gratuito o Google pode usar as perguntas: a tela avisa.
 - Comentários em português, explicando o porquê. Arquivos novos em UTF-8.
 
 ## 6. Armadilhas conhecidas
 
 - **Componente cliente × módulo de servidor.** Um arquivo com `'use client'` que importa (mesmo de passagem) `node:sqlite`, `node:fs` ou `zod` quebra o build ou gera violação de CSP.
-  Funções usadas nos dois lados vão em módulos puros, como `src/lib/chat-historico.ts`, `chat-stream.ts`, `url-segura.ts`, `dados/frescor.ts` e `paginas.ts`.
+  Funções usadas nos dois lados vão em módulos puros, como `src/lib/chat/historico.ts`, `chat/leitor-ndjson.ts`, `base/url-segura.ts`, `dados/frescor.ts` e `paginas.ts`.
 - **Rotas do Next só exportam métodos HTTP** e configuração (`runtime`, `maxDuration`, `dynamic`). Funções auxiliares ficam em `src/lib`.
 - **Pastas que começam com `_` em `src/app` são privadas** (não viram rota).
 - **Um servidor `next dev` por pasta.** Para trocar a configuração, reinicie: `.env.local` só é lido na partida.

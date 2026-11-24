@@ -1,5 +1,5 @@
 import { ehPercentual, numeroCompacto, numeroComCasas } from '@/lib/base/formato';
-import type { Painel, PainelIndicator } from './painel';
+import type { Painel, PainelIndicator } from '@/lib/dados/painel';
 
 /** Modelo do dashboard: calculado só a partir dos indicadores coletados (valor atual e anterior), usado pela tela e pelo PDF. */
 export type Sentido = 'alta' | 'queda' | 'estavel';

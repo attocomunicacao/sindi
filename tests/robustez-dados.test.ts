@@ -4,11 +4,11 @@ import { existsSync, mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync
 import { tmpdir } from 'node:os';
 import path from 'node:path';
 import { PDFDocument } from 'pdf-lib';
-import { abandonarExecucoes, falhasSeguidas, finishRun, openDb, podarExecucoes, startRun } from '../src/lib/dados/db';
-import { syncAll } from '../src/lib/dados/sync';
-import { dataIso, listaOuErro } from '../src/lib/dados/http';
-import { pdfToText } from '../src/lib/dados/legal';
-import type { Collector } from '../src/lib/dados/collectors/types';
+import { abandonarExecucoes, falhasSeguidas, finishRun, openDb, podarExecucoes, startRun } from '@/lib/dados/db';
+import { syncAll } from '@/lib/dados/sync';
+import { dataIso, listaOuErro } from '@/lib/dados/http';
+import { pdfToText } from '@/lib/dados/legal';
+import type { Collector } from '@/lib/dados/collectors/types';
 
 const atraso = (ms: number) => new Promise(r => setTimeout(r, ms));
 async function comBanco(fn: (db: ReturnType<typeof openDb>, pasta: string) => Promise<void>) {
@@ -92,7 +92,7 @@ test('PDF: o teto de páginas limita o texto extraído', async () => {
 });
 
 test('cérebro: erro na reavaliação depois de gravar restaura a versão anterior (e repassa o erro); pasta interrompida é recuperada', async () => {
-  const { publicarCerebro, MINIMOS, restaurarAnterior } = await import('../src/lib/cerebro/publicar');
+  const { publicarCerebro, MINIMOS, restaurarAnterior } = await import('@/lib/cerebro/publicar');
   const pasta = mkdtempSync(path.join(tmpdir(), 'sindi-cerebro-rb-')); const anteriorEnv = process.env.SINDI_CEREBRO_DIR; process.env.SINDI_CEREBRO_DIR = pasta;
   mkdirSync(path.join(pasta, 'auto'));
   const arquivosValidos = (marca: string) => Object.fromEntries(Object.entries(MINIMOS).map(([nome, minimo]) => [nome, `---\natualizado: 2026-10-13\n---\n${marca} `.padEnd(minimo + 50, 'x')]));
@@ -118,8 +118,8 @@ test('cérebro: erro na reavaliação depois de gravar restaura a versão anteri
 });
 
 test('índice de vetores: cada lote é gravado ao terminar, então uma falha no meio não perde o que já foi calculado', async () => {
-  const { indexarCerebro, arquivoDeVetores } = await import('../src/lib/cerebro/embeddings');
-  const { dividirEmTrechos } = await import('../src/lib/cerebro/carregar');
+  const { indexarCerebro, arquivoDeVetores } = await import('@/lib/cerebro/embeddings');
+  const { dividirEmTrechos } = await import('@/lib/cerebro/carregar');
   const pasta = mkdtempSync(path.join(tmpdir(), 'sindi-indice-')); const antes = { dados: process.env.SINDI_DATA_DIR, fetch: globalThis.fetch, chave: process.env.GEMINI_API_KEY };
   process.env.SINDI_DATA_DIR = pasta; process.env.GEMINI_API_KEY = 'chave-de-teste';
   const markdown = Array.from({ length: 45 }, (_, i) => `## Assunto ${i}\nTexto do assunto número ${i} com conteúdo suficiente para virar um trecho.`).join('\n\n');

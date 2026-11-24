@@ -1,15 +1,15 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { comBanco, simularRede, type Rota } from './rede-simulada';
-import { parseDate } from '../src/lib/dados/html';
-import { bcb } from '../src/lib/dados/collectors/bcb';
-import { ibge } from '../src/lib/dados/collectors/ibge';
-import { camara } from '../src/lib/dados/collectors/camara';
-import { senado } from '../src/lib/dados/collectors/senado';
-import { tst } from '../src/lib/dados/collectors/tst';
-import { wec } from '../src/lib/dados/collectors/wec';
-import type { Collector } from '../src/lib/dados/collectors/types';
-import type { Db } from '../src/lib/dados/db';
+import { parseDate } from '@/lib/dados/html';
+import { bcb } from '@/lib/dados/collectors/bcb';
+import { ibge } from '@/lib/dados/collectors/ibge';
+import { camara } from '@/lib/dados/collectors/camara';
+import { senado } from '@/lib/dados/collectors/senado';
+import { tst } from '@/lib/dados/collectors/tst';
+import { wec } from '@/lib/dados/collectors/wec';
+import type { Collector } from '@/lib/dados/collectors/types';
+import type { Db } from '@/lib/dados/db';
 
 // Cada coletor roda de verdade (banco SQLite temporário, sem esperas) contra respostas gravadas da fonte: uma boa, uma vazia, uma malformada e uma com erro.
 async function coletar(coletor: Collector, db: Db, rotas: Rota[], full = false) {

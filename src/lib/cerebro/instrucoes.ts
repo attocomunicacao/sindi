@@ -2,7 +2,7 @@ import type { Mensagem } from '@/lib/base/tipos';
 import { readFileSync, statSync } from 'node:fs';
 import path from 'node:path';
 import type { Passagem } from '@/lib/base/tipos';
-import { pastaCerebro, regrasDoCerebro } from './carregar';
+import { pastaCerebro, regrasDoCerebro } from '@/lib/cerebro/carregar';
 
 /**
  * O que "ensina" o modelo pequeno, sem treinar pesos: as regras (`cerebro/instrucoes/identidade-e-regras.md`), exemplos de pergunta e resposta

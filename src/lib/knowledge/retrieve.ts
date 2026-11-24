@@ -1,20 +1,20 @@
 import { SITE } from '@/lib/base/constantes';
 import { readFile } from 'node:fs/promises';
 import path from 'node:path';
-import { normalize, contextText, queryTerms, searchSnapshot, sufficientEvidence, type KnowledgeSnapshot } from './core';
+import { normalize, contextText, queryTerms, searchSnapshot, sufficientEvidence, type KnowledgeSnapshot } from '@/lib/knowledge/core';
 import type { Passagem } from '@/lib/base/tipos';
-import { supabaseRequest } from './supabase';
-import { executarFerramentas } from '../ferramentas/registro';
-import { pedidoDeAjuda } from './grounded';
-import { buscarHibrido } from '../cerebro/buscar';
-import { faixasDeContribuicao } from '../cerebro/faixas';
-import { EXTERNAL_INTENT, searchExternal, trechosDeDocumentos } from '../dados/painel';
-import { escolherConector, pedeRelatorio, type Conector } from '../cerebro/conectores';
-import { cobertura, materialDoRelatorio, pesosDosTermos, pesquisarNaBiblioteca, termosDaPesquisa } from '../biblioteca/pesquisa';
-import { dbPath } from '../dados/db';
+import { supabaseRequest } from '@/lib/knowledge/supabase';
+import { executarFerramentas } from '@/lib/ferramentas/registro';
+import { pedidoDeAjuda } from '@/lib/knowledge/grounded';
+import { buscarHibrido } from '@/lib/cerebro/buscar';
+import { faixasDeContribuicao } from '@/lib/cerebro/faixas';
+import { EXTERNAL_INTENT, searchExternal, trechosDeDocumentos } from '@/lib/dados/painel';
+import { escolherConector, pedeRelatorio, type Conector } from '@/lib/cerebro/conectores';
+import { cobertura, materialDoRelatorio, pesosDosTermos, pesquisarNaBiblioteca, termosDaPesquisa } from '@/lib/biblioteca/pesquisa';
+import { dbPath } from '@/lib/dados/db';
 import { existsSync } from 'node:fs';
-import { documentosPeloGrafo } from '../grafo/consulta';
-import { estantesDaOrquestra, montarOrquestra } from '../agentes/orquestrador';
+import { documentosPeloGrafo } from '@/lib/grafo/consulta';
+import { estantesDaOrquestra, montarOrquestra } from '@/lib/agentes/orquestrador';
 try { process.loadEnvFile('.env.knowledge'); } catch { /* Optional outside the local installation. */ }
 
 const noisePage = (url: string) => /\/noticias\/(page\/|categories\/)/.test(url);

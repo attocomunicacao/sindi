@@ -1,7 +1,7 @@
 import { mkdtempSync, rmSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import path from 'node:path';
-import { openDb } from '../src/lib/dados/db';
+import { openDb } from '@/lib/dados/db';
 
 /** Resposta simulada de uma fonte externa: JSON, texto (HTML, XML) ou um `Response` pronto (para status e cabeçalhos). */
 export type RespostaSimulada = Response | { json: unknown; status?: number } | { texto: string; status?: number; tipo?: string };

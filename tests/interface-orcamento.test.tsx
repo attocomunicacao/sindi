@@ -2,7 +2,7 @@ import './setup-dom';
 import { test, afterEach } from 'node:test';
 import assert from 'node:assert/strict';
 import { cleanup, fireEvent, render, screen, waitFor, within } from '@testing-library/react';
-import { OrcamentoForm } from '../src/components/orcamento-form';
+import { OrcamentoForm } from '@/components/orcamento-form';
 
 afterEach(() => { cleanup(); window.history.pushState({}, '', '/orcamento'); });
 const dinheiro = /R\$\s?[\d.]+,\d{2}/;

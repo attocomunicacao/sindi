@@ -1,4 +1,4 @@
-import { inteiro, LlmError } from './tipos';
+import { inteiro, LlmError } from '@/lib/ia/tipos';
 
 /**
  * Lê um corpo SSE (`data: ...` por linha) pedaço a pedaço, juntando linhas quebradas entre pedaços e caracteres UTF-8 partidos. Sem dado nenhum por

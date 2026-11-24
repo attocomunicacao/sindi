@@ -1,5 +1,5 @@
 import type { Passagem } from '@/lib/base/tipos';
-import { normalize, queryTerms } from './core';
+import { normalize, queryTerms } from '@/lib/knowledge/core';
 export function cleanExcerpt(content: string): string {
   const lines = content.replace(/([\p{L}])-\s*\n\s*([\p{L}])/gu, '$1$2').split('\n');
   const short = lines.filter(line => line.trim() && line.trim().length < 55).length;

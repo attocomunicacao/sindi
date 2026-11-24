@@ -1,8 +1,8 @@
 import { load } from 'cheerio';
-import { deleteMissing, due, getState, setState, upsertDocument, type Db } from '../db';
-import { getText, politeFetch } from '../http';
-import { pdfToText, splitArticles } from '../legal';
-import type { Collector } from './types';
+import { deleteMissing, due, getState, setState, upsertDocument, type Db } from '@/lib/dados/db';
+import { getText, politeFetch } from '@/lib/dados/http';
+import { pdfToText, splitArticles } from '@/lib/dados/legal';
+import type { Collector } from '@/lib/dados/collectors/types';
 
 const WEEK = 7 * 24 * 60 * 60 * 1000;
 const MAX_PDF_BYTES = 40 * 1024 * 1024;

@@ -1,6 +1,6 @@
-import { dataIso, getJson, listaOuErro } from '../http';
-import { setIndicator, upsertDocument } from '../db';
-import type { Collector } from './types';
+import { dataIso, getJson, listaOuErro } from '@/lib/dados/http';
+import { setIndicator, upsertDocument } from '@/lib/dados/db';
+import type { Collector } from '@/lib/dados/collectors/types';
 
 type Sidra = { resultados: { series: { serie: Record<string, string> }[] }[] }[];
 const BASE = 'https://servicodados.ibge.gov.br/api/v3';

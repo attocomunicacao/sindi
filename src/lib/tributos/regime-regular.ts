@@ -1,6 +1,6 @@
-import { arred2, dec, ErroTributario, num, publicarAliquota, somar } from './decimal';
+import { arred2, dec, ErroTributario, num, publicarAliquota, somar } from '@/lib/tributos/decimal';
 import { brl, pontos } from '@/lib/base/formato';
-import { servicoPorId, SERVICO_PADRAO, type ServicoTributavel } from './servicos';
+import { servicoPorId, SERVICO_PADRAO, type ServicoTributavel } from '@/lib/tributos/servicos';
 
 /**
  * CBS e IBS de um serviço no regime regular. Reimplementa a lógica da Calculadora RTC da Receita Federal

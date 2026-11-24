@@ -5,15 +5,15 @@ import { tmpdir } from 'node:os';
 import path from 'node:path';
 import { readFileSync } from 'node:fs';
 import { strFromU8, unzipSync } from 'fflate';
-import { openDb, upsertDocument, setIndicator, searchDocuments, startRun, finishRun } from '../src/lib/dados/db';
-import { extractArticle, parseDate, sitemapEntries } from '../src/lib/dados/html';
-import { parseSgs } from '../src/lib/dados/collectors/bcb';
-import { lastTwo, periodLabel } from '../src/lib/dados/collectors/ibge';
-import { billDocument } from '../src/lib/dados/collectors/camara';
-import { processDocument } from '../src/lib/dados/collectors/senado';
-import { parseTst } from '../src/lib/dados/collectors/tst';
-import { indicatorPassages, readPainel, BILL_TOPIC } from '../src/lib/dados/painel';
-import { exportWorkbook } from '../src/lib/dados/xlsx';
+import { openDb, upsertDocument, setIndicator, searchDocuments, startRun, finishRun } from '@/lib/dados/db';
+import { extractArticle, parseDate, sitemapEntries } from '@/lib/dados/html';
+import { parseSgs } from '@/lib/dados/collectors/bcb';
+import { lastTwo, periodLabel } from '@/lib/dados/collectors/ibge';
+import { billDocument } from '@/lib/dados/collectors/camara';
+import { processDocument } from '@/lib/dados/collectors/senado';
+import { parseTst } from '@/lib/dados/collectors/tst';
+import { indicatorPassages, readPainel, BILL_TOPIC } from '@/lib/dados/painel';
+import { exportWorkbook } from '@/lib/dados/xlsx';
 
 const tmp = () => mkdtempSync(path.join(tmpdir(), 'sindi-dados-'));
 

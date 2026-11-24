@@ -1,4 +1,4 @@
-import type { Db } from '../db';
+import type { Db } from '@/lib/dados/db';
 
 export type Ctx = { db: Db; /** Reprocessa também o histórico (coleta completa), em vez de só o recente. */ full: boolean };
 export type Result = { fetched: number; changed: number };

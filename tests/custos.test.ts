@@ -1,7 +1,7 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { CENARIO_EXTERNO, CENARIO_INTERNO, estimar, mediaReal } from '../src/lib/custos/calculo';
-import { MODELOS, modeloPorId } from '../src/lib/custos/precos';
+import { CENARIO_EXTERNO, CENARIO_INTERNO, estimar, mediaReal } from '@/lib/custos/calculo';
+import { MODELOS, modeloPorId } from '@/lib/custos/precos';
 
 const perto = (a: number, b: number, tolerancia = 1e-6) => assert.ok(Math.abs(a - b) <= tolerancia, `${a} ≠ ${b}`);
 

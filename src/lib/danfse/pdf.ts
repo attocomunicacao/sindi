@@ -17,8 +17,8 @@
  */
 import { PDFDocument, StandardFonts, degrees, rgb, type PDFFont, type PDFImage, type PDFPage } from 'pdf-lib';
 import QRCode from 'qrcode';
-import type { DocumentoDanfse, SecaoParte } from './apresentacao';
-import { LOGO_NFSE_BASE64 } from './logo-nfse';
+import type { DocumentoDanfse, SecaoParte } from '@/lib/danfse/apresentacao';
+import { LOGO_NFSE_BASE64 } from '@/lib/danfse/logo-nfse';
 
 // ------------------------------------------------------------------------------------------------ geometria (layout.go)
 

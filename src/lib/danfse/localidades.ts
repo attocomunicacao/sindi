@@ -2,7 +2,7 @@
  * Catálogo de municípios (código IBGE -> nome e UF), gerado do catálogo do gerador oficial da Receita
  * Federal (`localidades.json`: código -> [nome, UF], 5.525 municípios). Fica em memória, só leitura.
  */
-import tabela from './localidades.json';
+import tabela from '@/lib/danfse/localidades.json';
 
 const MUNICIPIOS = tabela as unknown as Record<string, [string, string]>;
 

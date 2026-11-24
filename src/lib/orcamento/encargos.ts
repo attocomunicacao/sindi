@@ -1,4 +1,4 @@
-import tabela from './tabela.json';
+import tabela from '@/lib/orcamento/tabela.json';
 
 export type LinhaEncargo = { nome: string; taxa: number; baseLegal?: string };
 export type GrupoEncargo = { id: 'A' | 'B' | 'C' | 'D'; titulo: string; linhas: LinhaEncargo[]; total: number };

@@ -1,10 +1,10 @@
 import { DatabaseSync } from 'node:sqlite';
 import { existsSync } from 'node:fs';
-import { dbPath } from '../dados/db';
-import { fraseDoIndicador, nrNumber, readPainel, trechosRelevantes } from '../dados/painel';
+import { dbPath } from '@/lib/dados/db';
+import { fraseDoIndicador, nrNumber, readPainel, trechosRelevantes } from '@/lib/dados/painel';
 import type { Passagem } from '@/lib/base/tipos';
-import { normalize } from '../knowledge/core';
-import { ESTANTES } from './estantes';
+import { normalize } from '@/lib/knowledge/core';
+import { ESTANTES } from '@/lib/biblioteca/estantes';
 
 /**
  * Pesquisa da SINDI na biblioteca (a mesma base de `/base`): é por aqui que o chat consome as notícias, os artigos do presidente, as cartilhas, os projetos de lei

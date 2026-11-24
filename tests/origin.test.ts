@@ -1,6 +1,6 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { allowedChatOrigin } from '../src/lib/origin';
+import { allowedChatOrigin } from '@/lib/infra/origem';
 
 test('proxy accepts only the exact configured HTTPS origin and same-origin local requests', () => {
   const publicOrigin = 'https://sindi-prototipo.vercel.app';

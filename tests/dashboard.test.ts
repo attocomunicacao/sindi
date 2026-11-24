@@ -1,8 +1,8 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { montarDashboard, rotuloDoMes } from '../src/lib/dados/dashboard';
-import { dashboardPdf } from '../src/lib/dados/dashboard-pdf';
-import { emptyPainel, type PainelIndicator } from '../src/lib/dados/painel';
+import { montarDashboard, rotuloDoMes } from '@/lib/dados/dashboard';
+import { dashboardPdf } from '@/lib/dados/dashboard-pdf';
+import { emptyPainel, type PainelIndicator } from '@/lib/dados/painel';
 
 const ind = (id: string, value: number, previous: number | null, unit: string): PainelIndicator => ({ id, group: 'g', label: id, value, unit, period: '08/2026', previous, source: 'x', url: 'https://example.com', fetchedAt: '2026-10-13T00:00:00Z' });
 const painel = () => ({ ...emptyPainel(), available: true, updatedAt: '2026-10-13T12:00:00Z', indicators: [

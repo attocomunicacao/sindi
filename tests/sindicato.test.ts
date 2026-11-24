@@ -3,9 +3,9 @@ import assert from 'node:assert/strict';
 import { mkdtempSync, rmSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import path from 'node:path';
-import { categoryOf, cleanPdfText, documentEntries, entryTitle, isArticle, isBare, isMonthOnly, kindOf, lawIdentifier, sectionFor, titleFromPdfText, yearOf } from '../src/lib/dados/sindicato';
-import { openDb, upsertDocument } from '../src/lib/dados/db';
-import { clausePassages, sindicatoPassages, trechosDeDocumentos } from '../src/lib/dados/painel';
+import { categoryOf, cleanPdfText, documentEntries, entryTitle, isArticle, isBare, isMonthOnly, kindOf, lawIdentifier, sectionFor, titleFromPdfText, yearOf } from '@/lib/dados/sindicato';
+import { openDb, upsertDocument } from '@/lib/dados/db';
+import { clausePassages, sindicatoPassages, trechosDeDocumentos } from '@/lib/dados/painel';
 
 const SITE = 'https://www.sindeprestem.com.br';
 test('site pages and posts are classified by section; articles are the ones signed by the president', () => {

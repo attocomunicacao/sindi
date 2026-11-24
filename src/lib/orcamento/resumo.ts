@@ -1,4 +1,4 @@
-import type { Resultado, TipoAdicional } from './calculo';
+import type { Resultado, TipoAdicional } from '@/lib/orcamento/calculo';
 
 /** O que a tela e a rota POST /api/orcamento/calcular mostram de um orçamento: valores e composição, sem o detalhe linha a linha do PDF. */
 export function resumoDoOrcamento(r: Resultado) {

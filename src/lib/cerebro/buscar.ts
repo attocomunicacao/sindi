@@ -1,7 +1,7 @@
 import { SITE } from '@/lib/base/constantes';
 import type { Passagem } from '@/lib/base/tipos';
-import { normalize, queryTerms } from '../knowledge/core';
-import { trechosDoCerebro, type Trecho } from './carregar';
+import { normalize, queryTerms } from '@/lib/knowledge/core';
+import { trechosDoCerebro, type Trecho } from '@/lib/cerebro/carregar';
 
 export type Resultado = { trecho: Trecho; pontos: number };
 const sinal = (texto: string) => normalize(texto);
@@ -64,7 +64,7 @@ export function respostaDireta(pergunta: string, trechos: Trecho[] = trechosDoCe
   return melhor && { texto: melhor.texto, titulo: melhor.trecho.secao, pontos: melhor.pontos };
 }
 
-import { buscarSemantico } from './embeddings';
+import { buscarSemantico } from '@/lib/cerebro/embeddings';
 /** O significado pesa mais que as palavras: a busca por palavras erra quando a pergunta usa vocabulário diferente do texto. */
 export const PESO_LEXICAL = Number(process.env.SINDI_PESO_LEXICAL || 1); export const PESO_SEMANTICO = Number(process.env.SINDI_PESO_SEMANTICO || 1);
 export const LIMIAR_SEMANTICO = Number(process.env.SINDI_LIMIAR_SEMANTICO || 0.55);

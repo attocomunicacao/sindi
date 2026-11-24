@@ -1,5 +1,5 @@
 // Sem dependências de servidor (sqlite, fs): usado também pelo painel no navegador.
-import type { Painel } from './painel';
+import type { Painel } from '@/lib/dados/painel';
 
 /** Horas sem coleta bem-sucedida a partir das quais uma fonte é tida como defasada (a coleta roda a cada 30 minutos; indicadores mensais mudam pouco, mas a coleta deve continuar). */
 export const DEFASADA_HORAS = 24;

@@ -1,14 +1,14 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { PDFDocument } from 'pdf-lib';
-import { calcularEncargos } from '../src/lib/orcamento/encargos';
-import { calcularInsumos, calcularOrcamento, HORAS_NOTURNAS_PADRAO } from '../src/lib/orcamento/calculo';
-import { FUNCOES, funcaoPorId } from '../src/lib/orcamento/catalogo';
-import { orcamentoSchema } from '../src/lib/orcamento/schema';
-import tabela from '../src/lib/orcamento/tabela.json';
-import { interpretarPostos, linkFerramenta, orcamentoAnswer } from '../src/lib/orcamento/interpretar';
-import { gerarOrcamentoPdf, gerarRelatorioCustoPdf, referencia } from '../src/lib/orcamento/pdf';
-import { seguro } from '../src/lib/orcamento/pdf-base';
+import { calcularEncargos } from '@/lib/orcamento/encargos';
+import { calcularInsumos, calcularOrcamento, HORAS_NOTURNAS_PADRAO } from '@/lib/orcamento/calculo';
+import { FUNCOES, funcaoPorId } from '@/lib/orcamento/catalogo';
+import { orcamentoSchema } from '@/lib/orcamento/schema';
+import tabela from '@/lib/orcamento/tabela.json';
+import { interpretarPostos, linkFerramenta, orcamentoAnswer } from '@/lib/orcamento/interpretar';
+import { gerarOrcamentoPdf, gerarRelatorioCustoPdf, referencia } from '@/lib/orcamento/pdf';
+import { seguro } from '@/lib/orcamento/pdf-base';
 
 const perto = (a: number, b: number, tolerancia = 1e-6) => assert.ok(Math.abs(a - b) < tolerancia, `${a} !== ${b}`);
 

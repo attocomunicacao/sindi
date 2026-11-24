@@ -5,8 +5,8 @@
  *  - respostas de erro sempre em JSON `{ error }`, sem cache; PDFs com os mesmos cabeçalhos.
  * A validação do conteúdo (zod) e a regra da ferramenta continuam na rota.
  */
-import { allowedChatOrigin } from '@/lib/origin';
-import { limitarPorMinuto } from '@/lib/limite';
+import { allowedChatOrigin } from '@/lib/infra/origem';
+import { limitarPorMinuto } from '@/lib/infra/limite-por-minuto';
 
 export const erroJson = (mensagem: string, status: number, extra: Record<string, unknown> = {}, cabecalhos: Record<string, string> = {}) =>
   Response.json({ error: mensagem, ...extra }, { status, headers: { 'Cache-Control': 'no-store', ...cabecalhos } });

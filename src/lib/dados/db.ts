@@ -2,7 +2,7 @@ import { DatabaseSync } from 'node:sqlite';
 import { createHash } from 'node:crypto';
 import { mkdirSync } from 'node:fs';
 import path from 'node:path';
-import { urlDeDocumentoValida } from '../url-segura';
+import { urlDeDocumentoValida } from '@/lib/dados/url-documento';
 
 export type Doc = { source: string; url: string; title: string; content: string; publishedAt?: string; meta?: Record<string, unknown> };
 export type Indicator = { id: string; source: string; group: string; label: string; value: number; unit: string; period: string; previous?: number; url: string };

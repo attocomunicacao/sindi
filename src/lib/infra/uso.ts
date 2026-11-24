@@ -1,25 +1,25 @@
 import { mkdir, readFile, writeFile, rename } from 'node:fs/promises';
 import path from 'node:path';
-import { redis, redisConfigurado as shared } from './redis';
+import { redis, redisConfigurado as shared } from '@/lib/infra/redis';
 
 /** Por provedor da cascata: quantas respostas cada um escreveu e quantos tokens gastou (só agregados, sem conteúdo). */
 export type UsoDoProvedor = { requests: number; successes: number; tokens: number };
-export type UsageDay = { date: string; requests: number; successes: number; errors: number; inputTokens: number; outputTokens: number; totalTokens: number; measured: number; durationMs: number; provedores?: Record<string, UsoDoProvedor> };
+export type DiaDeUso = { date: string; requests: number; successes: number; errors: number; inputTokens: number; outputTokens: number; totalTokens: number; measured: number; durationMs: number; provedores?: Record<string, UsoDoProvedor> };
 type Event = { success: boolean; durationMs: number; usage?: { inputTokens?: number; outputTokens?: number; totalTokens?: number }; provedor?: string };
-type Escalar = Exclude<keyof UsageDay, 'date' | 'provedores'>;
+type Escalar = Exclude<keyof DiaDeUso, 'date' | 'provedores'>;
 const ESCALARES: Escalar[] = ['requests', 'successes', 'errors', 'inputTokens', 'outputTokens', 'totalTokens', 'measured', 'durationMs'];
 const idDoProvedor = (id?: string) => (id && /^[a-z0-9-]{1,20}$/.test(id) ? id : undefined);
 const folder = path.join(process.cwd(), '.data');
 const file = path.join(folder, 'usage.json');
 let queue: Promise<unknown> = Promise.resolve();
 function today() { return new Intl.DateTimeFormat('en-CA', { timeZone: 'America/Sao_Paulo', year: 'numeric', month: '2-digit', day: '2-digit' }).format(new Date()); }
-function empty(date: string): UsageDay { return { date, requests: 0, successes: 0, errors: 0, inputTokens: 0, outputTokens: 0, totalTokens: 0, measured: 0, durationMs: 0 }; }
-async function localDays(): Promise<UsageDay[]> {
+function empty(date: string): DiaDeUso { return { date, requests: 0, successes: 0, errors: 0, inputTokens: 0, outputTokens: 0, totalTokens: 0, measured: 0, durationMs: 0 }; }
+async function localDays(): Promise<DiaDeUso[]> {
   try { return JSON.parse(await readFile(file, 'utf8')); }
   catch (error) { if ((error as NodeJS.ErrnoException).code === 'ENOENT') return []; throw error; }
 }
 const script = `for i=1,#ARGV,2 do redis.call('HINCRBY',KEYS[1],ARGV[i],ARGV[i+1]) end; redis.call('EXPIRE',KEYS[1],86400*35); return 1`;
-export async function recordUsage(event: Event): Promise<boolean> {
+export async function registrarUso(event: Event): Promise<boolean> {
   const day = empty(today());
   day.requests = 1; day.successes = Number(event.success); day.errors = Number(!event.success);
   day.durationMs = Math.round(event.durationMs);
@@ -58,7 +58,7 @@ export async function recordUsage(event: Event): Promise<boolean> {
 let leitura: { em: number; modo: string; valor: Awaited<ReturnType<typeof lerUso>> } | undefined;
 const modoDeArmazenamento = () => (shared() ? 'compartilhado' : process.env.VERCEL ? 'vercel' : 'local');
 /** A leitura dos 30 dias (30 consultas ao Redis) fica 30 s em memória: o painel público pode ser aberto muitas vezes, e as métricas não precisam ser instantâneas. */
-export async function getUsage() {
+export async function obterUso() {
   const modo = modoDeArmazenamento();
   if (leitura && leitura.modo === modo && Date.now() - leitura.em < 30_000) return leitura.valor;
   const valor = await lerUso(); leitura = { em: Date.now(), modo, valor }; return valor;

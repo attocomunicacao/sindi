@@ -2,8 +2,8 @@ import './setup-dom';
 import { test, afterEach } from 'node:test';
 import assert from 'node:assert/strict';
 import { cleanup, fireEvent, render, screen, within } from '@testing-library/react';
-import { OrcamentoForm } from '../src/components/orcamento-form';
-import { TributosCalculadora } from '../src/components/tributos-calculadora';
+import { OrcamentoForm } from '@/components/orcamento-form';
+import { TributosCalculadora } from '@/components/tributos-calculadora';
 
 afterEach(() => { cleanup(); window.history.pushState({}, '', '/orcamento'); });
 const normal = (v: string | null) => (v ?? '').replace(/ /g, ' ');

@@ -1,13 +1,13 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { PDFDocument } from 'pdf-lib';
-import { POST as calcular } from '../src/app/api/orcamento/calcular/route';
-import { POST as pdf } from '../src/app/api/orcamento/pdf/route';
-import { GET as catalogo } from '../src/app/api/orcamento/catalogo/route';
-import { calcularOrcamento } from '../src/lib/orcamento/calculo';
-import { resumoDoOrcamento } from '../src/lib/orcamento/resumo';
-import { catalogoPublico } from '../src/lib/orcamento/catalogo-publico';
-import { reiniciarLimitesNaMemoria } from '../src/lib/limite';
+import { POST as calcular } from '@/app/api/orcamento/calcular/route';
+import { POST as pdf } from '@/app/api/orcamento/pdf/route';
+import { GET as catalogo } from '@/app/api/orcamento/catalogo/route';
+import { calcularOrcamento } from '@/lib/orcamento/calculo';
+import { resumoDoOrcamento } from '@/lib/orcamento/resumo';
+import { catalogoPublico } from '@/lib/orcamento/catalogo-publico';
+import { reiniciarLimitesNaMemoria } from '@/lib/infra/limite-por-minuto';
 
 const corpo = { postos: [{ funcaoId: 'auxiliar-de-limpeza', quantidade: 2, turno: 'diurno', periculosidade: true, insalubridade: 0.2 }], iss: 0.05, metrosQuadrados: 500 };
 const requisicao = (url: string, init: { origem?: string | null; tipo?: string | null; corpo?: BodyInit; ip?: string } = {}) => {

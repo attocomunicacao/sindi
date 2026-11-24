@@ -1,4 +1,4 @@
-import tabela from './tabela.json';
+import tabela from '@/lib/orcamento/tabela.json';
 
 export type Funcao = {
   id: string; nome: string; salario: number; divisorHoras: number; periculosidade: number; insalubridade: number;

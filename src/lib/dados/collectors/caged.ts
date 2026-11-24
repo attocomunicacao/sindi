@@ -4,8 +4,8 @@ import { mkdir, readdir, rm } from 'node:fs/promises';
 import path from 'node:path';
 import { createInterface } from 'node:readline';
 import { promisify } from 'node:util';
-import { dataDir, getSeries, getState, setSeries, setState, setIndicator, upsertDocument, type Db } from '../db';
-import type { Collector } from './types';
+import { dataDir, getSeries, getState, setSeries, setState, setIndicator, upsertDocument, type Db } from '@/lib/dados/db';
+import type { Collector } from '@/lib/dados/collectors/types';
 import { numeroBR } from '@/lib/base/formato';
 
 const run = promisify(execFile);

@@ -1,4 +1,4 @@
-import { arred2, dec, ErroTributario, num, type Dec } from './decimal';
+import { arred2, dec, ErroTributario, num, type Dec } from '@/lib/tributos/decimal';
 import { brl, pontos } from '@/lib/base/formato';
 
 /**

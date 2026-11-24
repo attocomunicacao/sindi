@@ -1,6 +1,6 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { gerarTexto, LlmError, mensagemDeLimite, montarCorpo } from '../src/lib/gemini';
+import { gerarTextoGemini, LlmError, mensagemDeLimite, montarCorpo } from '@/lib/ia/gemini';
 
 const sse = (...pedacos: object[]) => pedacos.map(p => `data: ${JSON.stringify(p)}\n\n`).join('');
 const corrente = (partes: Uint8Array[]) => new Response(new ReadableStream({ start(c) { partes.forEach(p => c.enqueue(p)); c.close(); } }), { headers: { 'content-type': 'text/event-stream' } });
@@ -28,7 +28,7 @@ test('stream: junta pedaços com UTF-8 partido, ignora o raciocínio e informa o
       return corrente([bytes.slice(0, 20), bytes.slice(20, corte), bytes.slice(corte)]);
     };
     const deltas: string[] = [];
-    const r = await gerarTexto([{ role: 'user', content: 'Oi' }], AbortSignal.timeout(2000), t => deltas.push(t));
+    const r = await gerarTextoGemini([{ role: 'user', content: 'Oi' }], AbortSignal.timeout(2000), t => deltas.push(t));
     assert.equal(r.text, 'Olá, açaí!'); assert.equal(deltas.join(''), 'Olá, açaí!'); assert.equal(r.truncada, false);
     assert.deepEqual(r.usage, { inputTokens: 30, outputTokens: 5, totalTokens: 40 });
   });
@@ -37,13 +37,13 @@ test('stream: junta pedaços com UTF-8 partido, ignora o raciocínio e informa o
 test('MAX_TOKENS marca a resposta como truncada; resposta bloqueada e linha inválida viram erros claros', async () => {
   await comAmbiente({ GEMINI_API_KEY: 'k' }, async () => {
     globalThis.fetch = async () => Response.json({ candidates: [{ content: { parts: [{ text: 'Texto cortado' }] }, finishReason: 'MAX_TOKENS' }] });
-    assert.equal((await gerarTexto([], AbortSignal.timeout(2000))).truncada, true);
+    assert.equal((await gerarTextoGemini([], AbortSignal.timeout(2000))).truncada, true);
     globalThis.fetch = async () => Response.json({ promptFeedback: { blockReason: 'SAFETY' }, candidates: [] });
-    await assert.rejects(gerarTexto([], AbortSignal.timeout(2000)), (e: LlmError) => e instanceof LlmError && e.status === 422);
+    await assert.rejects(gerarTextoGemini([], AbortSignal.timeout(2000)), (e: LlmError) => e instanceof LlmError && e.status === 422);
     globalThis.fetch = async () => corrente([new TextEncoder().encode('data: {isto não é json\n\n')]);
-    await assert.rejects(gerarTexto([], AbortSignal.timeout(2000), () => {}), (e: LlmError) => e instanceof LlmError && e.status === 502 && /interrompeu/.test(e.message));
+    await assert.rejects(gerarTextoGemini([], AbortSignal.timeout(2000), () => {}), (e: LlmError) => e instanceof LlmError && e.status === 502 && /interrompeu/.test(e.message));
     globalThis.fetch = async () => corrente([new TextEncoder().encode(sse({ candidates: [] }))]);
-    await assert.rejects(gerarTexto([], AbortSignal.timeout(2000), () => {}), /incompleta/);
+    await assert.rejects(gerarTextoGemini([], AbortSignal.timeout(2000), () => {}), /incompleta/);
   });
 });
 
@@ -51,23 +51,23 @@ test('erros HTTP do provedor: limite (429) lê o tempo de espera; chave recusada
   await comAmbiente({ GEMINI_API_KEY: 'k' }, async () => {
     const corpo = JSON.stringify({ error: { details: [{ retryDelay: '125s' }], message: 'detalhe interno' } });
     globalThis.fetch = async () => new Response(corpo, { status: 429 });
-    await assert.rejects(gerarTexto([], AbortSignal.timeout(2000)), (e: LlmError) => e.status === 429 && /3 min/.test(e.message) && !/detalhe interno/.test(e.message));
+    await assert.rejects(gerarTextoGemini([], AbortSignal.timeout(2000)), (e: LlmError) => e.status === 429 && /3 min/.test(e.message) && !/detalhe interno/.test(e.message));
     assert.match(mensagemDeLimite('não é json'), /alguns minutos/);
     globalThis.fetch = async () => new Response('API key not valid: k', { status: 403 });
-    await assert.rejects(gerarTexto([], AbortSignal.timeout(2000)), (e: LlmError) => e.status === 503 && !/API key/.test(e.message));
+    await assert.rejects(gerarTextoGemini([], AbortSignal.timeout(2000)), (e: LlmError) => e.status === 503 && !/API key/.test(e.message));
     globalThis.fetch = async () => new Response('{}', { status: 404 });
-    await assert.rejects(gerarTexto([], AbortSignal.timeout(2000)), (e: LlmError) => e.status === 404);
+    await assert.rejects(gerarTextoGemini([], AbortSignal.timeout(2000)), (e: LlmError) => e.status === 404);
   });
 });
 
 test('sem chave não há chamada de rede, e o nome do modelo é validado', async () => {
   await comAmbiente({ GEMINI_API_KEY: undefined }, async () => {
     globalThis.fetch = async () => { throw new Error('não deveria chamar a rede'); };
-    await assert.rejects(gerarTexto([], AbortSignal.timeout(1000)), (e: LlmError) => e.status === 503 && /GEMINI_API_KEY/.test(e.message));
+    await assert.rejects(gerarTextoGemini([], AbortSignal.timeout(1000)), (e: LlmError) => e.status === 503 && /GEMINI_API_KEY/.test(e.message));
   });
   await comAmbiente({ GEMINI_API_KEY: 'k' }, async () => {
     globalThis.fetch = async () => { throw new Error('não deveria chamar a rede'); };
-    await assert.rejects(gerarTexto([], AbortSignal.timeout(1000), undefined, undefined, '../outro?x=1'), /inválido/);
+    await assert.rejects(gerarTextoGemini([], AbortSignal.timeout(1000), undefined, undefined, '../outro?x=1'), /inválido/);
   });
 });
 
@@ -79,17 +79,17 @@ test('concorrência limitada: o segundo pedido espera a vez, quem desiste da fil
       await new Promise<void>(r => { liberar = r; });
       emAndamento--; return Response.json({ candidates: [{ content: { parts: [{ text: 'ok' }] }, finishReason: 'STOP' }] });
     };
-    const primeiro = gerarTexto([], AbortSignal.timeout(5000));
+    const primeiro = gerarTextoGemini([], AbortSignal.timeout(5000));
     await new Promise(r => setTimeout(r, 10));
     const desistente = new AbortController();
-    const segundo = gerarTexto([], desistente.signal); const resultadoSegundo = assert.rejects(segundo, { name: 'AbortError' });
+    const segundo = gerarTextoGemini([], desistente.signal); const resultadoSegundo = assert.rejects(segundo, { name: 'AbortError' });
     await new Promise(r => setTimeout(r, 10));
     // Fila com 1 esperando (limite 1): o terceiro é recusado na hora.
-    await assert.rejects(gerarTexto([], AbortSignal.timeout(5000)), (e: LlmError) => e.status === 503);
+    await assert.rejects(gerarTextoGemini([], AbortSignal.timeout(5000)), (e: LlmError) => e.status === 503);
     desistente.abort(new DOMException('desistiu', 'AbortError')); await resultadoSegundo;
     // A vaga continua só do primeiro; ao terminar, um novo pedido passa sem travar.
     liberar(); assert.equal((await primeiro).text, 'ok');
-    const quarto = gerarTexto([], AbortSignal.timeout(5000)); await new Promise(r => setTimeout(r, 10)); liberar();
+    const quarto = gerarTextoGemini([], AbortSignal.timeout(5000)); await new Promise(r => setTimeout(r, 10)); liberar();
     assert.equal((await quarto).text, 'ok'); assert.equal(maximo, 1);
   });
 });
@@ -99,12 +99,12 @@ test('o tempo limite da chamada só conta a partir da vez: quem esperou na fila 
     const ok = () => Response.json({ candidates: [{ content: { parts: [{ text: 'ok' }] }, finishReason: 'STOP' }] });
     // O primeiro ocupa a vaga por 250 ms; o segundo espera esse tempo e depois ainda tem os 300 ms completos para a própria chamada.
     globalThis.fetch = async () => { await new Promise(r => setTimeout(r, 250)); return ok(); };
-    const [a, b] = await Promise.all([gerarTexto([], AbortSignal.timeout(5000)), gerarTexto([], AbortSignal.timeout(5000))]);
+    const [a, b] = await Promise.all([gerarTextoGemini([], AbortSignal.timeout(5000)), gerarTextoGemini([], AbortSignal.timeout(5000))]);
     assert.equal(a.text, 'ok'); assert.equal(b.text, 'ok');
     // Uma chamada que nunca responde é cortada pelo tempo limite e libera a vaga.
     globalThis.fetch = async (_url, init) => new Promise<Response>((_, rejeitar) => { (init!.signal as AbortSignal).addEventListener('abort', () => rejeitar((init!.signal as AbortSignal).reason), { once: true }); });
-    await assert.rejects(gerarTexto([], AbortSignal.timeout(5000)), { name: 'TimeoutError' });
+    await assert.rejects(gerarTextoGemini([], AbortSignal.timeout(5000)), { name: 'TimeoutError' });
     globalThis.fetch = async () => ok();
-    assert.equal((await gerarTexto([], AbortSignal.timeout(5000))).text, 'ok');
+    assert.equal((await gerarTextoGemini([], AbortSignal.timeout(5000))).text, 'ok');
   });
 });

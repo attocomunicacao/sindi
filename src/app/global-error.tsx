@@ -1,5 +1,5 @@
 'use client';
-import './globals.css';
+import '@/app/globals.css';
 import { useEffect } from 'react';
 import { RotateCcw } from 'lucide-react';
 

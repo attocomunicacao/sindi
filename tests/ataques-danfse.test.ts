@@ -1,10 +1,10 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
-import { gerarDanfse } from '../src/lib/danfse';
-import { lerNFSe } from '../src/lib/danfse/leitura';
-import { POST as danfse } from '../src/app/api/danfse/route';
-import { reiniciarLimitesNaMemoria } from '../src/lib/limite';
+import { gerarDanfse } from '@/lib/danfse';
+import { lerNFSe } from '@/lib/danfse/leitura';
+import { POST as danfse } from '@/app/api/danfse/route';
+import { reiniciarLimitesNaMemoria } from '@/lib/infra/limite-por-minuto';
 
 const XML = readFileSync(new URL('./fixtures/nfse-exemplo.xml', import.meta.url), 'utf8');
 const nota = (miolo: string) => `<NFSe><infNFSe Id="NFS1">${miolo}</infNFSe></NFSe>`;

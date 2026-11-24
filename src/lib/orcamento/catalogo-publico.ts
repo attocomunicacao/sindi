@@ -1,7 +1,7 @@
-import tabela from './tabela.json';
-import { CATEGORIAS_INSUMO, FUNCOES, FUNCOES_SOB_CONSULTA, itensDaCategoria } from './catalogo';
-import { HORAS_NOTURNAS_PADRAO, ISS_PERMITIDO } from './calculo';
-import { calcularEncargos } from './encargos';
+import tabela from '@/lib/orcamento/tabela.json';
+import { CATEGORIAS_INSUMO, FUNCOES, FUNCOES_SOB_CONSULTA, itensDaCategoria } from '@/lib/orcamento/catalogo';
+import { HORAS_NOTURNAS_PADRAO, ISS_PERMITIDO } from '@/lib/orcamento/calculo';
+import { calcularEncargos } from '@/lib/orcamento/encargos';
 
 /**
  * Funções, insumos e parâmetros que a tela do orçamento precisa para montar o formulário. Uma só fonte: a página calcula com ela no navegador

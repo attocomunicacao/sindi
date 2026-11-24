@@ -1,5 +1,5 @@
-import { historicoParaOModelo, recentMessages } from '@/lib/chat';
-import { guardarResposta } from '@/lib/cache-respostas';
+import { historicoParaOModelo, recentMessages } from '@/lib/chat/esquema';
+import { guardarResposta } from '@/lib/infra/cache-respostas';
 import { sistema, exemplos } from '@/lib/cerebro/instrucoes';
 import type { Mensagem } from '@/lib/base/tipos';
 import { escreverComVerificacao, tentativasDeResposta } from '@/lib/chat/geracao';
@@ -11,7 +11,7 @@ import { respostaEmFluxo } from '@/lib/chat/stream';
 import { LlmError, MENSAGEM_NEUTRA, rapidoLigado } from '@/lib/ia/cascata';
 import { erroJson } from '@/lib/http/guarda';
 import { redigirDadosSensiveis, sourceReferences } from '@/lib/knowledge/grounded';
-import { recordUsage as registrarUso } from '@/lib/usage';
+import { registrarUso as registrarUsoReal } from '@/lib/infra/uso';
 
 export const runtime = 'nodejs';
 export const maxDuration = 300;
@@ -29,7 +29,7 @@ export async function POST(request: Request) {
   if ('resposta' in lida) return lida.resposta;
   const { mensagens, aquecimento } = lida;
   const language = 'pt'; const started = Date.now();
-  const recordUsage: typeof registrarUso = aquecimento ? async () => true : registrarUso;
+  const registrarUso: typeof registrarUsoReal = aquecimento ? async () => true : registrarUsoReal;
   const controller = new AbortController();
 
   async function generate(onDelta?: (text: string) => void, onReset?: () => void) {
@@ -60,7 +60,7 @@ export async function POST(request: Request) {
       const reuso = await reaproveitarOuAbrir(chave, signal);
       if ('texto' in reuso) {
         onDelta?.(reuso.texto);
-        const metricsRecorded = await recordUsage({ success: true, durationMs: Date.now() - started });
+        const metricsRecorded = await registrarUso({ success: true, durationMs: Date.now() - started });
         return Response.json({ text: reuso.texto, metricsRecorded }, { headers });
       }
       concluirGeracao = reuso.concluir;
@@ -70,15 +70,15 @@ export async function POST(request: Request) {
       const { texto, uso, fontesUsadas, confiavel, provedor } = await escreverComVerificacao({
         base, tentativas, pedido, primeira, nivel, signal, onDelta, onReset, manterColchetes: writing || PEDE_MODELO.test(question), perguntas: [...anteriores, question].join(' '),
       });
-      if (!confiavel) { await recordUsage({ success: false, durationMs: Date.now() - started, usage: uso, provedor }); return error('Não foi possível gerar uma resposta confiável. Tente reformular a pergunta.', 502); }
+      if (!confiavel) { await registrarUso({ success: false, durationMs: Date.now() - started, usage: uso, provedor }); return error('Não foi possível gerar uma resposta confiável. Tente reformular a pergunta.', 502); }
       const references = !writing && texto.trim() && fontesUsadas.length ? sourceReferences(fontesUsadas, language) : '';
       if (references) onDelta?.(references);
-      const metricsRecorded = await recordUsage({ success: Boolean(texto.trim()), durationMs: Date.now() - started, usage: uso, provedor });
+      const metricsRecorded = await registrarUso({ success: Boolean(texto.trim()), durationMs: Date.now() - started, usage: uso, provedor });
       if (!texto.trim()) return error('Não foi possível gerar uma resposta. Tente novamente.', 502);
       if (chave && fontesUsadas === choices) { guardarResposta(chave, texto + references); concluirGeracao?.(texto + references); }
       return Response.json({ text: texto + references, metricsRecorded, restantes: gasto.cota?.restantes }, { headers });
     } catch (cause) {
-      await recordUsage({ success: false, durationMs: Date.now() - started });
+      await registrarUso({ success: false, durationMs: Date.now() - started });
       if (cause instanceof LlmError) return error(cause.message, cause.status);
       if (cause instanceof Error && ['TimeoutError', 'AbortError'].includes(cause.name)) return error('O serviço de IA demorou para responder. Tente novamente.', 504);
       console.warn('SINDI AI service failure', { type: cause instanceof Error ? cause.name : 'unknown' });

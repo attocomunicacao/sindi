@@ -3,8 +3,8 @@
 // Uso: npx tsx scripts/operacao/aquecer.ts [--base=http://127.0.0.1:3100] [--treino] [--pausa=4000]   (publicar.ps1 -Aquecer roda este script em segundo plano)
 // Cada pergunta usa o limite gratuito da API de IA: por padrão só as sugestões da tela inicial, com pausa entre elas; --treino inclui as perguntas de treinamento.
 // Exige o token SINDI_AQUECIMENTO_TOKEN do servidor (definido por publicar.ps1), para essas chamadas não entrarem nas métricas públicas de /uso.
-import { SUGESTOES } from '../../src/lib/sugestoes';
-import { carregarCasos } from '../../src/lib/cerebro/avaliar';
+import { SUGESTOES } from '@/lib/sugestoes';
+import { carregarCasos } from '@/lib/cerebro/avaliar';
 
 const base = process.argv.find(a => a.startsWith('--base='))?.slice(7) ?? 'http://127.0.0.1:3100';
 const token = process.env.SINDI_AQUECIMENTO_TOKEN ?? '';

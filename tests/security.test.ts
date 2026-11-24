@@ -1,7 +1,7 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { NextRequest } from 'next/server';
-import { proxy } from '../src/proxy';
+import { proxy } from '@/proxy';
 test('uses a fresh CSP nonce per request and does not allow unsafe production scripts', () => {
   const previous = process.env; process.env = { ...process.env, NODE_ENV: 'production' };
   try {
@@ -35,7 +35,7 @@ test('CSP: no desenvolvimento libera eval e websocket (só para o recarregamento
 });
 
 test('o proxy cobre as páginas e deixa de fora /api, arquivos estáticos do Next e o favicon', async () => {
-  const { config } = await import('../src/proxy');
+  const { config } = await import('@/proxy');
   const regra = new RegExp(`^${config.matcher[0]}$`);
   for (const caminho of ['/', '/orcamento', '/base/documento/12', '/painel']) assert.equal(regra.test(caminho), true, caminho);
   for (const caminho of ['/api/chat', '/api/painel/pdf', '/_next/static/chunks/a.js', '/_next/image', '/favicon.ico']) assert.equal(regra.test(caminho), false, caminho);

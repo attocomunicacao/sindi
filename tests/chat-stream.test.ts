@@ -1,6 +1,6 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { LeitorDoChat, lerLinhaDoChat, textoParaLeitor } from '../src/lib/chat-stream';
+import { LeitorDoChat, lerLinhaDoChat, textoParaLeitor } from '@/lib/chat/leitor-ndjson';
 
 const bytes = (texto: string) => new TextEncoder().encode(texto);
 

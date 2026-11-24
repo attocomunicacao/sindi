@@ -3,9 +3,9 @@ import { useEffect, useState } from 'react';
 import { RefreshCw, BarChart3 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { numeroBR } from '@/lib/base/formato';
-import type { UsageDay, UsoDoProvedor } from '@/lib/usage';
+import type { DiaDeUso, UsoDoProvedor } from '@/lib/infra/uso';
 const NOMES: Record<string, string> = { gemini: 'Gemini (Google)', groq: 'Groq', openrouter: 'OpenRouter', mistral: 'Mistral', cloudflare: 'Cloudflare Workers AI', anthropic: 'Claude (Anthropic)', ollama: 'Modelo local (Ollama)' };
-type Payload = { days: UsageDay[]; storage: string; available: boolean };
+type Payload = { days: DiaDeUso[]; storage: string; available: boolean };
 const number = numeroBR;
 const compacto = (n: number) => n.toLocaleString('pt-BR', { notation: 'compact', maximumFractionDigits: n < 10000 ? 1 : 0 });
 const diaMes = (data: string) => data.split('-').reverse().slice(0, 2).join('/');
@@ -15,7 +15,7 @@ const diaMes = (data: string) => data.split('-').reverse().slice(0, 2).join('/')
  * Posições em % da área do gráfico: o SVG acompanha qualquer largura sem distorcer o texto. Até 7 dias, todo dia tem valor e data;
  * em 30 dias, só o maior valor e o de hoje são escritos e as datas aparecem a cada 5 dias. O dia de hoje (ainda em andamento) fica em destaque.
  */
-function GraficoDiario({ days, metric }: { days: UsageDay[]; metric: 'totalTokens' | 'requests' }) {
+function GraficoDiario({ days, metric }: { days: DiaDeUso[]; metric: 'totalTokens' | 'requests' }) {
   const n = days.length; if (!n) return null;
   const max = Math.max(1, ...days.map(d => d[metric])); const indiceMax = days.findIndex(d => d[metric] === max);
   const TOPO = 14; const BASE = 86; const ALTO = BASE - TOPO; // faixa do topo para os valores e do rodapé para as datas
@@ -38,7 +38,7 @@ function GraficoDiario({ days, metric }: { days: UsageDay[]; metric: 'totalToken
   </svg>;
 }
 
-export default function UsagePage() {
+export default function PaginaDeUso() {
   const [data, setData] = useState<Payload>();
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
@@ -46,13 +46,13 @@ export default function UsagePage() {
   const [metric, setMetric] = useState<'totalTokens' | 'requests'>('totalTokens');
   async function load() {
     setLoading(true); setError('');
-    try { const response = await fetch('/api/usage', { cache: 'no-store' }); const payload = await response.json(); if (!response.ok) throw new Error(payload.error); setData(payload); }
+    try { const response = await fetch('/api/uso', { cache: 'no-store' }); const payload = await response.json(); if (!response.ok) throw new Error(payload.error); setData(payload); }
     catch { setError('Não foi possível carregar o uso. Tente atualizar.'); }
     finally { setLoading(false); }
   }
   useEffect(() => {
     const controller = new AbortController();
-    fetch('/api/usage', { cache: 'no-store', signal: controller.signal }).then(async response => { if (!response.ok) throw new Error(); setData(await response.json()); }).catch(e => { if (e.name !== 'AbortError') setError('Não foi possível carregar o uso. Tente atualizar.'); });
+    fetch('/api/uso', { cache: 'no-store', signal: controller.signal }).then(async response => { if (!response.ok) throw new Error(); setData(await response.json()); }).catch(e => { if (e.name !== 'AbortError') setError('Não foi possível carregar o uso. Tente atualizar.'); });
     return () => controller.abort();
   }, []);
   const days = data?.days.slice(-period) || [];

@@ -1,4 +1,4 @@
-import { linkSeguro } from '@/lib/url-segura';
+import { linkSeguro } from '@/lib/base/url-segura';
 import Link from 'next/link';
 import { ArrowUpRight, ChevronLeft, ChevronRight, Search } from 'lucide-react';
 import type { Item, Parte } from '@/lib/biblioteca/consulta';

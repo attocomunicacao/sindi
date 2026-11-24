@@ -1,5 +1,5 @@
 // Sem dependências de servidor: o mesmo cálculo roda na página /custos e nos testes.
-import { modeloPorId, type PrecoDoModelo } from './precos';
+import { modeloPorId, type PrecoDoModelo } from '@/lib/custos/precos';
 
 /**
  * Estimativa de gasto mensal com uma API paga para a SINDI.

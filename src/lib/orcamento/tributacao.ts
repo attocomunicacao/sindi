@@ -1,7 +1,7 @@
-import { calcularDas, type Anexo, type ResultadoDas } from '../tributos/das';
+import { calcularDas, type Anexo, type ResultadoDas } from '@/lib/tributos/das';
 import { brl, pontos } from '@/lib/base/formato';
-import { calcularCbsIbsServico, transicaoDoAno, type AliquotasCbsIbs, type Transicao } from '../tributos/regime-regular';
-import { calcularCbsIbsSimples, type ResultadoSimplesCbsIbs } from '../tributos/simples-cbs-ibs';
+import { calcularCbsIbsServico, transicaoDoAno, type AliquotasCbsIbs, type Transicao } from '@/lib/tributos/regime-regular';
+import { calcularCbsIbsSimples, type ResultadoSimplesCbsIbs } from '@/lib/tributos/simples-cbs-ibs';
 
 /**
  * Tributação do orçamento. `atual` mantém a conta de sempre (ISS, PIS, COFINS, CSLL, IRPJ por dentro do preço).

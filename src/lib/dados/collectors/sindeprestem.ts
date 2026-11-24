@@ -1,12 +1,12 @@
 import { readFile } from 'node:fs/promises';
 import path from 'node:path';
-import { due, setState, upsertDocument, type Db } from '../db';
-import { getText, politeFetch } from '../http';
-import { pdfToText } from '../legal';
+import { due, setState, upsertDocument, type Db } from '@/lib/dados/db';
+import { getText, politeFetch } from '@/lib/dados/http';
+import { pdfToText } from '@/lib/dados/legal';
 import { SITE } from '@/lib/base/constantes';
-import { categoryOf, cleanPdfText, documentEntries, entryTitle, kindOf, isMonthOnly, lawIdentifier, sectionFor, titleFromPdfText, yearOf, type Section } from '../sindicato';
-import type { KnowledgeSnapshot } from '../../knowledge/core';
-import type { Collector } from './types';
+import { categoryOf, cleanPdfText, documentEntries, entryTitle, kindOf, isMonthOnly, lawIdentifier, sectionFor, titleFromPdfText, yearOf, type Section } from '@/lib/dados/sindicato';
+import type { KnowledgeSnapshot } from '@/lib/knowledge/core';
+import type { Collector } from '@/lib/dados/collectors/types';
 
 const MAX_PDF_BYTES = 80 * 1024 * 1024;
 const HOURS = 60 * 60 * 1000;

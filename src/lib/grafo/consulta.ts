@@ -1,11 +1,11 @@
 import { existsSync, readFileSync, statSync } from 'node:fs';
 import path from 'node:path';
 import { DatabaseSync } from 'node:sqlite';
-import { limpar, refDoDocumento } from '../biblioteca/consulta';
-import { dataDir, dbPath } from '../dados/db';
+import { limpar, refDoDocumento } from '@/lib/biblioteca/consulta';
+import { dataDir, dbPath } from '@/lib/dados/db';
 import type { Passagem } from '@/lib/base/tipos';
-import { extrairEntidades } from './entidades';
-import type { Grafo, No } from './tipos';
+import { extrairEntidades } from '@/lib/grafo/entidades';
+import type { Grafo, No } from '@/lib/grafo/tipos';
 
 /**
  * O grafo alimentando o chat. Quando a pergunta cita uma lei, NR ou projeto de lei (por número), a busca recebe também os documentos que o grafo liga a essa

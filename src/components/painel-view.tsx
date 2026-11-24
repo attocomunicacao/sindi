@@ -1,5 +1,5 @@
 'use client';
-import { linkSeguro } from '@/lib/url-segura';
+import { linkSeguro } from '@/lib/base/url-segura';
 import { useEffect, useState } from 'react';
 import { ArrowDown, ArrowUp, Minus } from 'lucide-react';
 import { ehPercentual, numeroDoIndicador, numeroCompacto } from '@/lib/base/formato';

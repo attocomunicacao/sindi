@@ -3,7 +3,7 @@ import type { Nivel } from '@/lib/ia/tipos';
 import type { Mensagem } from '@/lib/base/tipos';
 import type { Passagem } from '@/lib/base/tipos';
 import { notaDaSituacao, trechoDeContato, verificarFatos, type Situacao } from '@/lib/knowledge/grounded';
-import { ateAUltimaFrase, limparResposta, somar, type Uso } from './prompt';
+import { ateAUltimaFrase, limparResposta, somar, type Uso } from '@/lib/chat/prompt';
 
 export type Tentativa = { nota: string; fontes: Passagem[] };
 /**

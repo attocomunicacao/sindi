@@ -51,7 +51,7 @@ export function CustosCalculadora() {
   // Média real de tokens por chamada, se /uso já tiver medições suficientes (só agregados).
   useEffect(() => {
     const controle = new AbortController();
-    fetch('/api/usage', { cache: 'no-store', signal: controle.signal }).then(r => (r.ok ? r.json() : undefined)).then(dados => {
+    fetch('/api/uso', { cache: 'no-store', signal: controle.signal }).then(r => (r.ok ? r.json() : undefined)).then(dados => {
       const media = dados?.days ? mediaReal(dados.days) : undefined;
       if (media) { setComum(c => ({ ...c, tokensDeEntrada: media.entrada, tokensDeSaida: media.saida })); setOrigem(`média real de ${num(media.chamadas)} chamadas registradas em /uso`); }
     }).catch(() => {});

@@ -1,6 +1,6 @@
 import { brl } from '@/lib/base/formato';
-import { FUNCOES } from './catalogo';
-import { calcularOrcamento, type PostoEntrada } from './calculo';
+import { FUNCOES } from '@/lib/orcamento/catalogo';
+import { calcularOrcamento, type PostoEntrada } from '@/lib/orcamento/calculo';
 
 const norm = (texto: string) => texto.normalize('NFKD').replace(/\p{Diacritic}/gu, '').toLowerCase();
 const NUMEROS: Record<string, number> = { um: 1, uma: 1, dois: 2, duas: 2, tres: 3, quatro: 4, cinco: 5, seis: 6, sete: 7, oito: 8, nove: 9, dez: 10, onze: 11, doze: 12, treze: 13, quatorze: 14, quinze: 15, vinte: 20 };

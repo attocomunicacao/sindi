@@ -2,7 +2,7 @@ import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { createElement } from 'react';
 import { renderToStaticMarkup } from 'react-dom/server';
-import { ChatMessage } from '../src/components/chat-message';
+import { ChatMessage } from '@/components/chat-message';
 const render = (content: string) => renderToStaticMarkup(createElement(ChatMessage, { content }));
 test('formats bold, markdown links and automatic URL links', () => {
   const html = render('**Importante**\n\n[Site](https://www.sindeprestem.com.br/)\n\nhttps://www.sindeprestem.com.br/juridico');

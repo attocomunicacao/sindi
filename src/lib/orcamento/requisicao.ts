@@ -1,5 +1,5 @@
 import { erroJson, guardaDeEscrita } from '@/lib/http/guarda';
-import { orcamentoSchema, type OrcamentoRequisicao } from './schema';
+import { orcamentoSchema, type OrcamentoRequisicao } from '@/lib/orcamento/schema';
 
 const LIMITE_BYTES = 64 * 1024;
 export const erro = erroJson;

@@ -1,8 +1,8 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { SUGESTOES, sortearSugestoes } from '../src/lib/sugestoes';
+import { SUGESTOES, sortearSugestoes } from '@/lib/sugestoes';
 import { ehPercentual } from '@/lib/base/formato';
-import { moeda, seguro } from '../src/lib/orcamento/pdf-base';
+import { moeda, seguro } from '@/lib/orcamento/pdf-base';
 
 test('sugestões: sorteia a quantidade pedida, sem repetir entre si nem as anteriores', () => {
   const anteriores = SUGESTOES.slice(0, 3);

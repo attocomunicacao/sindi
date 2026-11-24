@@ -2,14 +2,14 @@
 import { mkdir, open, readFile, unlink } from 'node:fs/promises';
 import { setTimeout as delay } from 'node:timers/promises';
 import path from 'node:path';
-import { dataDir, due, openDb, setState } from '../../src/lib/dados/db';
-import { publicarCerebro } from '../../src/lib/cerebro/publicar';
-import { embeddings, indexarCerebro } from '../../src/lib/cerebro/embeddings';
-import { syncAll } from '../../src/lib/dados/sync';
+import { dataDir, due, openDb, setState } from '@/lib/dados/db';
+import { publicarCerebro } from '@/lib/cerebro/publicar';
+import { embeddings, indexarCerebro } from '@/lib/cerebro/embeddings';
+import { syncAll } from '@/lib/dados/sync';
 import { renameSync, writeFileSync } from 'node:fs';
-import { construirGrafo } from '../../src/lib/grafo/construir';
-import { exportarObsidian } from '../../src/lib/grafo/obsidian';
-import { arquivoDoGrafo } from '../../src/lib/grafo/consulta';
+import { construirGrafo } from '@/lib/grafo/construir';
+import { exportarObsidian } from '@/lib/grafo/obsidian';
+import { arquivoDoGrafo } from '@/lib/grafo/consulta';
 
 const args = process.argv.slice(2);
 const watch = args.includes('--watch'); const full = args.includes('--full');

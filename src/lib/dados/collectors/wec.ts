@@ -1,7 +1,7 @@
-import { getText } from '../http';
-import { extractArticle, sitemapEntries } from '../html';
-import { upsertDocument } from '../db';
-import type { Collector } from './types';
+import { getText } from '@/lib/dados/http';
+import { extractArticle, sitemapEntries } from '@/lib/dados/html';
+import { upsertDocument } from '@/lib/dados/db';
+import type { Collector } from '@/lib/dados/collectors/types';
 
 /** World Employment Confederation: um sitemap por tipo de conteúdo (WordPress/Yoast). */
 export const WEC_SITEMAPS = ['news', 'press_release', 'publication', 'event', 'opinion_piece'];

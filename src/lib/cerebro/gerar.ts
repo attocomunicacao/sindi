@@ -1,8 +1,8 @@
 import { SITE } from '@/lib/base/constantes';
 // Gera os arquivos autogerados do cérebro da SINDI (cerebro/auto/*.md) a partir dos dados coletados.
 // Os arquivos curados, na pasta cerebro/, nunca são alterados por esta geração.
-import type { Db } from '../dados/db';
-import { contactFromSource } from '../knowledge/retrieve';
+import type { Db } from '@/lib/dados/db';
+import { contactFromSource } from '@/lib/knowledge/retrieve';
 
 /** Presidente da entidade (gestão 2026–2029). Está aqui, num só lugar, para ser atualizado quando a gestão mudar; o texto gerado cita o nome. */
 export const PRESIDENTE = 'Vander Morales';

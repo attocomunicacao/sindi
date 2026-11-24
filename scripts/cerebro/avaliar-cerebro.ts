@@ -1,7 +1,7 @@
 // Avalia o cérebro da SINDI: para cada pergunta de cerebro/avaliacao/perguntas-ouro.md, confere se a resposta direta ou as evidências
 // entregues ao modelo contêm o esperado. Uso: npm run cerebro:avaliar [-- --arquivo=perguntas-ouro-ampliado.md] [-- --modelo [--so-resposta]] [-- --verbose]
 // Com --modelo, também chama o chat em execução (http://localhost:3000, ou a porta de PORT) e confere a resposta final gerada pelo modelo.
-import { avaliarCasos, carregarCasos } from '../../src/lib/cerebro/avaliar';
+import { avaliarCasos, carregarCasos } from '@/lib/cerebro/avaliar';
 
 const modelo = process.argv.includes('--modelo'); const detalhado = process.argv.includes('--verbose');
 async function respostaFinal(pergunta: string) {

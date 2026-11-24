@@ -2,9 +2,9 @@ import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { existsSync, readFileSync } from 'node:fs';
 import path from 'node:path';
-import { FERRAMENTAS, executarFerramentas } from '../src/lib/ferramentas/registro';
-import type { Ferramenta } from '../src/lib/ferramentas/tipos';
-import { PAGINAS } from '../src/lib/paginas';
+import { FERRAMENTAS, executarFerramentas } from '@/lib/ferramentas/registro';
+import type { Ferramenta } from '@/lib/ferramentas/tipos';
+import { PAGINAS } from '@/lib/paginas';
 
 const raiz = process.cwd();
 const ler = (...partes: string[]) => readFileSync(path.join(raiz, ...partes), 'utf8');

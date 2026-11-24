@@ -1,7 +1,7 @@
-import tabela from './tabela.json';
-import { CATEGORIAS_INSUMO, FUNCOES, funcaoPorId, itensDaCategoria, type Funcao } from './catalogo';
-import { calcularEncargos, type Encargos } from './encargos';
-import { planejarTributacao, type ResultadoTributacao, type TributacaoEntrada } from './tributacao';
+import tabela from '@/lib/orcamento/tabela.json';
+import { CATEGORIAS_INSUMO, FUNCOES, funcaoPorId, itensDaCategoria, type Funcao } from '@/lib/orcamento/catalogo';
+import { calcularEncargos, type Encargos } from '@/lib/orcamento/encargos';
+import { planejarTributacao, type ResultadoTributacao, type TributacaoEntrada } from '@/lib/orcamento/tributacao';
 
 export type Turno = 'diurno' | 'noturno';
 export type PostoEntrada = {

@@ -1,8 +1,8 @@
-import { enqueue, hasDocument, markFetched, nextQueued, upsertDocument } from '../db';
-import { extractArticle, linksFrom } from '../html';
-import { getText, politeFetch } from '../http';
-import { pdfToText } from '../legal';
-import type { Collector } from './types';
+import { enqueue, hasDocument, markFetched, nextQueued, upsertDocument } from '@/lib/dados/db';
+import { extractArticle, linksFrom } from '@/lib/dados/html';
+import { getText, politeFetch } from '@/lib/dados/http';
+import { pdfToText } from '@/lib/dados/legal';
+import type { Collector } from '@/lib/dados/collectors/types';
 
 const ROOT = 'https://www.gov.br/trabalho-e-emprego/pt-br';
 const NEWS = `${ROOT}/noticias-e-conteudo`;

@@ -1,15 +1,15 @@
 import { existsSync, readFileSync } from 'node:fs';
 import { DatabaseSync } from 'node:sqlite';
 import { forceCenter, forceLink, forceManyBody, forceSimulation, forceX, forceY, type SimulationLinkDatum, type SimulationNodeDatum } from 'd3-force';
-import { ESTANTES, estanteDoDocumento } from '../biblioteca/estantes';
-import { refDoDocumento } from '../biblioteca/consulta';
-import { carregarArquivos, type Trecho } from '../cerebro/carregar';
-import { conectores } from '../cerebro/conectores';
-import { arquivoDeVetores, cosseno, idDoTrecho } from '../cerebro/embeddings';
-import { normalize } from '../knowledge/core';
-import { dbPath } from '../dados/db';
-import { extrairEntidades } from './entidades';
-import type { Aresta, Grafo, No, TipoDeAresta, TipoDeNo } from './tipos';
+import { ESTANTES, estanteDoDocumento } from '@/lib/biblioteca/estantes';
+import { refDoDocumento } from '@/lib/biblioteca/consulta';
+import { carregarArquivos, type Trecho } from '@/lib/cerebro/carregar';
+import { conectores } from '@/lib/cerebro/conectores';
+import { arquivoDeVetores, cosseno, idDoTrecho } from '@/lib/cerebro/embeddings';
+import { normalize } from '@/lib/knowledge/core';
+import { dbPath } from '@/lib/dados/db';
+import { extrairEntidades } from '@/lib/grafo/entidades';
+import type { Aresta, Grafo, No, TipoDeAresta, TipoDeNo } from '@/lib/grafo/tipos';
 
 /**
  * Monta o grafo do cérebro a partir do que já existe — nada é inventado nem copiado:

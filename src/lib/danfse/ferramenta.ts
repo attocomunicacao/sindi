@@ -7,6 +7,7 @@ export const ferramentaDanfse: Ferramenta = {
   api: ['/api/danfse'],
   testes: [
     'tests/lib/danfse/danfse.test.ts',
+    'tests/lib/danfse/conformidade-danfse.test.ts',
     'tests/app/danfse-rotas.test.ts',
     'tests/seguranca/ataques-danfse.test.ts',
   ],

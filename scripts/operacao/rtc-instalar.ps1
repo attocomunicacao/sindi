@@ -1,6 +1,6 @@
 # Instala a calculadora oficial da Receita Federal (RTC: CBS/IBS) ao lado do SINDI. Roda uma vez (e de novo para atualizar a versão fixada abaixo).
 #   powershell -File scripts/operacao/rtc-instalar.ps1
-# O que faz: confere o JDK 25 (instala pelo winget se faltar), clona os repositórios da Receita em .tools/rtc (pasta fora do git) na versão FIXADA
+# O que faz: compila o gerador de DANFSe da Receita em WASM (Go em .tools/go, sem .exe); confere o JDK 25 (instala pelo winget se faltar), clona os repositórios da Receita em .tools/rtc (pasta fora do git) na versão FIXADA
 # (os repositórios não publicam releases, então o commit é o que garante o mesmo comportamento) e gera o banco SQLite com o Flyway (cerca de 3 minutos).
 # Licença dos projetos: MIT (Receita Federal do Brasil). Ver NOTICE-RTC.md.
 $ErrorActionPreference = 'Stop'
@@ -8,8 +8,11 @@ $raiz = Split-Path -Parent (Split-Path -Parent $PSScriptRoot)
 $rtc = Join-Path $raiz '.tools\rtc'
 $repos = @(
   @{ nome = 'calculadora-rtc-regime-regular'; commit = 'f1eebd7' },     # 1.7.2, 18/11/2026
-  @{ nome = 'calculadora-rtc-simples-nacional'; commit = 'a926d5a' }
+  @{ nome = 'calculadora-rtc-simples-nacional'; commit = 'a926d5a' },
+  @{ nome = 'calculadora-rtc-gerador-danfse'; commit = '8d79e6b' }      # Go 1.0.0: só referência de conformidade do DANFSe (npm run rtc:conferir:danfse)
 )
+# Go na versão que o go.mod do gerador exige, baixado do go.dev com checagem do SHA-256. Nada é instalado no Windows: fica em .tools/go.
+$go = @{ versao = '1.27.4'; sha256 = '178ab98950ac69ab25069307dc6ade79f3816e414cce95b4da166a115cde1e7e' }
 
 function Achar-Java {
   $candidato = Get-ChildItem 'C:\Program Files\Eclipse Adoptium' -Directory -Filter 'jdk-25*' -ErrorAction SilentlyContinue | Sort-Object Name -Descending | Select-Object -First 1
@@ -53,4 +56,32 @@ New-Item -ItemType Directory -Force (Join-Path $simples 'calculadora\db') | Out-
 Copy-Item $banco (Join-Path $simples 'calculadora\db') -Force
 Copy-Item (Join-Path $regime 'flyway') (Join-Path $simples 'flyway') -Recurse -Force
 
+# Gerador de DANFSe oficial (Go), compilado para WASM e executado dentro do Node: só serve de referência para o porte em TypeScript. Não vira .exe porque o
+# Windows pode bloquear executáveis novos (política de controle de aplicativos).
+$goRaiz = Join-Path $raiz '.tools\go'
+if (-not (Test-Path (Join-Path $goRaiz 'bin\go.exe'))) {
+  Write-Host "Baixando o Go $($go.versao) (go.dev)..."
+  $baixados = Join-Path $raiz '.tools\baixados'
+  New-Item -ItemType Directory -Force $baixados | Out-Null
+  $zip = Join-Path $baixados "go$($go.versao).zip"
+  Invoke-WebRequest -UseBasicParsing -Uri "https://go.dev/dl/go$($go.versao).windows-amd64.zip" -OutFile $zip
+  if ((Get-FileHash $zip -Algorithm SHA256).Hash.ToLower() -ne $go.sha256) { Remove-Item $zip; throw 'O SHA-256 do Go não confere.' }
+  $extraido = Join-Path $baixados 'go-extraido'
+  if (Test-Path $extraido) { Remove-Item $extraido -Recurse -Force }
+  Expand-Archive $zip -DestinationPath $extraido
+  Move-Item (Join-Path $extraido 'go') $goRaiz
+}
+$danfse = Join-Path $rtc 'calculadora-rtc-gerador-danfse'
+$saida = Join-Path $rtc 'danfse-wasm'
+if (-not (Test-Path (Join-Path $saida 'danfse.wasm'))) {
+  New-Item -ItemType Directory -Force $saida | Out-Null
+  $env:GOROOT = $goRaiz; $env:GOPATH = Join-Path $raiz '.tools\gopath'
+  $env:GOOS = 'js'; $env:GOARCH = 'wasm'; $env:CGO_ENABLED = '0'
+  Push-Location $danfse
+  & (Join-Path $goRaiz 'bin\go.exe') build '-ldflags=-s -w' -o (Join-Path $saida 'danfse.wasm') ./cmd/danfse-wasm
+  Pop-Location
+  Remove-Item Env:GOOS, Env:GOARCH
+  Copy-Item (Join-Path $goRaiz 'lib\wasm\wasm_exec.js') $saida -Force
+}
+Write-Host 'DANFSe oficial (WASM) pronto em .tools\rtc\danfse-wasm.'
 Write-Host 'Pronto. Para ligar: powershell -File scripts/operacao/rtc-subir.ps1'

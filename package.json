@@ -23,6 +23,7 @@
     "rtc:conferir:regime": "tsx scripts/rtc/conferir.ts",
     "rtc:conferir:simples": "tsx scripts/rtc/conferir-simples.ts",
     "rtc:catalogo": "tsx scripts/rtc/conferir-catalogo.ts",
+    "rtc:conferir:danfse": "tsx scripts/rtc/conferir-danfse.ts",
     "avaliar:treino": "tsx scripts/avaliacao/avaliar-treino.ts",
     "test:coverage": "tsx --test --experimental-test-coverage \"tests/**/*.test.ts\" \"tests/**/*.test.tsx\"",
     "check": "npm run lint && npm run typecheck && npm test && npm run build",

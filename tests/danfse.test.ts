@@ -7,7 +7,7 @@ import { lerNFSe, repararEcomercial } from '@/lib/danfse/leitura';
 import { apresentar, prepararNFSe, exibirPisCofins, montarLinhaTotaisTributos } from '@/lib/danfse/apresentacao';
 import * as f from '@/lib/danfse/formato';
 import { resolverMunicipio } from '@/lib/danfse/localidades';
-import { calcularAlocacaoTexto, montarLayoutPagina } from '@/lib/danfse/pdf';
+import { calcularAlocacaoTexto, montarLayoutPagina } from '@/lib/danfse/geometria';
 
 const XML = readFileSync(new URL('./fixtures/nfse-exemplo.xml', import.meta.url), 'utf8');
 const texto = (bytes: Uint8Array) => new TextDecoder('latin1').decode(bytes);

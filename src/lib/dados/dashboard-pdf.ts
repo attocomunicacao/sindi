@@ -1,5 +1,5 @@
 import { PDFDocument, StandardFonts, rgb, type PDFFont } from 'pdf-lib';
-import { A4, seguro } from '@/lib/orcamento/pdf-base';
+import { A4, seguro } from '@/lib/pdf/base';
 import type { Dashboard, Par } from '@/lib/dados/dashboard';
 
 const INK = rgb(0.176, 0.153, 0.153); const GOLD = rgb(0.922, 0.725, 0.18); const RED = rgb(0.714, 0.075, 0.137); const GREEN = rgb(0.18, 0.49, 0.36);

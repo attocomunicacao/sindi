@@ -27,6 +27,7 @@ antes de mostrá-la (e-mail, site, telefone, valor, número e lei precisam const
 | `src/lib/cerebro/`, `recuperacao/`, `seguranca/` | Conectores e busca no cérebro (palavras + significado); recuperação dos trechos de cada pergunta (topo da pilha); verificação de fatos e redação de dados sensíveis |
 | `src/lib/dados/`, `biblioteca/` | Coleta de dados públicos (SQLite), painel, biblioteca |
 | `src/lib/orcamento/` | Cálculo, encargos, tabela de referência, PDFs |
+| `src/lib/pdf/` | Base única de geração de PDF (`base.ts`: A4, paleta, `seguro`, `Documento`); usada pelo orçamento e pelo painel. O DANFSe (`src/lib/danfse/`) tem desenho próprio, fiel ao layout oficial (`geometria.ts`, `estilo.ts`, `rotulos.ts`, `pdf.ts`) |
 | `cerebro/` | O que ensina a SINDI (instruções, conectores, conhecimento, avaliação) |
 | `scripts/` | Coleta, indexação, avaliação, publicação |
 | `tests/` | `node:test` via `tsx`; um arquivo por assunto |

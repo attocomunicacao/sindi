@@ -4,11 +4,11 @@ import { PDFDocument } from 'pdf-lib';
 import { calcularEncargos } from '@/lib/orcamento/encargos';
 import { calcularInsumos, calcularOrcamento, HORAS_NOTURNAS_PADRAO } from '@/lib/orcamento/calculo';
 import { FUNCOES, funcaoPorId } from '@/lib/orcamento/catalogo';
-import { orcamentoSchema } from '@/lib/orcamento/schema';
+import { orcamentoSchema } from '@/lib/orcamento/esquema';
 import tabela from '@/lib/orcamento/tabela.json';
 import { interpretarPostos, linkFerramenta, orcamentoAnswer } from '@/lib/orcamento/interpretar';
 import { gerarOrcamentoPdf, gerarRelatorioCustoPdf, referencia } from '@/lib/orcamento/pdf';
-import { seguro } from '@/lib/orcamento/pdf-base';
+import { seguro } from '@/lib/pdf/base';
 
 const perto = (a: number, b: number, tolerancia = 1e-6) => assert.ok(Math.abs(a - b) < tolerancia, `${a} !== ${b}`);
 

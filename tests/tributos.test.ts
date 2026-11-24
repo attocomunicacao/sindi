@@ -6,10 +6,10 @@ import { ALIQUOTAS_ESTIMADAS, calcularCbsIbsServico, transicaoDoAno } from '@/li
 import { calcularCbsIbsSimples, escolherParAliquotas } from '@/lib/tributos/simples-cbs-ibs';
 import { calcularDas, faixaDaReceita, type Anexo } from '@/lib/tributos/das';
 import { SERVICOS } from '@/lib/tributos/servicos';
-import { tributacaoSchema } from '@/lib/tributos/schema';
+import { tributacaoSchema } from '@/lib/tributos/esquema';
 import { calcularOrcamento } from '@/lib/orcamento/calculo';
 import { calcularEncargos } from '@/lib/orcamento/encargos';
-import { orcamentoSchema } from '@/lib/orcamento/schema';
+import { orcamentoSchema } from '@/lib/orcamento/esquema';
 import { POST as calcular } from '@/app/api/orcamento/calcular/route';
 import { POST as pdf } from '@/app/api/orcamento/pdf/route';
 import { reiniciarLimitesNaMemoria } from '@/lib/infra/limite-por-minuto';

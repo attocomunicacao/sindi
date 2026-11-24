@@ -2,7 +2,7 @@ import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { SUGESTOES, sortearSugestoes } from '@/lib/sugestoes';
 import { ehPercentual } from '@/lib/base/formato';
-import { moeda, seguro } from '@/lib/orcamento/pdf-base';
+import { moeda, seguro } from '@/lib/pdf/base';
 
 test('sugestões: sorteia a quantidade pedida, sem repetir entre si nem as anteriores', () => {
   const anteriores = SUGESTOES.slice(0, 3);
@@ -28,14 +28,14 @@ test('format: só unidades que começam com % mostram duas casas', () => {
   assert.equal(ehPercentual('vagas no mês'), false);
 });
 
-test('pdf-base: seguro troca o que a fonte padrão não desenha e mantém acentos', () => {
+test('pdf/base: seguro troca o que a fonte padrão não desenha e mantém acentos', () => {
   assert.equal(seguro('açúcar − 5 → 6'), 'açúcar - 5 -> 6');
   assert.equal(seguro('a​b'), 'ab');
   assert.equal(seguro('emoji 😀'), 'emoji ?');
   assert.equal(seguro('linha1\r\nlinha2'), 'linha1\nlinha2');
 });
 
-test('pdf-base: moeda formata em reais e não mostra -0,00', () => {
+test('pdf/base: moeda formata em reais e não mostra -0,00', () => {
   assert.match(moeda(1234.5), /1\.234,50/);
   assert.match(moeda(-0.001), /0,00/);
   assert.doesNotMatch(moeda(-0.001), /-/);

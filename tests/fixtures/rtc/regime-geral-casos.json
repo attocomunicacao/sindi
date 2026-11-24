@@ -1,0 +1,3415 @@
+{
+  "origem": "calculadora-rtc-regime-regular (Receita Federal, MIT)",
+  "versaoDoServico": "1.7.2",
+  "geradoEm": "2026-11-24T15:11:57.685Z",
+  "casos": [
+    {
+      "servicoId": "mao-de-obra",
+      "ano": 2026,
+      "base": 100000,
+      "municipio": 3550308,
+      "uf": "SP",
+      "oficial": {
+        "estado": "CALCULADO",
+        "vCBS": "900.00",
+        "vIBSUF": "100.00",
+        "vIBSMun": "0.00",
+        "vIBS": "100.00"
+      }
+    },
+    {
+      "servicoId": "mao-de-obra",
+      "ano": 2027,
+      "base": 100000,
+      "municipio": 3550308,
+      "uf": "SP",
+      "aliquotas": {
+        "cbs": 8.4,
+        "ibsEstadual": 0.05,
+        "ibsMunicipal": 0.05
+      },
+      "oficial": {
+        "estado": "CALCULO_SIMULADO",
+        "vCBS": "8400.00",
+        "vIBSUF": "50.00",
+        "vIBSMun": "50.00",
+        "vIBS": "100.00"
+      }
+    },
+    {
+      "servicoId": "mao-de-obra",
+      "ano": 2029,
+      "base": 100000,
+      "municipio": 3550308,
+      "uf": "SP",
+      "aliquotas": {
+        "cbs": 8.5,
+        "ibsEstadual": 1.6,
+        "ibsMunicipal": 0.25
+      },
+      "oficial": {
+        "estado": "CALCULO_SIMULADO",
+        "vCBS": "8500.00",
+        "vIBSUF": "1600.00",
+        "vIBSMun": "250.00",
+        "vIBS": "1850.00"
+      }
+    },
+    {
+      "servicoId": "mao-de-obra",
+      "ano": 2033,
+      "base": 100000,
+      "municipio": 3550308,
+      "uf": "SP",
+      "aliquotas": {
+        "cbs": 8.5,
+        "ibsEstadual": 16,
+        "ibsMunicipal": 2.5
+      },
+      "oficial": {
+        "estado": "CALCULO_SIMULADO",
+        "vCBS": "8500.00",
+        "vIBSUF": "16000.00",
+        "vIBSMun": "2500.00",
+        "vIBS": "18500.00"
+      }
+    },
+    {
+      "servicoId": "mao-de-obra",
+      "ano": 2026,
+      "base": 12345.67,
+      "municipio": 3550308,
+      "uf": "SP",
+      "oficial": {
+        "estado": "CALCULADO",
+        "vCBS": "111.11",
+        "vIBSUF": "12.35",
+        "vIBSMun": "0.00",
+        "vIBS": "12.35"
+      }
+    },
+    {
+      "servicoId": "mao-de-obra",
+      "ano": 2027,
+      "base": 12345.67,
+      "municipio": 3550308,
+      "uf": "SP",
+      "aliquotas": {
+        "cbs": 8.4,
+        "ibsEstadual": 0.05,
+        "ibsMunicipal": 0.05
+      },
+      "oficial": {
+        "estado": "CALCULO_SIMULADO",
+        "vCBS": "1037.04",
+        "vIBSUF": "6.17",
+        "vIBSMun": "6.17",
+        "vIBS": "12.34"
+      }
+    },
+    {
+      "servicoId": "mao-de-obra",
+      "ano": 2029,
+      "base": 12345.67,
+      "municipio": 3550308,
+      "uf": "SP",
+      "aliquotas": {
+        "cbs": 8.5,
+        "ibsEstadual": 1.6,
+        "ibsMunicipal": 0.25
+      },
+      "oficial": {
+        "estado": "CALCULO_SIMULADO",
+        "vCBS": "1049.38",
+        "vIBSUF": "197.53",
+        "vIBSMun": "30.86",
+        "vIBS": "228.39"
+      }
+    },
+    {
+      "servicoId": "mao-de-obra",
+      "ano": 2033,
+      "base": 12345.67,
+      "municipio": 3550308,
+      "uf": "SP",
+      "aliquotas": {
+        "cbs": 8.5,
+        "ibsEstadual": 16,
+        "ibsMunicipal": 2.5
+      },
+      "oficial": {
+        "estado": "CALCULO_SIMULADO",
+        "vCBS": "1049.38",
+        "vIBSUF": "1975.31",
+        "vIBSMun": "308.64",
+        "vIBS": "2283.95"
+      }
+    },
+    {
+      "servicoId": "mao-de-obra",
+      "ano": 2026,
+      "base": 0.01,
+      "municipio": 3550308,
+      "uf": "SP",
+      "oficial": {
+        "estado": "CALCULADO",
+        "vCBS": "0.00",
+        "vIBSUF": "0.00",
+        "vIBSMun": "0.00",
+        "vIBS": "0.00"
+      }
+    },
+    {
+      "servicoId": "mao-de-obra",
+      "ano": 2027,
+      "base": 0.01,
+      "municipio": 3550308,
+      "uf": "SP",
+      "aliquotas": {
+        "cbs": 8.4,
+        "ibsEstadual": 0.05,
+        "ibsMunicipal": 0.05
+      },
+      "oficial": {
+        "estado": "CALCULO_SIMULADO",
+        "vCBS": "0.00",
+        "vIBSUF": "0.00",
+        "vIBSMun": "0.00",
+        "vIBS": "0.00"
+      }
+    },
+    {
+      "servicoId": "mao-de-obra",
+      "ano": 2029,
+      "base": 0.01,
+      "municipio": 3550308,
+      "uf": "SP",
+      "aliquotas": {
+        "cbs": 8.5,
+        "ibsEstadual": 1.6,
+        "ibsMunicipal": 0.25
+      },
+      "oficial": {
+        "estado": "CALCULO_SIMULADO",
+        "vCBS": "0.00",
+        "vIBSUF": "0.00",
+        "vIBSMun": "0.00",
+        "vIBS": "0.00"
+      }
+    },
+    {
+      "servicoId": "mao-de-obra",
+      "ano": 2033,
+      "base": 0.01,
+      "municipio": 3550308,
+      "uf": "SP",
+      "aliquotas": {
+        "cbs": 8.5,
+        "ibsEstadual": 16,
+        "ibsMunicipal": 2.5
+      },
+      "oficial": {
+        "estado": "CALCULO_SIMULADO",
+        "vCBS": "0.00",
+        "vIBSUF": "0.00",
+        "vIBSMun": "0.00",
+        "vIBS": "0.00"
+      }
+    },
+    {
+      "servicoId": "mao-de-obra",
+      "ano": 2026,
+      "base": 999999.99,
+      "municipio": 3550308,
+      "uf": "SP",
+      "oficial": {
+        "estado": "CALCULADO",
+        "vCBS": "9000.00",
+        "vIBSUF": "1000.00",
+        "vIBSMun": "0.00",
+        "vIBS": "1000.00"
+      }
+    },
+    {
+      "servicoId": "mao-de-obra",
+      "ano": 2027,
+      "base": 999999.99,
+      "municipio": 3550308,
+      "uf": "SP",
+      "aliquotas": {
+        "cbs": 8.4,
+        "ibsEstadual": 0.05,
+        "ibsMunicipal": 0.05
+      },
+      "oficial": {
+        "estado": "CALCULO_SIMULADO",
+        "vCBS": "84000.00",
+        "vIBSUF": "500.00",
+        "vIBSMun": "500.00",
+        "vIBS": "1000.00"
+      }
+    },
+    {
+      "servicoId": "mao-de-obra",
+      "ano": 2029,
+      "base": 999999.99,
+      "municipio": 3550308,
+      "uf": "SP",
+      "aliquotas": {
+        "cbs": 8.5,
+        "ibsEstadual": 1.6,
+        "ibsMunicipal": 0.25
+      },
+      "oficial": {
+        "estado": "CALCULO_SIMULADO",
+        "vCBS": "85000.00",
+        "vIBSUF": "16000.00",
+        "vIBSMun": "2500.00",
+        "vIBS": "18500.00"
+      }
+    },
+    {
+      "servicoId": "mao-de-obra",
+      "ano": 2033,
+      "base": 999999.99,
+      "municipio": 3550308,
+      "uf": "SP",
+      "aliquotas": {
+        "cbs": 8.5,
+        "ibsEstadual": 16,
+        "ibsMunicipal": 2.5
+      },
+      "oficial": {
+        "estado": "CALCULO_SIMULADO",
+        "vCBS": "85000.00",
+        "vIBSUF": "160000.00",
+        "vIBSMun": "25000.00",
+        "vIBS": "185000.00"
+      }
+    },
+    {
+      "servicoId": "mao-de-obra",
+      "ano": 2026,
+      "base": 1234567.89,
+      "municipio": 3550308,
+      "uf": "SP",
+      "oficial": {
+        "estado": "CALCULADO",
+        "vCBS": "11111.11",
+        "vIBSUF": "1234.57",
+        "vIBSMun": "0.00",
+        "vIBS": "1234.57"
+      }
+    },
+    {
+      "servicoId": "mao-de-obra",
+      "ano": 2027,
+      "base": 1234567.89,
+      "municipio": 3550308,
+      "uf": "SP",
+      "aliquotas": {
+        "cbs": 8.4,
+        "ibsEstadual": 0.05,
+        "ibsMunicipal": 0.05
+      },
+      "oficial": {
+        "estado": "CALCULO_SIMULADO",
+        "vCBS": "103703.70",
+        "vIBSUF": "617.28",
+        "vIBSMun": "617.28",
+        "vIBS": "1234.56"
+      }
+    },
+    {
+      "servicoId": "mao-de-obra",
+      "ano": 2029,
+      "base": 1234567.89,
+      "municipio": 3550308,
+      "uf": "SP",
+      "aliquotas": {
+        "cbs": 8.5,
+        "ibsEstadual": 1.6,
+        "ibsMunicipal": 0.25
+      },
+      "oficial": {
+        "estado": "CALCULO_SIMULADO",
+        "vCBS": "104938.27",
+        "vIBSUF": "19753.09",
+        "vIBSMun": "3086.42",
+        "vIBS": "22839.51"
+      }
+    },
+    {
+      "servicoId": "mao-de-obra",
+      "ano": 2033,
+      "base": 1234567.89,
+      "municipio": 3550308,
+      "uf": "SP",
+      "aliquotas": {
+        "cbs": 8.5,
+        "ibsEstadual": 16,
+        "ibsMunicipal": 2.5
+      },
+      "oficial": {
+        "estado": "CALCULO_SIMULADO",
+        "vCBS": "104938.27",
+        "vIBSUF": "197530.86",
+        "vIBSMun": "30864.20",
+        "vIBS": "228395.06"
+      }
+    },
+    {
+      "servicoId": "mao-de-obra",
+      "ano": 2026,
+      "base": 33.33,
+      "municipio": 3550308,
+      "uf": "SP",
+      "oficial": {
+        "estado": "CALCULADO",
+        "vCBS": "0.30",
+        "vIBSUF": "0.03",
+        "vIBSMun": "0.00",
+        "vIBS": "0.03"
+      }
+    },
+    {
+      "servicoId": "mao-de-obra",
+      "ano": 2027,
+      "base": 33.33,
+      "municipio": 3550308,
+      "uf": "SP",
+      "aliquotas": {
+        "cbs": 8.4,
+        "ibsEstadual": 0.05,
+        "ibsMunicipal": 0.05
+      },
+      "oficial": {
+        "estado": "CALCULO_SIMULADO",
+        "vCBS": "2.80",
+        "vIBSUF": "0.02",
+        "vIBSMun": "0.02",
+        "vIBS": "0.04"
+      }
+    },
+    {
+      "servicoId": "mao-de-obra",
+      "ano": 2029,
+      "base": 33.33,
+      "municipio": 3550308,
+      "uf": "SP",
+      "aliquotas": {
+        "cbs": 8.5,
+        "ibsEstadual": 1.6,
+        "ibsMunicipal": 0.25
+      },
+      "oficial": {
+        "estado": "CALCULO_SIMULADO",
+        "vCBS": "2.83",
+        "vIBSUF": "0.53",
+        "vIBSMun": "0.08",
+        "vIBS": "0.61"
+      }
+    },
+    {
+      "servicoId": "mao-de-obra",
+      "ano": 2033,
+      "base": 33.33,
+      "municipio": 3550308,
+      "uf": "SP",
+      "aliquotas": {
+        "cbs": 8.5,
+        "ibsEstadual": 16,
+        "ibsMunicipal": 2.5
+      },
+      "oficial": {
+        "estado": "CALCULO_SIMULADO",
+        "vCBS": "2.83",
+        "vIBSUF": "5.33",
+        "vIBSMun": "0.83",
+        "vIBS": "6.16"
+      }
+    },
+    {
+      "servicoId": "mao-de-obra",
+      "ano": 2026,
+      "base": 5000.5,
+      "municipio": 3550308,
+      "uf": "SP",
+      "oficial": {
+        "estado": "CALCULADO",
+        "vCBS": "45.00",
+        "vIBSUF": "5.00",
+        "vIBSMun": "0.00",
+        "vIBS": "5.00"
+      }
+    },
+    {
+      "servicoId": "mao-de-obra",
+      "ano": 2027,
+      "base": 5000.5,
+      "municipio": 3550308,
+      "uf": "SP",
+      "aliquotas": {
+        "cbs": 8.4,
+        "ibsEstadual": 0.05,
+        "ibsMunicipal": 0.05
+      },
+      "oficial": {
+        "estado": "CALCULO_SIMULADO",
+        "vCBS": "420.04",
+        "vIBSUF": "2.50",
+        "vIBSMun": "2.50",
+        "vIBS": "5.00"
+      }
+    },
+    {
+      "servicoId": "mao-de-obra",
+      "ano": 2029,
+      "base": 5000.5,
+      "municipio": 3550308,
+      "uf": "SP",
+      "aliquotas": {
+        "cbs": 8.5,
+        "ibsEstadual": 1.6,
+        "ibsMunicipal": 0.25
+      },
+      "oficial": {
+        "estado": "CALCULO_SIMULADO",
+        "vCBS": "425.04",
+        "vIBSUF": "80.01",
+        "vIBSMun": "12.50",
+        "vIBS": "92.51"
+      }
+    },
+    {
+      "servicoId": "mao-de-obra",
+      "ano": 2033,
+      "base": 5000.5,
+      "municipio": 3550308,
+      "uf": "SP",
+      "aliquotas": {
+        "cbs": 8.5,
+        "ibsEstadual": 16,
+        "ibsMunicipal": 2.5
+      },
+      "oficial": {
+        "estado": "CALCULO_SIMULADO",
+        "vCBS": "425.04",
+        "vIBSUF": "800.08",
+        "vIBSMun": "125.01",
+        "vIBS": "925.09"
+      }
+    },
+    {
+      "servicoId": "mao-de-obra",
+      "ano": 2026,
+      "base": 250.5,
+      "municipio": 3550308,
+      "uf": "SP",
+      "oficial": {
+        "estado": "CALCULADO",
+        "vCBS": "2.25",
+        "vIBSUF": "0.25",
+        "vIBSMun": "0.00",
+        "vIBS": "0.25"
+      }
+    },
+    {
+      "servicoId": "mao-de-obra",
+      "ano": 2027,
+      "base": 250.5,
+      "municipio": 3550308,
+      "uf": "SP",
+      "aliquotas": {
+        "cbs": 8.4,
+        "ibsEstadual": 0.05,
+        "ibsMunicipal": 0.05
+      },
+      "oficial": {
+        "estado": "CALCULO_SIMULADO",
+        "vCBS": "21.04",
+        "vIBSUF": "0.13",
+        "vIBSMun": "0.13",
+        "vIBS": "0.26"
+      }
+    },
+    {
+      "servicoId": "mao-de-obra",
+      "ano": 2029,
+      "base": 250.5,
+      "municipio": 3550308,
+      "uf": "SP",
+      "aliquotas": {
+        "cbs": 8.5,
+        "ibsEstadual": 1.6,
+        "ibsMunicipal": 0.25
+      },
+      "oficial": {
+        "estado": "CALCULO_SIMULADO",
+        "vCBS": "21.29",
+        "vIBSUF": "4.01",
+        "vIBSMun": "0.63",
+        "vIBS": "4.64"
+      }
+    },
+    {
+      "servicoId": "mao-de-obra",
+      "ano": 2033,
+      "base": 250.5,
+      "municipio": 3550308,
+      "uf": "SP",
+      "aliquotas": {
+        "cbs": 8.5,
+        "ibsEstadual": 16,
+        "ibsMunicipal": 2.5
+      },
+      "oficial": {
+        "estado": "CALCULO_SIMULADO",
+        "vCBS": "21.29",
+        "vIBSUF": "40.08",
+        "vIBSMun": "6.26",
+        "vIBS": "46.34"
+      }
+    },
+    {
+      "servicoId": "mao-de-obra",
+      "ano": 2026,
+      "base": 100000,
+      "municipio": 3304557,
+      "uf": "RJ",
+      "oficial": {
+        "estado": "CALCULADO",
+        "vCBS": "900.00",
+        "vIBSUF": "100.00",
+        "vIBSMun": "0.00",
+        "vIBS": "100.00"
+      }
+    },
+    {
+      "servicoId": "mao-de-obra",
+      "ano": 2027,
+      "base": 100000,
+      "municipio": 3304557,
+      "uf": "RJ",
+      "aliquotas": {
+        "cbs": 8.4,
+        "ibsEstadual": 0.05,
+        "ibsMunicipal": 0.05
+      },
+      "oficial": {
+        "estado": "CALCULO_SIMULADO",
+        "vCBS": "8400.00",
+        "vIBSUF": "50.00",
+        "vIBSMun": "50.00",
+        "vIBS": "100.00"
+      }
+    },
+    {
+      "servicoId": "mao-de-obra",
+      "ano": 2029,
+      "base": 100000,
+      "municipio": 3304557,
+      "uf": "RJ",
+      "aliquotas": {
+        "cbs": 8.5,
+        "ibsEstadual": 1.6,
+        "ibsMunicipal": 0.25
+      },
+      "oficial": {
+        "estado": "CALCULO_SIMULADO",
+        "vCBS": "8500.00",
+        "vIBSUF": "1600.00",
+        "vIBSMun": "250.00",
+        "vIBS": "1850.00"
+      }
+    },
+    {
+      "servicoId": "mao-de-obra",
+      "ano": 2033,
+      "base": 100000,
+      "municipio": 3304557,
+      "uf": "RJ",
+      "aliquotas": {
+        "cbs": 8.5,
+        "ibsEstadual": 16,
+        "ibsMunicipal": 2.5
+      },
+      "oficial": {
+        "estado": "CALCULO_SIMULADO",
+        "vCBS": "8500.00",
+        "vIBSUF": "16000.00",
+        "vIBSMun": "2500.00",
+        "vIBS": "18500.00"
+      }
+    },
+    {
+      "servicoId": "mao-de-obra",
+      "ano": 2026,
+      "base": 12345.67,
+      "municipio": 3304557,
+      "uf": "RJ",
+      "oficial": {
+        "estado": "CALCULADO",
+        "vCBS": "111.11",
+        "vIBSUF": "12.35",
+        "vIBSMun": "0.00",
+        "vIBS": "12.35"
+      }
+    },
+    {
+      "servicoId": "mao-de-obra",
+      "ano": 2027,
+      "base": 12345.67,
+      "municipio": 3304557,
+      "uf": "RJ",
+      "aliquotas": {
+        "cbs": 8.4,
+        "ibsEstadual": 0.05,
+        "ibsMunicipal": 0.05
+      },
+      "oficial": {
+        "estado": "CALCULO_SIMULADO",
+        "vCBS": "1037.04",
+        "vIBSUF": "6.17",
+        "vIBSMun": "6.17",
+        "vIBS": "12.34"
+      }
+    },
+    {
+      "servicoId": "mao-de-obra",
+      "ano": 2029,
+      "base": 12345.67,
+      "municipio": 3304557,
+      "uf": "RJ",
+      "aliquotas": {
+        "cbs": 8.5,
+        "ibsEstadual": 1.6,
+        "ibsMunicipal": 0.25
+      },
+      "oficial": {
+        "estado": "CALCULO_SIMULADO",
+        "vCBS": "1049.38",
+        "vIBSUF": "197.53",
+        "vIBSMun": "30.86",
+        "vIBS": "228.39"
+      }
+    },
+    {
+      "servicoId": "mao-de-obra",
+      "ano": 2033,
+      "base": 12345.67,
+      "municipio": 3304557,
+      "uf": "RJ",
+      "aliquotas": {
+        "cbs": 8.5,
+        "ibsEstadual": 16,
+        "ibsMunicipal": 2.5
+      },
+      "oficial": {
+        "estado": "CALCULO_SIMULADO",
+        "vCBS": "1049.38",
+        "vIBSUF": "1975.31",
+        "vIBSMun": "308.64",
+        "vIBS": "2283.95"
+      }
+    },
+    {
+      "servicoId": "mao-de-obra",
+      "ano": 2026,
+      "base": 100000,
+      "municipio": 4314902,
+      "uf": "RS",
+      "oficial": {
+        "estado": "CALCULADO",
+        "vCBS": "900.00",
+        "vIBSUF": "100.00",
+        "vIBSMun": "0.00",
+        "vIBS": "100.00"
+      }
+    },
+    {
+      "servicoId": "mao-de-obra",
+      "ano": 2027,
+      "base": 100000,
+      "municipio": 4314902,
+      "uf": "RS",
+      "aliquotas": {
+        "cbs": 8.4,
+        "ibsEstadual": 0.05,
+        "ibsMunicipal": 0.05
+      },
+      "oficial": {
+        "estado": "CALCULO_SIMULADO",
+        "vCBS": "8400.00",
+        "vIBSUF": "50.00",
+        "vIBSMun": "50.00",
+        "vIBS": "100.00"
+      }
+    },
+    {
+      "servicoId": "mao-de-obra",
+      "ano": 2029,
+      "base": 100000,
+      "municipio": 4314902,
+      "uf": "RS",
+      "aliquotas": {
+        "cbs": 8.5,
+        "ibsEstadual": 1.6,
+        "ibsMunicipal": 0.25
+      },
+      "oficial": {
+        "estado": "CALCULO_SIMULADO",
+        "vCBS": "8500.00",
+        "vIBSUF": "1600.00",
+        "vIBSMun": "250.00",
+        "vIBS": "1850.00"
+      }
+    },
+    {
+      "servicoId": "mao-de-obra",
+      "ano": 2033,
+      "base": 100000,
+      "municipio": 4314902,
+      "uf": "RS",
+      "aliquotas": {
+        "cbs": 8.5,
+        "ibsEstadual": 16,
+        "ibsMunicipal": 2.5
+      },
+      "oficial": {
+        "estado": "CALCULO_SIMULADO",
+        "vCBS": "8500.00",
+        "vIBSUF": "16000.00",
+        "vIBSMun": "2500.00",
+        "vIBS": "18500.00"
+      }
+    },
+    {
+      "servicoId": "mao-de-obra",
+      "ano": 2026,
+      "base": 12345.67,
+      "municipio": 4314902,
+      "uf": "RS",
+      "oficial": {
+        "estado": "CALCULADO",
+        "vCBS": "111.11",
+        "vIBSUF": "12.35",
+        "vIBSMun": "0.00",
+        "vIBS": "12.35"
+      }
+    },
+    {
+      "servicoId": "mao-de-obra",
+      "ano": 2027,
+      "base": 12345.67,
+      "municipio": 4314902,
+      "uf": "RS",
+      "aliquotas": {
+        "cbs": 8.4,
+        "ibsEstadual": 0.05,
+        "ibsMunicipal": 0.05
+      },
+      "oficial": {
+        "estado": "CALCULO_SIMULADO",
+        "vCBS": "1037.04",
+        "vIBSUF": "6.17",
+        "vIBSMun": "6.17",
+        "vIBS": "12.34"
+      }
+    },
+    {
+      "servicoId": "mao-de-obra",
+      "ano": 2029,
+      "base": 12345.67,
+      "municipio": 4314902,
+      "uf": "RS",
+      "aliquotas": {
+        "cbs": 8.5,
+        "ibsEstadual": 1.6,
+        "ibsMunicipal": 0.25
+      },
+      "oficial": {
+        "estado": "CALCULO_SIMULADO",
+        "vCBS": "1049.38",
+        "vIBSUF": "197.53",
+        "vIBSMun": "30.86",
+        "vIBS": "228.39"
+      }
+    },
+    {
+      "servicoId": "mao-de-obra",
+      "ano": 2033,
+      "base": 12345.67,
+      "municipio": 4314902,
+      "uf": "RS",
+      "aliquotas": {
+        "cbs": 8.5,
+        "ibsEstadual": 16,
+        "ibsMunicipal": 2.5
+      },
+      "oficial": {
+        "estado": "CALCULO_SIMULADO",
+        "vCBS": "1049.38",
+        "vIBSUF": "1975.31",
+        "vIBSMun": "308.64",
+        "vIBS": "2283.95"
+      }
+    },
+    {
+      "servicoId": "vigilancia",
+      "ano": 2026,
+      "base": 100000,
+      "municipio": 3550308,
+      "uf": "SP",
+      "oficial": {
+        "estado": "CALCULADO",
+        "vCBS": "900.00",
+        "vIBSUF": "100.00",
+        "vIBSMun": "0.00",
+        "vIBS": "100.00"
+      }
+    },
+    {
+      "servicoId": "vigilancia",
+      "ano": 2027,
+      "base": 100000,
+      "municipio": 3550308,
+      "uf": "SP",
+      "aliquotas": {
+        "cbs": 8.4,
+        "ibsEstadual": 0.05,
+        "ibsMunicipal": 0.05
+      },
+      "oficial": {
+        "estado": "CALCULO_SIMULADO",
+        "vCBS": "8400.00",
+        "vIBSUF": "50.00",
+        "vIBSMun": "50.00",
+        "vIBS": "100.00"
+      }
+    },
+    {
+      "servicoId": "vigilancia",
+      "ano": 2029,
+      "base": 100000,
+      "municipio": 3550308,
+      "uf": "SP",
+      "aliquotas": {
+        "cbs": 8.5,
+        "ibsEstadual": 1.6,
+        "ibsMunicipal": 0.25
+      },
+      "oficial": {
+        "estado": "CALCULO_SIMULADO",
+        "vCBS": "8500.00",
+        "vIBSUF": "1600.00",
+        "vIBSMun": "250.00",
+        "vIBS": "1850.00"
+      }
+    },
+    {
+      "servicoId": "vigilancia",
+      "ano": 2033,
+      "base": 100000,
+      "municipio": 3550308,
+      "uf": "SP",
+      "aliquotas": {
+        "cbs": 8.5,
+        "ibsEstadual": 16,
+        "ibsMunicipal": 2.5
+      },
+      "oficial": {
+        "estado": "CALCULO_SIMULADO",
+        "vCBS": "8500.00",
+        "vIBSUF": "16000.00",
+        "vIBSMun": "2500.00",
+        "vIBS": "18500.00"
+      }
+    },
+    {
+      "servicoId": "vigilancia",
+      "ano": 2026,
+      "base": 12345.67,
+      "municipio": 3550308,
+      "uf": "SP",
+      "oficial": {
+        "estado": "CALCULADO",
+        "vCBS": "111.11",
+        "vIBSUF": "12.35",
+        "vIBSMun": "0.00",
+        "vIBS": "12.35"
+      }
+    },
+    {
+      "servicoId": "vigilancia",
+      "ano": 2027,
+      "base": 12345.67,
+      "municipio": 3550308,
+      "uf": "SP",
+      "aliquotas": {
+        "cbs": 8.4,
+        "ibsEstadual": 0.05,
+        "ibsMunicipal": 0.05
+      },
+      "oficial": {
+        "estado": "CALCULO_SIMULADO",
+        "vCBS": "1037.04",
+        "vIBSUF": "6.17",
+        "vIBSMun": "6.17",
+        "vIBS": "12.34"
+      }
+    },
+    {
+      "servicoId": "vigilancia",
+      "ano": 2029,
+      "base": 12345.67,
+      "municipio": 3550308,
+      "uf": "SP",
+      "aliquotas": {
+        "cbs": 8.5,
+        "ibsEstadual": 1.6,
+        "ibsMunicipal": 0.25
+      },
+      "oficial": {
+        "estado": "CALCULO_SIMULADO",
+        "vCBS": "1049.38",
+        "vIBSUF": "197.53",
+        "vIBSMun": "30.86",
+        "vIBS": "228.39"
+      }
+    },
+    {
+      "servicoId": "vigilancia",
+      "ano": 2033,
+      "base": 12345.67,
+      "municipio": 3550308,
+      "uf": "SP",
+      "aliquotas": {
+        "cbs": 8.5,
+        "ibsEstadual": 16,
+        "ibsMunicipal": 2.5
+      },
+      "oficial": {
+        "estado": "CALCULO_SIMULADO",
+        "vCBS": "1049.38",
+        "vIBSUF": "1975.31",
+        "vIBSMun": "308.64",
+        "vIBS": "2283.95"
+      }
+    },
+    {
+      "servicoId": "vigilancia",
+      "ano": 2026,
+      "base": 0.01,
+      "municipio": 3550308,
+      "uf": "SP",
+      "oficial": {
+        "estado": "CALCULADO",
+        "vCBS": "0.00",
+        "vIBSUF": "0.00",
+        "vIBSMun": "0.00",
+        "vIBS": "0.00"
+      }
+    },
+    {
+      "servicoId": "vigilancia",
+      "ano": 2027,
+      "base": 0.01,
+      "municipio": 3550308,
+      "uf": "SP",
+      "aliquotas": {
+        "cbs": 8.4,
+        "ibsEstadual": 0.05,
+        "ibsMunicipal": 0.05
+      },
+      "oficial": {
+        "estado": "CALCULO_SIMULADO",
+        "vCBS": "0.00",
+        "vIBSUF": "0.00",
+        "vIBSMun": "0.00",
+        "vIBS": "0.00"
+      }
+    },
+    {
+      "servicoId": "vigilancia",
+      "ano": 2029,
+      "base": 0.01,
+      "municipio": 3550308,
+      "uf": "SP",
+      "aliquotas": {
+        "cbs": 8.5,
+        "ibsEstadual": 1.6,
+        "ibsMunicipal": 0.25
+      },
+      "oficial": {
+        "estado": "CALCULO_SIMULADO",
+        "vCBS": "0.00",
+        "vIBSUF": "0.00",
+        "vIBSMun": "0.00",
+        "vIBS": "0.00"
+      }
+    },
+    {
+      "servicoId": "vigilancia",
+      "ano": 2033,
+      "base": 0.01,
+      "municipio": 3550308,
+      "uf": "SP",
+      "aliquotas": {
+        "cbs": 8.5,
+        "ibsEstadual": 16,
+        "ibsMunicipal": 2.5
+      },
+      "oficial": {
+        "estado": "CALCULO_SIMULADO",
+        "vCBS": "0.00",
+        "vIBSUF": "0.00",
+        "vIBSMun": "0.00",
+        "vIBS": "0.00"
+      }
+    },
+    {
+      "servicoId": "vigilancia",
+      "ano": 2026,
+      "base": 999999.99,
+      "municipio": 3550308,
+      "uf": "SP",
+      "oficial": {
+        "estado": "CALCULADO",
+        "vCBS": "9000.00",
+        "vIBSUF": "1000.00",
+        "vIBSMun": "0.00",
+        "vIBS": "1000.00"
+      }
+    },
+    {
+      "servicoId": "vigilancia",
+      "ano": 2027,
+      "base": 999999.99,
+      "municipio": 3550308,
+      "uf": "SP",
+      "aliquotas": {
+        "cbs": 8.4,
+        "ibsEstadual": 0.05,
+        "ibsMunicipal": 0.05
+      },
+      "oficial": {
+        "estado": "CALCULO_SIMULADO",
+        "vCBS": "84000.00",
+        "vIBSUF": "500.00",
+        "vIBSMun": "500.00",
+        "vIBS": "1000.00"
+      }
+    },
+    {
+      "servicoId": "vigilancia",
+      "ano": 2029,
+      "base": 999999.99,
+      "municipio": 3550308,
+      "uf": "SP",
+      "aliquotas": {
+        "cbs": 8.5,
+        "ibsEstadual": 1.6,
+        "ibsMunicipal": 0.25
+      },
+      "oficial": {
+        "estado": "CALCULO_SIMULADO",
+        "vCBS": "85000.00",
+        "vIBSUF": "16000.00",
+        "vIBSMun": "2500.00",
+        "vIBS": "18500.00"
+      }
+    },
+    {
+      "servicoId": "vigilancia",
+      "ano": 2033,
+      "base": 999999.99,
+      "municipio": 3550308,
+      "uf": "SP",
+      "aliquotas": {
+        "cbs": 8.5,
+        "ibsEstadual": 16,
+        "ibsMunicipal": 2.5
+      },
+      "oficial": {
+        "estado": "CALCULO_SIMULADO",
+        "vCBS": "85000.00",
+        "vIBSUF": "160000.00",
+        "vIBSMun": "25000.00",
+        "vIBS": "185000.00"
+      }
+    },
+    {
+      "servicoId": "vigilancia",
+      "ano": 2026,
+      "base": 1234567.89,
+      "municipio": 3550308,
+      "uf": "SP",
+      "oficial": {
+        "estado": "CALCULADO",
+        "vCBS": "11111.11",
+        "vIBSUF": "1234.57",
+        "vIBSMun": "0.00",
+        "vIBS": "1234.57"
+      }
+    },
+    {
+      "servicoId": "vigilancia",
+      "ano": 2027,
+      "base": 1234567.89,
+      "municipio": 3550308,
+      "uf": "SP",
+      "aliquotas": {
+        "cbs": 8.4,
+        "ibsEstadual": 0.05,
+        "ibsMunicipal": 0.05
+      },
+      "oficial": {
+        "estado": "CALCULO_SIMULADO",
+        "vCBS": "103703.70",
+        "vIBSUF": "617.28",
+        "vIBSMun": "617.28",
+        "vIBS": "1234.56"
+      }
+    },
+    {
+      "servicoId": "vigilancia",
+      "ano": 2029,
+      "base": 1234567.89,
+      "municipio": 3550308,
+      "uf": "SP",
+      "aliquotas": {
+        "cbs": 8.5,
+        "ibsEstadual": 1.6,
+        "ibsMunicipal": 0.25
+      },
+      "oficial": {
+        "estado": "CALCULO_SIMULADO",
+        "vCBS": "104938.27",
+        "vIBSUF": "19753.09",
+        "vIBSMun": "3086.42",
+        "vIBS": "22839.51"
+      }
+    },
+    {
+      "servicoId": "vigilancia",
+      "ano": 2033,
+      "base": 1234567.89,
+      "municipio": 3550308,
+      "uf": "SP",
+      "aliquotas": {
+        "cbs": 8.5,
+        "ibsEstadual": 16,
+        "ibsMunicipal": 2.5
+      },
+      "oficial": {
+        "estado": "CALCULO_SIMULADO",
+        "vCBS": "104938.27",
+        "vIBSUF": "197530.86",
+        "vIBSMun": "30864.20",
+        "vIBS": "228395.06"
+      }
+    },
+    {
+      "servicoId": "vigilancia",
+      "ano": 2026,
+      "base": 33.33,
+      "municipio": 3550308,
+      "uf": "SP",
+      "oficial": {
+        "estado": "CALCULADO",
+        "vCBS": "0.30",
+        "vIBSUF": "0.03",
+        "vIBSMun": "0.00",
+        "vIBS": "0.03"
+      }
+    },
+    {
+      "servicoId": "vigilancia",
+      "ano": 2027,
+      "base": 33.33,
+      "municipio": 3550308,
+      "uf": "SP",
+      "aliquotas": {
+        "cbs": 8.4,
+        "ibsEstadual": 0.05,
+        "ibsMunicipal": 0.05
+      },
+      "oficial": {
+        "estado": "CALCULO_SIMULADO",
+        "vCBS": "2.80",
+        "vIBSUF": "0.02",
+        "vIBSMun": "0.02",
+        "vIBS": "0.04"
+      }
+    },
+    {
+      "servicoId": "vigilancia",
+      "ano": 2029,
+      "base": 33.33,
+      "municipio": 3550308,
+      "uf": "SP",
+      "aliquotas": {
+        "cbs": 8.5,
+        "ibsEstadual": 1.6,
+        "ibsMunicipal": 0.25
+      },
+      "oficial": {
+        "estado": "CALCULO_SIMULADO",
+        "vCBS": "2.83",
+        "vIBSUF": "0.53",
+        "vIBSMun": "0.08",
+        "vIBS": "0.61"
+      }
+    },
+    {
+      "servicoId": "vigilancia",
+      "ano": 2033,
+      "base": 33.33,
+      "municipio": 3550308,
+      "uf": "SP",
+      "aliquotas": {
+        "cbs": 8.5,
+        "ibsEstadual": 16,
+        "ibsMunicipal": 2.5
+      },
+      "oficial": {
+        "estado": "CALCULO_SIMULADO",
+        "vCBS": "2.83",
+        "vIBSUF": "5.33",
+        "vIBSMun": "0.83",
+        "vIBS": "6.16"
+      }
+    },
+    {
+      "servicoId": "vigilancia",
+      "ano": 2026,
+      "base": 5000.5,
+      "municipio": 3550308,
+      "uf": "SP",
+      "oficial": {
+        "estado": "CALCULADO",
+        "vCBS": "45.00",
+        "vIBSUF": "5.00",
+        "vIBSMun": "0.00",
+        "vIBS": "5.00"
+      }
+    },
+    {
+      "servicoId": "vigilancia",
+      "ano": 2027,
+      "base": 5000.5,
+      "municipio": 3550308,
+      "uf": "SP",
+      "aliquotas": {
+        "cbs": 8.4,
+        "ibsEstadual": 0.05,
+        "ibsMunicipal": 0.05
+      },
+      "oficial": {
+        "estado": "CALCULO_SIMULADO",
+        "vCBS": "420.04",
+        "vIBSUF": "2.50",
+        "vIBSMun": "2.50",
+        "vIBS": "5.00"
+      }
+    },
+    {
+      "servicoId": "vigilancia",
+      "ano": 2029,
+      "base": 5000.5,
+      "municipio": 3550308,
+      "uf": "SP",
+      "aliquotas": {
+        "cbs": 8.5,
+        "ibsEstadual": 1.6,
+        "ibsMunicipal": 0.25
+      },
+      "oficial": {
+        "estado": "CALCULO_SIMULADO",
+        "vCBS": "425.04",
+        "vIBSUF": "80.01",
+        "vIBSMun": "12.50",
+        "vIBS": "92.51"
+      }
+    },
+    {
+      "servicoId": "vigilancia",
+      "ano": 2033,
+      "base": 5000.5,
+      "municipio": 3550308,
+      "uf": "SP",
+      "aliquotas": {
+        "cbs": 8.5,
+        "ibsEstadual": 16,
+        "ibsMunicipal": 2.5
+      },
+      "oficial": {
+        "estado": "CALCULO_SIMULADO",
+        "vCBS": "425.04",
+        "vIBSUF": "800.08",
+        "vIBSMun": "125.01",
+        "vIBS": "925.09"
+      }
+    },
+    {
+      "servicoId": "vigilancia",
+      "ano": 2026,
+      "base": 250.5,
+      "municipio": 3550308,
+      "uf": "SP",
+      "oficial": {
+        "estado": "CALCULADO",
+        "vCBS": "2.25",
+        "vIBSUF": "0.25",
+        "vIBSMun": "0.00",
+        "vIBS": "0.25"
+      }
+    },
+    {
+      "servicoId": "vigilancia",
+      "ano": 2027,
+      "base": 250.5,
+      "municipio": 3550308,
+      "uf": "SP",
+      "aliquotas": {
+        "cbs": 8.4,
+        "ibsEstadual": 0.05,
+        "ibsMunicipal": 0.05
+      },
+      "oficial": {
+        "estado": "CALCULO_SIMULADO",
+        "vCBS": "21.04",
+        "vIBSUF": "0.13",
+        "vIBSMun": "0.13",
+        "vIBS": "0.26"
+      }
+    },
+    {
+      "servicoId": "vigilancia",
+      "ano": 2029,
+      "base": 250.5,
+      "municipio": 3550308,
+      "uf": "SP",
+      "aliquotas": {
+        "cbs": 8.5,
+        "ibsEstadual": 1.6,
+        "ibsMunicipal": 0.25
+      },
+      "oficial": {
+        "estado": "CALCULO_SIMULADO",
+        "vCBS": "21.29",
+        "vIBSUF": "4.01",
+        "vIBSMun": "0.63",
+        "vIBS": "4.64"
+      }
+    },
+    {
+      "servicoId": "vigilancia",
+      "ano": 2033,
+      "base": 250.5,
+      "municipio": 3550308,
+      "uf": "SP",
+      "aliquotas": {
+        "cbs": 8.5,
+        "ibsEstadual": 16,
+        "ibsMunicipal": 2.5
+      },
+      "oficial": {
+        "estado": "CALCULO_SIMULADO",
+        "vCBS": "21.29",
+        "vIBSUF": "40.08",
+        "vIBSMun": "6.26",
+        "vIBS": "46.34"
+      }
+    },
+    {
+      "servicoId": "vigilancia",
+      "ano": 2026,
+      "base": 100000,
+      "municipio": 3304557,
+      "uf": "RJ",
+      "oficial": {
+        "estado": "CALCULADO",
+        "vCBS": "900.00",
+        "vIBSUF": "100.00",
+        "vIBSMun": "0.00",
+        "vIBS": "100.00"
+      }
+    },
+    {
+      "servicoId": "vigilancia",
+      "ano": 2027,
+      "base": 100000,
+      "municipio": 3304557,
+      "uf": "RJ",
+      "aliquotas": {
+        "cbs": 8.4,
+        "ibsEstadual": 0.05,
+        "ibsMunicipal": 0.05
+      },
+      "oficial": {
+        "estado": "CALCULO_SIMULADO",
+        "vCBS": "8400.00",
+        "vIBSUF": "50.00",
+        "vIBSMun": "50.00",
+        "vIBS": "100.00"
+      }
+    },
+    {
+      "servicoId": "vigilancia",
+      "ano": 2029,
+      "base": 100000,
+      "municipio": 3304557,
+      "uf": "RJ",
+      "aliquotas": {
+        "cbs": 8.5,
+        "ibsEstadual": 1.6,
+        "ibsMunicipal": 0.25
+      },
+      "oficial": {
+        "estado": "CALCULO_SIMULADO",
+        "vCBS": "8500.00",
+        "vIBSUF": "1600.00",
+        "vIBSMun": "250.00",
+        "vIBS": "1850.00"
+      }
+    },
+    {
+      "servicoId": "vigilancia",
+      "ano": 2033,
+      "base": 100000,
+      "municipio": 3304557,
+      "uf": "RJ",
+      "aliquotas": {
+        "cbs": 8.5,
+        "ibsEstadual": 16,
+        "ibsMunicipal": 2.5
+      },
+      "oficial": {
+        "estado": "CALCULO_SIMULADO",
+        "vCBS": "8500.00",
+        "vIBSUF": "16000.00",
+        "vIBSMun": "2500.00",
+        "vIBS": "18500.00"
+      }
+    },
+    {
+      "servicoId": "vigilancia",
+      "ano": 2026,
+      "base": 12345.67,
+      "municipio": 3304557,
+      "uf": "RJ",
+      "oficial": {
+        "estado": "CALCULADO",
+        "vCBS": "111.11",
+        "vIBSUF": "12.35",
+        "vIBSMun": "0.00",
+        "vIBS": "12.35"
+      }
+    },
+    {
+      "servicoId": "vigilancia",
+      "ano": 2027,
+      "base": 12345.67,
+      "municipio": 3304557,
+      "uf": "RJ",
+      "aliquotas": {
+        "cbs": 8.4,
+        "ibsEstadual": 0.05,
+        "ibsMunicipal": 0.05
+      },
+      "oficial": {
+        "estado": "CALCULO_SIMULADO",
+        "vCBS": "1037.04",
+        "vIBSUF": "6.17",
+        "vIBSMun": "6.17",
+        "vIBS": "12.34"
+      }
+    },
+    {
+      "servicoId": "vigilancia",
+      "ano": 2029,
+      "base": 12345.67,
+      "municipio": 3304557,
+      "uf": "RJ",
+      "aliquotas": {
+        "cbs": 8.5,
+        "ibsEstadual": 1.6,
+        "ibsMunicipal": 0.25
+      },
+      "oficial": {
+        "estado": "CALCULO_SIMULADO",
+        "vCBS": "1049.38",
+        "vIBSUF": "197.53",
+        "vIBSMun": "30.86",
+        "vIBS": "228.39"
+      }
+    },
+    {
+      "servicoId": "vigilancia",
+      "ano": 2033,
+      "base": 12345.67,
+      "municipio": 3304557,
+      "uf": "RJ",
+      "aliquotas": {
+        "cbs": 8.5,
+        "ibsEstadual": 16,
+        "ibsMunicipal": 2.5
+      },
+      "oficial": {
+        "estado": "CALCULO_SIMULADO",
+        "vCBS": "1049.38",
+        "vIBSUF": "1975.31",
+        "vIBSMun": "308.64",
+        "vIBS": "2283.95"
+      }
+    },
+    {
+      "servicoId": "vigilancia",
+      "ano": 2026,
+      "base": 100000,
+      "municipio": 4314902,
+      "uf": "RS",
+      "oficial": {
+        "estado": "CALCULADO",
+        "vCBS": "900.00",
+        "vIBSUF": "100.00",
+        "vIBSMun": "0.00",
+        "vIBS": "100.00"
+      }
+    },
+    {
+      "servicoId": "vigilancia",
+      "ano": 2027,
+      "base": 100000,
+      "municipio": 4314902,
+      "uf": "RS",
+      "aliquotas": {
+        "cbs": 8.4,
+        "ibsEstadual": 0.05,
+        "ibsMunicipal": 0.05
+      },
+      "oficial": {
+        "estado": "CALCULO_SIMULADO",
+        "vCBS": "8400.00",
+        "vIBSUF": "50.00",
+        "vIBSMun": "50.00",
+        "vIBS": "100.00"
+      }
+    },
+    {
+      "servicoId": "vigilancia",
+      "ano": 2029,
+      "base": 100000,
+      "municipio": 4314902,
+      "uf": "RS",
+      "aliquotas": {
+        "cbs": 8.5,
+        "ibsEstadual": 1.6,
+        "ibsMunicipal": 0.25
+      },
+      "oficial": {
+        "estado": "CALCULO_SIMULADO",
+        "vCBS": "8500.00",
+        "vIBSUF": "1600.00",
+        "vIBSMun": "250.00",
+        "vIBS": "1850.00"
+      }
+    },
+    {
+      "servicoId": "vigilancia",
+      "ano": 2033,
+      "base": 100000,
+      "municipio": 4314902,
+      "uf": "RS",
+      "aliquotas": {
+        "cbs": 8.5,
+        "ibsEstadual": 16,
+        "ibsMunicipal": 2.5
+      },
+      "oficial": {
+        "estado": "CALCULO_SIMULADO",
+        "vCBS": "8500.00",
+        "vIBSUF": "16000.00",
+        "vIBSMun": "2500.00",
+        "vIBS": "18500.00"
+      }
+    },
+    {
+      "servicoId": "vigilancia",
+      "ano": 2026,
+      "base": 12345.67,
+      "municipio": 4314902,
+      "uf": "RS",
+      "oficial": {
+        "estado": "CALCULADO",
+        "vCBS": "111.11",
+        "vIBSUF": "12.35",
+        "vIBSMun": "0.00",
+        "vIBS": "12.35"
+      }
+    },
+    {
+      "servicoId": "vigilancia",
+      "ano": 2027,
+      "base": 12345.67,
+      "municipio": 4314902,
+      "uf": "RS",
+      "aliquotas": {
+        "cbs": 8.4,
+        "ibsEstadual": 0.05,
+        "ibsMunicipal": 0.05
+      },
+      "oficial": {
+        "estado": "CALCULO_SIMULADO",
+        "vCBS": "1037.04",
+        "vIBSUF": "6.17",
+        "vIBSMun": "6.17",
+        "vIBS": "12.34"
+      }
+    },
+    {
+      "servicoId": "vigilancia",
+      "ano": 2029,
+      "base": 12345.67,
+      "municipio": 4314902,
+      "uf": "RS",
+      "aliquotas": {
+        "cbs": 8.5,
+        "ibsEstadual": 1.6,
+        "ibsMunicipal": 0.25
+      },
+      "oficial": {
+        "estado": "CALCULO_SIMULADO",
+        "vCBS": "1049.38",
+        "vIBSUF": "197.53",
+        "vIBSMun": "30.86",
+        "vIBS": "228.39"
+      }
+    },
+    {
+      "servicoId": "vigilancia",
+      "ano": 2033,
+      "base": 12345.67,
+      "municipio": 4314902,
+      "uf": "RS",
+      "aliquotas": {
+        "cbs": 8.5,
+        "ibsEstadual": 16,
+        "ibsMunicipal": 2.5
+      },
+      "oficial": {
+        "estado": "CALCULO_SIMULADO",
+        "vCBS": "1049.38",
+        "vIBSUF": "1975.31",
+        "vIBSMun": "308.64",
+        "vIBS": "2283.95"
+      }
+    },
+    {
+      "servicoId": "limpeza",
+      "ano": 2026,
+      "base": 100000,
+      "municipio": 3550308,
+      "uf": "SP",
+      "oficial": {
+        "estado": "CALCULADO",
+        "vCBS": "900.00",
+        "vIBSUF": "100.00",
+        "vIBSMun": "0.00",
+        "vIBS": "100.00"
+      }
+    },
+    {
+      "servicoId": "limpeza",
+      "ano": 2027,
+      "base": 100000,
+      "municipio": 3550308,
+      "uf": "SP",
+      "aliquotas": {
+        "cbs": 8.4,
+        "ibsEstadual": 0.05,
+        "ibsMunicipal": 0.05
+      },
+      "oficial": {
+        "estado": "CALCULO_SIMULADO",
+        "vCBS": "8400.00",
+        "vIBSUF": "50.00",
+        "vIBSMun": "50.00",
+        "vIBS": "100.00"
+      }
+    },
+    {
+      "servicoId": "limpeza",
+      "ano": 2029,
+      "base": 100000,
+      "municipio": 3550308,
+      "uf": "SP",
+      "aliquotas": {
+        "cbs": 8.5,
+        "ibsEstadual": 1.6,
+        "ibsMunicipal": 0.25
+      },
+      "oficial": {
+        "estado": "CALCULO_SIMULADO",
+        "vCBS": "8500.00",
+        "vIBSUF": "1600.00",
+        "vIBSMun": "250.00",
+        "vIBS": "1850.00"
+      }
+    },
+    {
+      "servicoId": "limpeza",
+      "ano": 2033,
+      "base": 100000,
+      "municipio": 3550308,
+      "uf": "SP",
+      "aliquotas": {
+        "cbs": 8.5,
+        "ibsEstadual": 16,
+        "ibsMunicipal": 2.5
+      },
+      "oficial": {
+        "estado": "CALCULO_SIMULADO",
+        "vCBS": "8500.00",
+        "vIBSUF": "16000.00",
+        "vIBSMun": "2500.00",
+        "vIBS": "18500.00"
+      }
+    },
+    {
+      "servicoId": "limpeza",
+      "ano": 2026,
+      "base": 12345.67,
+      "municipio": 3550308,
+      "uf": "SP",
+      "oficial": {
+        "estado": "CALCULADO",
+        "vCBS": "111.11",
+        "vIBSUF": "12.35",
+        "vIBSMun": "0.00",
+        "vIBS": "12.35"
+      }
+    },
+    {
+      "servicoId": "limpeza",
+      "ano": 2027,
+      "base": 12345.67,
+      "municipio": 3550308,
+      "uf": "SP",
+      "aliquotas": {
+        "cbs": 8.4,
+        "ibsEstadual": 0.05,
+        "ibsMunicipal": 0.05
+      },
+      "oficial": {
+        "estado": "CALCULO_SIMULADO",
+        "vCBS": "1037.04",
+        "vIBSUF": "6.17",
+        "vIBSMun": "6.17",
+        "vIBS": "12.34"
+      }
+    },
+    {
+      "servicoId": "limpeza",
+      "ano": 2029,
+      "base": 12345.67,
+      "municipio": 3550308,
+      "uf": "SP",
+      "aliquotas": {
+        "cbs": 8.5,
+        "ibsEstadual": 1.6,
+        "ibsMunicipal": 0.25
+      },
+      "oficial": {
+        "estado": "CALCULO_SIMULADO",
+        "vCBS": "1049.38",
+        "vIBSUF": "197.53",
+        "vIBSMun": "30.86",
+        "vIBS": "228.39"
+      }
+    },
+    {
+      "servicoId": "limpeza",
+      "ano": 2033,
+      "base": 12345.67,
+      "municipio": 3550308,
+      "uf": "SP",
+      "aliquotas": {
+        "cbs": 8.5,
+        "ibsEstadual": 16,
+        "ibsMunicipal": 2.5
+      },
+      "oficial": {
+        "estado": "CALCULO_SIMULADO",
+        "vCBS": "1049.38",
+        "vIBSUF": "1975.31",
+        "vIBSMun": "308.64",
+        "vIBS": "2283.95"
+      }
+    },
+    {
+      "servicoId": "limpeza",
+      "ano": 2026,
+      "base": 0.01,
+      "municipio": 3550308,
+      "uf": "SP",
+      "oficial": {
+        "estado": "CALCULADO",
+        "vCBS": "0.00",
+        "vIBSUF": "0.00",
+        "vIBSMun": "0.00",
+        "vIBS": "0.00"
+      }
+    },
+    {
+      "servicoId": "limpeza",
+      "ano": 2027,
+      "base": 0.01,
+      "municipio": 3550308,
+      "uf": "SP",
+      "aliquotas": {
+        "cbs": 8.4,
+        "ibsEstadual": 0.05,
+        "ibsMunicipal": 0.05
+      },
+      "oficial": {
+        "estado": "CALCULO_SIMULADO",
+        "vCBS": "0.00",
+        "vIBSUF": "0.00",
+        "vIBSMun": "0.00",
+        "vIBS": "0.00"
+      }
+    },
+    {
+      "servicoId": "limpeza",
+      "ano": 2029,
+      "base": 0.01,
+      "municipio": 3550308,
+      "uf": "SP",
+      "aliquotas": {
+        "cbs": 8.5,
+        "ibsEstadual": 1.6,
+        "ibsMunicipal": 0.25
+      },
+      "oficial": {
+        "estado": "CALCULO_SIMULADO",
+        "vCBS": "0.00",
+        "vIBSUF": "0.00",
+        "vIBSMun": "0.00",
+        "vIBS": "0.00"
+      }
+    },
+    {
+      "servicoId": "limpeza",
+      "ano": 2033,
+      "base": 0.01,
+      "municipio": 3550308,
+      "uf": "SP",
+      "aliquotas": {
+        "cbs": 8.5,
+        "ibsEstadual": 16,
+        "ibsMunicipal": 2.5
+      },
+      "oficial": {
+        "estado": "CALCULO_SIMULADO",
+        "vCBS": "0.00",
+        "vIBSUF": "0.00",
+        "vIBSMun": "0.00",
+        "vIBS": "0.00"
+      }
+    },
+    {
+      "servicoId": "limpeza",
+      "ano": 2026,
+      "base": 999999.99,
+      "municipio": 3550308,
+      "uf": "SP",
+      "oficial": {
+        "estado": "CALCULADO",
+        "vCBS": "9000.00",
+        "vIBSUF": "1000.00",
+        "vIBSMun": "0.00",
+        "vIBS": "1000.00"
+      }
+    },
+    {
+      "servicoId": "limpeza",
+      "ano": 2027,
+      "base": 999999.99,
+      "municipio": 3550308,
+      "uf": "SP",
+      "aliquotas": {
+        "cbs": 8.4,
+        "ibsEstadual": 0.05,
+        "ibsMunicipal": 0.05
+      },
+      "oficial": {
+        "estado": "CALCULO_SIMULADO",
+        "vCBS": "84000.00",
+        "vIBSUF": "500.00",
+        "vIBSMun": "500.00",
+        "vIBS": "1000.00"
+      }
+    },
+    {
+      "servicoId": "limpeza",
+      "ano": 2029,
+      "base": 999999.99,
+      "municipio": 3550308,
+      "uf": "SP",
+      "aliquotas": {
+        "cbs": 8.5,
+        "ibsEstadual": 1.6,
+        "ibsMunicipal": 0.25
+      },
+      "oficial": {
+        "estado": "CALCULO_SIMULADO",
+        "vCBS": "85000.00",
+        "vIBSUF": "16000.00",
+        "vIBSMun": "2500.00",
+        "vIBS": "18500.00"
+      }
+    },
+    {
+      "servicoId": "limpeza",
+      "ano": 2033,
+      "base": 999999.99,
+      "municipio": 3550308,
+      "uf": "SP",
+      "aliquotas": {
+        "cbs": 8.5,
+        "ibsEstadual": 16,
+        "ibsMunicipal": 2.5
+      },
+      "oficial": {
+        "estado": "CALCULO_SIMULADO",
+        "vCBS": "85000.00",
+        "vIBSUF": "160000.00",
+        "vIBSMun": "25000.00",
+        "vIBS": "185000.00"
+      }
+    },
+    {
+      "servicoId": "limpeza",
+      "ano": 2026,
+      "base": 1234567.89,
+      "municipio": 3550308,
+      "uf": "SP",
+      "oficial": {
+        "estado": "CALCULADO",
+        "vCBS": "11111.11",
+        "vIBSUF": "1234.57",
+        "vIBSMun": "0.00",
+        "vIBS": "1234.57"
+      }
+    },
+    {
+      "servicoId": "limpeza",
+      "ano": 2027,
+      "base": 1234567.89,
+      "municipio": 3550308,
+      "uf": "SP",
+      "aliquotas": {
+        "cbs": 8.4,
+        "ibsEstadual": 0.05,
+        "ibsMunicipal": 0.05
+      },
+      "oficial": {
+        "estado": "CALCULO_SIMULADO",
+        "vCBS": "103703.70",
+        "vIBSUF": "617.28",
+        "vIBSMun": "617.28",
+        "vIBS": "1234.56"
+      }
+    },
+    {
+      "servicoId": "limpeza",
+      "ano": 2029,
+      "base": 1234567.89,
+      "municipio": 3550308,
+      "uf": "SP",
+      "aliquotas": {
+        "cbs": 8.5,
+        "ibsEstadual": 1.6,
+        "ibsMunicipal": 0.25
+      },
+      "oficial": {
+        "estado": "CALCULO_SIMULADO",
+        "vCBS": "104938.27",
+        "vIBSUF": "19753.09",
+        "vIBSMun": "3086.42",
+        "vIBS": "22839.51"
+      }
+    },
+    {
+      "servicoId": "limpeza",
+      "ano": 2033,
+      "base": 1234567.89,
+      "municipio": 3550308,
+      "uf": "SP",
+      "aliquotas": {
+        "cbs": 8.5,
+        "ibsEstadual": 16,
+        "ibsMunicipal": 2.5
+      },
+      "oficial": {
+        "estado": "CALCULO_SIMULADO",
+        "vCBS": "104938.27",
+        "vIBSUF": "197530.86",
+        "vIBSMun": "30864.20",
+        "vIBS": "228395.06"
+      }
+    },
+    {
+      "servicoId": "limpeza",
+      "ano": 2026,
+      "base": 33.33,
+      "municipio": 3550308,
+      "uf": "SP",
+      "oficial": {
+        "estado": "CALCULADO",
+        "vCBS": "0.30",
+        "vIBSUF": "0.03",
+        "vIBSMun": "0.00",
+        "vIBS": "0.03"
+      }
+    },
+    {
+      "servicoId": "limpeza",
+      "ano": 2027,
+      "base": 33.33,
+      "municipio": 3550308,
+      "uf": "SP",
+      "aliquotas": {
+        "cbs": 8.4,
+        "ibsEstadual": 0.05,
+        "ibsMunicipal": 0.05
+      },
+      "oficial": {
+        "estado": "CALCULO_SIMULADO",
+        "vCBS": "2.80",
+        "vIBSUF": "0.02",
+        "vIBSMun": "0.02",
+        "vIBS": "0.04"
+      }
+    },
+    {
+      "servicoId": "limpeza",
+      "ano": 2029,
+      "base": 33.33,
+      "municipio": 3550308,
+      "uf": "SP",
+      "aliquotas": {
+        "cbs": 8.5,
+        "ibsEstadual": 1.6,
+        "ibsMunicipal": 0.25
+      },
+      "oficial": {
+        "estado": "CALCULO_SIMULADO",
+        "vCBS": "2.83",
+        "vIBSUF": "0.53",
+        "vIBSMun": "0.08",
+        "vIBS": "0.61"
+      }
+    },
+    {
+      "servicoId": "limpeza",
+      "ano": 2033,
+      "base": 33.33,
+      "municipio": 3550308,
+      "uf": "SP",
+      "aliquotas": {
+        "cbs": 8.5,
+        "ibsEstadual": 16,
+        "ibsMunicipal": 2.5
+      },
+      "oficial": {
+        "estado": "CALCULO_SIMULADO",
+        "vCBS": "2.83",
+        "vIBSUF": "5.33",
+        "vIBSMun": "0.83",
+        "vIBS": "6.16"
+      }
+    },
+    {
+      "servicoId": "limpeza",
+      "ano": 2026,
+      "base": 5000.5,
+      "municipio": 3550308,
+      "uf": "SP",
+      "oficial": {
+        "estado": "CALCULADO",
+        "vCBS": "45.00",
+        "vIBSUF": "5.00",
+        "vIBSMun": "0.00",
+        "vIBS": "5.00"
+      }
+    },
+    {
+      "servicoId": "limpeza",
+      "ano": 2027,
+      "base": 5000.5,
+      "municipio": 3550308,
+      "uf": "SP",
+      "aliquotas": {
+        "cbs": 8.4,
+        "ibsEstadual": 0.05,
+        "ibsMunicipal": 0.05
+      },
+      "oficial": {
+        "estado": "CALCULO_SIMULADO",
+        "vCBS": "420.04",
+        "vIBSUF": "2.50",
+        "vIBSMun": "2.50",
+        "vIBS": "5.00"
+      }
+    },
+    {
+      "servicoId": "limpeza",
+      "ano": 2029,
+      "base": 5000.5,
+      "municipio": 3550308,
+      "uf": "SP",
+      "aliquotas": {
+        "cbs": 8.5,
+        "ibsEstadual": 1.6,
+        "ibsMunicipal": 0.25
+      },
+      "oficial": {
+        "estado": "CALCULO_SIMULADO",
+        "vCBS": "425.04",
+        "vIBSUF": "80.01",
+        "vIBSMun": "12.50",
+        "vIBS": "92.51"
+      }
+    },
+    {
+      "servicoId": "limpeza",
+      "ano": 2033,
+      "base": 5000.5,
+      "municipio": 3550308,
+      "uf": "SP",
+      "aliquotas": {
+        "cbs": 8.5,
+        "ibsEstadual": 16,
+        "ibsMunicipal": 2.5
+      },
+      "oficial": {
+        "estado": "CALCULO_SIMULADO",
+        "vCBS": "425.04",
+        "vIBSUF": "800.08",
+        "vIBSMun": "125.01",
+        "vIBS": "925.09"
+      }
+    },
+    {
+      "servicoId": "limpeza",
+      "ano": 2026,
+      "base": 250.5,
+      "municipio": 3550308,
+      "uf": "SP",
+      "oficial": {
+        "estado": "CALCULADO",
+        "vCBS": "2.25",
+        "vIBSUF": "0.25",
+        "vIBSMun": "0.00",
+        "vIBS": "0.25"
+      }
+    },
+    {
+      "servicoId": "limpeza",
+      "ano": 2027,
+      "base": 250.5,
+      "municipio": 3550308,
+      "uf": "SP",
+      "aliquotas": {
+        "cbs": 8.4,
+        "ibsEstadual": 0.05,
+        "ibsMunicipal": 0.05
+      },
+      "oficial": {
+        "estado": "CALCULO_SIMULADO",
+        "vCBS": "21.04",
+        "vIBSUF": "0.13",
+        "vIBSMun": "0.13",
+        "vIBS": "0.26"
+      }
+    },
+    {
+      "servicoId": "limpeza",
+      "ano": 2029,
+      "base": 250.5,
+      "municipio": 3550308,
+      "uf": "SP",
+      "aliquotas": {
+        "cbs": 8.5,
+        "ibsEstadual": 1.6,
+        "ibsMunicipal": 0.25
+      },
+      "oficial": {
+        "estado": "CALCULO_SIMULADO",
+        "vCBS": "21.29",
+        "vIBSUF": "4.01",
+        "vIBSMun": "0.63",
+        "vIBS": "4.64"
+      }
+    },
+    {
+      "servicoId": "limpeza",
+      "ano": 2033,
+      "base": 250.5,
+      "municipio": 3550308,
+      "uf": "SP",
+      "aliquotas": {
+        "cbs": 8.5,
+        "ibsEstadual": 16,
+        "ibsMunicipal": 2.5
+      },
+      "oficial": {
+        "estado": "CALCULO_SIMULADO",
+        "vCBS": "21.29",
+        "vIBSUF": "40.08",
+        "vIBSMun": "6.26",
+        "vIBS": "46.34"
+      }
+    },
+    {
+      "servicoId": "limpeza",
+      "ano": 2026,
+      "base": 100000,
+      "municipio": 3304557,
+      "uf": "RJ",
+      "oficial": {
+        "estado": "CALCULADO",
+        "vCBS": "900.00",
+        "vIBSUF": "100.00",
+        "vIBSMun": "0.00",
+        "vIBS": "100.00"
+      }
+    },
+    {
+      "servicoId": "limpeza",
+      "ano": 2027,
+      "base": 100000,
+      "municipio": 3304557,
+      "uf": "RJ",
+      "aliquotas": {
+        "cbs": 8.4,
+        "ibsEstadual": 0.05,
+        "ibsMunicipal": 0.05
+      },
+      "oficial": {
+        "estado": "CALCULO_SIMULADO",
+        "vCBS": "8400.00",
+        "vIBSUF": "50.00",
+        "vIBSMun": "50.00",
+        "vIBS": "100.00"
+      }
+    },
+    {
+      "servicoId": "limpeza",
+      "ano": 2029,
+      "base": 100000,
+      "municipio": 3304557,
+      "uf": "RJ",
+      "aliquotas": {
+        "cbs": 8.5,
+        "ibsEstadual": 1.6,
+        "ibsMunicipal": 0.25
+      },
+      "oficial": {
+        "estado": "CALCULO_SIMULADO",
+        "vCBS": "8500.00",
+        "vIBSUF": "1600.00",
+        "vIBSMun": "250.00",
+        "vIBS": "1850.00"
+      }
+    },
+    {
+      "servicoId": "limpeza",
+      "ano": 2033,
+      "base": 100000,
+      "municipio": 3304557,
+      "uf": "RJ",
+      "aliquotas": {
+        "cbs": 8.5,
+        "ibsEstadual": 16,
+        "ibsMunicipal": 2.5
+      },
+      "oficial": {
+        "estado": "CALCULO_SIMULADO",
+        "vCBS": "8500.00",
+        "vIBSUF": "16000.00",
+        "vIBSMun": "2500.00",
+        "vIBS": "18500.00"
+      }
+    },
+    {
+      "servicoId": "limpeza",
+      "ano": 2026,
+      "base": 12345.67,
+      "municipio": 3304557,
+      "uf": "RJ",
+      "oficial": {
+        "estado": "CALCULADO",
+        "vCBS": "111.11",
+        "vIBSUF": "12.35",
+        "vIBSMun": "0.00",
+        "vIBS": "12.35"
+      }
+    },
+    {
+      "servicoId": "limpeza",
+      "ano": 2027,
+      "base": 12345.67,
+      "municipio": 3304557,
+      "uf": "RJ",
+      "aliquotas": {
+        "cbs": 8.4,
+        "ibsEstadual": 0.05,
+        "ibsMunicipal": 0.05
+      },
+      "oficial": {
+        "estado": "CALCULO_SIMULADO",
+        "vCBS": "1037.04",
+        "vIBSUF": "6.17",
+        "vIBSMun": "6.17",
+        "vIBS": "12.34"
+      }
+    },
+    {
+      "servicoId": "limpeza",
+      "ano": 2029,
+      "base": 12345.67,
+      "municipio": 3304557,
+      "uf": "RJ",
+      "aliquotas": {
+        "cbs": 8.5,
+        "ibsEstadual": 1.6,
+        "ibsMunicipal": 0.25
+      },
+      "oficial": {
+        "estado": "CALCULO_SIMULADO",
+        "vCBS": "1049.38",
+        "vIBSUF": "197.53",
+        "vIBSMun": "30.86",
+        "vIBS": "228.39"
+      }
+    },
+    {
+      "servicoId": "limpeza",
+      "ano": 2033,
+      "base": 12345.67,
+      "municipio": 3304557,
+      "uf": "RJ",
+      "aliquotas": {
+        "cbs": 8.5,
+        "ibsEstadual": 16,
+        "ibsMunicipal": 2.5
+      },
+      "oficial": {
+        "estado": "CALCULO_SIMULADO",
+        "vCBS": "1049.38",
+        "vIBSUF": "1975.31",
+        "vIBSMun": "308.64",
+        "vIBS": "2283.95"
+      }
+    },
+    {
+      "servicoId": "limpeza",
+      "ano": 2026,
+      "base": 100000,
+      "municipio": 4314902,
+      "uf": "RS",
+      "oficial": {
+        "estado": "CALCULADO",
+        "vCBS": "900.00",
+        "vIBSUF": "100.00",
+        "vIBSMun": "0.00",
+        "vIBS": "100.00"
+      }
+    },
+    {
+      "servicoId": "limpeza",
+      "ano": 2027,
+      "base": 100000,
+      "municipio": 4314902,
+      "uf": "RS",
+      "aliquotas": {
+        "cbs": 8.4,
+        "ibsEstadual": 0.05,
+        "ibsMunicipal": 0.05
+      },
+      "oficial": {
+        "estado": "CALCULO_SIMULADO",
+        "vCBS": "8400.00",
+        "vIBSUF": "50.00",
+        "vIBSMun": "50.00",
+        "vIBS": "100.00"
+      }
+    },
+    {
+      "servicoId": "limpeza",
+      "ano": 2029,
+      "base": 100000,
+      "municipio": 4314902,
+      "uf": "RS",
+      "aliquotas": {
+        "cbs": 8.5,
+        "ibsEstadual": 1.6,
+        "ibsMunicipal": 0.25
+      },
+      "oficial": {
+        "estado": "CALCULO_SIMULADO",
+        "vCBS": "8500.00",
+        "vIBSUF": "1600.00",
+        "vIBSMun": "250.00",
+        "vIBS": "1850.00"
+      }
+    },
+    {
+      "servicoId": "limpeza",
+      "ano": 2033,
+      "base": 100000,
+      "municipio": 4314902,
+      "uf": "RS",
+      "aliquotas": {
+        "cbs": 8.5,
+        "ibsEstadual": 16,
+        "ibsMunicipal": 2.5
+      },
+      "oficial": {
+        "estado": "CALCULO_SIMULADO",
+        "vCBS": "8500.00",
+        "vIBSUF": "16000.00",
+        "vIBSMun": "2500.00",
+        "vIBS": "18500.00"
+      }
+    },
+    {
+      "servicoId": "limpeza",
+      "ano": 2026,
+      "base": 12345.67,
+      "municipio": 4314902,
+      "uf": "RS",
+      "oficial": {
+        "estado": "CALCULADO",
+        "vCBS": "111.11",
+        "vIBSUF": "12.35",
+        "vIBSMun": "0.00",
+        "vIBS": "12.35"
+      }
+    },
+    {
+      "servicoId": "limpeza",
+      "ano": 2027,
+      "base": 12345.67,
+      "municipio": 4314902,
+      "uf": "RS",
+      "aliquotas": {
+        "cbs": 8.4,
+        "ibsEstadual": 0.05,
+        "ibsMunicipal": 0.05
+      },
+      "oficial": {
+        "estado": "CALCULO_SIMULADO",
+        "vCBS": "1037.04",
+        "vIBSUF": "6.17",
+        "vIBSMun": "6.17",
+        "vIBS": "12.34"
+      }
+    },
+    {
+      "servicoId": "limpeza",
+      "ano": 2029,
+      "base": 12345.67,
+      "municipio": 4314902,
+      "uf": "RS",
+      "aliquotas": {
+        "cbs": 8.5,
+        "ibsEstadual": 1.6,
+        "ibsMunicipal": 0.25
+      },
+      "oficial": {
+        "estado": "CALCULO_SIMULADO",
+        "vCBS": "1049.38",
+        "vIBSUF": "197.53",
+        "vIBSMun": "30.86",
+        "vIBS": "228.39"
+      }
+    },
+    {
+      "servicoId": "limpeza",
+      "ano": 2033,
+      "base": 12345.67,
+      "municipio": 4314902,
+      "uf": "RS",
+      "aliquotas": {
+        "cbs": 8.5,
+        "ibsEstadual": 16,
+        "ibsMunicipal": 2.5
+      },
+      "oficial": {
+        "estado": "CALCULO_SIMULADO",
+        "vCBS": "1049.38",
+        "vIBSUF": "1975.31",
+        "vIBSMun": "308.64",
+        "vIBS": "2283.95"
+      }
+    },
+    {
+      "servicoId": "profissoes-intelectuais",
+      "ano": 2026,
+      "base": 100000,
+      "municipio": 3550308,
+      "uf": "SP",
+      "oficial": {
+        "estado": "CALCULADO",
+        "vCBS": "630.00",
+        "vIBSUF": "70.00",
+        "vIBSMun": "0.00",
+        "vIBS": "70.00"
+      }
+    },
+    {
+      "servicoId": "profissoes-intelectuais",
+      "ano": 2027,
+      "base": 100000,
+      "municipio": 3550308,
+      "uf": "SP",
+      "aliquotas": {
+        "cbs": 8.4,
+        "ibsEstadual": 0.05,
+        "ibsMunicipal": 0.05
+      },
+      "oficial": {
+        "estado": "CALCULO_SIMULADO",
+        "vCBS": "5880.00",
+        "vIBSUF": "35.00",
+        "vIBSMun": "35.00",
+        "vIBS": "70.00"
+      }
+    },
+    {
+      "servicoId": "profissoes-intelectuais",
+      "ano": 2029,
+      "base": 100000,
+      "municipio": 3550308,
+      "uf": "SP",
+      "aliquotas": {
+        "cbs": 8.5,
+        "ibsEstadual": 1.6,
+        "ibsMunicipal": 0.25
+      },
+      "oficial": {
+        "estado": "CALCULO_SIMULADO",
+        "vCBS": "5950.00",
+        "vIBSUF": "1120.00",
+        "vIBSMun": "175.00",
+        "vIBS": "1295.00"
+      }
+    },
+    {
+      "servicoId": "profissoes-intelectuais",
+      "ano": 2033,
+      "base": 100000,
+      "municipio": 3550308,
+      "uf": "SP",
+      "aliquotas": {
+        "cbs": 8.5,
+        "ibsEstadual": 16,
+        "ibsMunicipal": 2.5
+      },
+      "oficial": {
+        "estado": "CALCULO_SIMULADO",
+        "vCBS": "5950.00",
+        "vIBSUF": "11200.00",
+        "vIBSMun": "1750.00",
+        "vIBS": "12950.00"
+      }
+    },
+    {
+      "servicoId": "profissoes-intelectuais",
+      "ano": 2026,
+      "base": 12345.67,
+      "municipio": 3550308,
+      "uf": "SP",
+      "oficial": {
+        "estado": "CALCULADO",
+        "vCBS": "77.78",
+        "vIBSUF": "8.64",
+        "vIBSMun": "0.00",
+        "vIBS": "8.64"
+      }
+    },
+    {
+      "servicoId": "profissoes-intelectuais",
+      "ano": 2027,
+      "base": 12345.67,
+      "municipio": 3550308,
+      "uf": "SP",
+      "aliquotas": {
+        "cbs": 8.4,
+        "ibsEstadual": 0.05,
+        "ibsMunicipal": 0.05
+      },
+      "oficial": {
+        "estado": "CALCULO_SIMULADO",
+        "vCBS": "725.93",
+        "vIBSUF": "4.32",
+        "vIBSMun": "4.32",
+        "vIBS": "8.64"
+      }
+    },
+    {
+      "servicoId": "profissoes-intelectuais",
+      "ano": 2029,
+      "base": 12345.67,
+      "municipio": 3550308,
+      "uf": "SP",
+      "aliquotas": {
+        "cbs": 8.5,
+        "ibsEstadual": 1.6,
+        "ibsMunicipal": 0.25
+      },
+      "oficial": {
+        "estado": "CALCULO_SIMULADO",
+        "vCBS": "734.57",
+        "vIBSUF": "138.27",
+        "vIBSMun": "21.60",
+        "vIBS": "159.87"
+      }
+    },
+    {
+      "servicoId": "profissoes-intelectuais",
+      "ano": 2033,
+      "base": 12345.67,
+      "municipio": 3550308,
+      "uf": "SP",
+      "aliquotas": {
+        "cbs": 8.5,
+        "ibsEstadual": 16,
+        "ibsMunicipal": 2.5
+      },
+      "oficial": {
+        "estado": "CALCULO_SIMULADO",
+        "vCBS": "734.57",
+        "vIBSUF": "1382.72",
+        "vIBSMun": "216.05",
+        "vIBS": "1598.77"
+      }
+    },
+    {
+      "servicoId": "profissoes-intelectuais",
+      "ano": 2026,
+      "base": 0.01,
+      "municipio": 3550308,
+      "uf": "SP",
+      "oficial": {
+        "estado": "CALCULADO",
+        "vCBS": "0.00",
+        "vIBSUF": "0.00",
+        "vIBSMun": "0.00",
+        "vIBS": "0.00"
+      }
+    },
+    {
+      "servicoId": "profissoes-intelectuais",
+      "ano": 2027,
+      "base": 0.01,
+      "municipio": 3550308,
+      "uf": "SP",
+      "aliquotas": {
+        "cbs": 8.4,
+        "ibsEstadual": 0.05,
+        "ibsMunicipal": 0.05
+      },
+      "oficial": {
+        "estado": "CALCULO_SIMULADO",
+        "vCBS": "0.00",
+        "vIBSUF": "0.00",
+        "vIBSMun": "0.00",
+        "vIBS": "0.00"
+      }
+    },
+    {
+      "servicoId": "profissoes-intelectuais",
+      "ano": 2029,
+      "base": 0.01,
+      "municipio": 3550308,
+      "uf": "SP",
+      "aliquotas": {
+        "cbs": 8.5,
+        "ibsEstadual": 1.6,
+        "ibsMunicipal": 0.25
+      },
+      "oficial": {
+        "estado": "CALCULO_SIMULADO",
+        "vCBS": "0.00",
+        "vIBSUF": "0.00",
+        "vIBSMun": "0.00",
+        "vIBS": "0.00"
+      }
+    },
+    {
+      "servicoId": "profissoes-intelectuais",
+      "ano": 2033,
+      "base": 0.01,
+      "municipio": 3550308,
+      "uf": "SP",
+      "aliquotas": {
+        "cbs": 8.5,
+        "ibsEstadual": 16,
+        "ibsMunicipal": 2.5
+      },
+      "oficial": {
+        "estado": "CALCULO_SIMULADO",
+        "vCBS": "0.00",
+        "vIBSUF": "0.00",
+        "vIBSMun": "0.00",
+        "vIBS": "0.00"
+      }
+    },
+    {
+      "servicoId": "profissoes-intelectuais",
+      "ano": 2026,
+      "base": 999999.99,
+      "municipio": 3550308,
+      "uf": "SP",
+      "oficial": {
+        "estado": "CALCULADO",
+        "vCBS": "6300.00",
+        "vIBSUF": "700.00",
+        "vIBSMun": "0.00",
+        "vIBS": "700.00"
+      }
+    },
+    {
+      "servicoId": "profissoes-intelectuais",
+      "ano": 2027,
+      "base": 999999.99,
+      "municipio": 3550308,
+      "uf": "SP",
+      "aliquotas": {
+        "cbs": 8.4,
+        "ibsEstadual": 0.05,
+        "ibsMunicipal": 0.05
+      },
+      "oficial": {
+        "estado": "CALCULO_SIMULADO",
+        "vCBS": "58800.00",
+        "vIBSUF": "350.00",
+        "vIBSMun": "350.00",
+        "vIBS": "700.00"
+      }
+    },
+    {
+      "servicoId": "profissoes-intelectuais",
+      "ano": 2029,
+      "base": 999999.99,
+      "municipio": 3550308,
+      "uf": "SP",
+      "aliquotas": {
+        "cbs": 8.5,
+        "ibsEstadual": 1.6,
+        "ibsMunicipal": 0.25
+      },
+      "oficial": {
+        "estado": "CALCULO_SIMULADO",
+        "vCBS": "59500.00",
+        "vIBSUF": "11200.00",
+        "vIBSMun": "1750.00",
+        "vIBS": "12950.00"
+      }
+    },
+    {
+      "servicoId": "profissoes-intelectuais",
+      "ano": 2033,
+      "base": 999999.99,
+      "municipio": 3550308,
+      "uf": "SP",
+      "aliquotas": {
+        "cbs": 8.5,
+        "ibsEstadual": 16,
+        "ibsMunicipal": 2.5
+      },
+      "oficial": {
+        "estado": "CALCULO_SIMULADO",
+        "vCBS": "59500.00",
+        "vIBSUF": "112000.00",
+        "vIBSMun": "17500.00",
+        "vIBS": "129500.00"
+      }
+    },
+    {
+      "servicoId": "profissoes-intelectuais",
+      "ano": 2026,
+      "base": 1234567.89,
+      "municipio": 3550308,
+      "uf": "SP",
+      "oficial": {
+        "estado": "CALCULADO",
+        "vCBS": "7777.78",
+        "vIBSUF": "864.20",
+        "vIBSMun": "0.00",
+        "vIBS": "864.20"
+      }
+    },
+    {
+      "servicoId": "profissoes-intelectuais",
+      "ano": 2027,
+      "base": 1234567.89,
+      "municipio": 3550308,
+      "uf": "SP",
+      "aliquotas": {
+        "cbs": 8.4,
+        "ibsEstadual": 0.05,
+        "ibsMunicipal": 0.05
+      },
+      "oficial": {
+        "estado": "CALCULO_SIMULADO",
+        "vCBS": "72592.59",
+        "vIBSUF": "432.10",
+        "vIBSMun": "432.10",
+        "vIBS": "864.20"
+      }
+    },
+    {
+      "servicoId": "profissoes-intelectuais",
+      "ano": 2029,
+      "base": 1234567.89,
+      "municipio": 3550308,
+      "uf": "SP",
+      "aliquotas": {
+        "cbs": 8.5,
+        "ibsEstadual": 1.6,
+        "ibsMunicipal": 0.25
+      },
+      "oficial": {
+        "estado": "CALCULO_SIMULADO",
+        "vCBS": "73456.79",
+        "vIBSUF": "13827.16",
+        "vIBSMun": "2160.49",
+        "vIBS": "15987.65"
+      }
+    },
+    {
+      "servicoId": "profissoes-intelectuais",
+      "ano": 2033,
+      "base": 1234567.89,
+      "municipio": 3550308,
+      "uf": "SP",
+      "aliquotas": {
+        "cbs": 8.5,
+        "ibsEstadual": 16,
+        "ibsMunicipal": 2.5
+      },
+      "oficial": {
+        "estado": "CALCULO_SIMULADO",
+        "vCBS": "73456.79",
+        "vIBSUF": "138271.60",
+        "vIBSMun": "21604.94",
+        "vIBS": "159876.54"
+      }
+    },
+    {
+      "servicoId": "profissoes-intelectuais",
+      "ano": 2026,
+      "base": 33.33,
+      "municipio": 3550308,
+      "uf": "SP",
+      "oficial": {
+        "estado": "CALCULADO",
+        "vCBS": "0.21",
+        "vIBSUF": "0.02",
+        "vIBSMun": "0.00",
+        "vIBS": "0.02"
+      }
+    },
+    {
+      "servicoId": "profissoes-intelectuais",
+      "ano": 2027,
+      "base": 33.33,
+      "municipio": 3550308,
+      "uf": "SP",
+      "aliquotas": {
+        "cbs": 8.4,
+        "ibsEstadual": 0.05,
+        "ibsMunicipal": 0.05
+      },
+      "oficial": {
+        "estado": "CALCULO_SIMULADO",
+        "vCBS": "1.96",
+        "vIBSUF": "0.01",
+        "vIBSMun": "0.01",
+        "vIBS": "0.02"
+      }
+    },
+    {
+      "servicoId": "profissoes-intelectuais",
+      "ano": 2029,
+      "base": 33.33,
+      "municipio": 3550308,
+      "uf": "SP",
+      "aliquotas": {
+        "cbs": 8.5,
+        "ibsEstadual": 1.6,
+        "ibsMunicipal": 0.25
+      },
+      "oficial": {
+        "estado": "CALCULO_SIMULADO",
+        "vCBS": "1.98",
+        "vIBSUF": "0.37",
+        "vIBSMun": "0.06",
+        "vIBS": "0.43"
+      }
+    },
+    {
+      "servicoId": "profissoes-intelectuais",
+      "ano": 2033,
+      "base": 33.33,
+      "municipio": 3550308,
+      "uf": "SP",
+      "aliquotas": {
+        "cbs": 8.5,
+        "ibsEstadual": 16,
+        "ibsMunicipal": 2.5
+      },
+      "oficial": {
+        "estado": "CALCULO_SIMULADO",
+        "vCBS": "1.98",
+        "vIBSUF": "3.73",
+        "vIBSMun": "0.58",
+        "vIBS": "4.31"
+      }
+    },
+    {
+      "servicoId": "profissoes-intelectuais",
+      "ano": 2026,
+      "base": 5000.5,
+      "municipio": 3550308,
+      "uf": "SP",
+      "oficial": {
+        "estado": "CALCULADO",
+        "vCBS": "31.50",
+        "vIBSUF": "3.50",
+        "vIBSMun": "0.00",
+        "vIBS": "3.50"
+      }
+    },
+    {
+      "servicoId": "profissoes-intelectuais",
+      "ano": 2027,
+      "base": 5000.5,
+      "municipio": 3550308,
+      "uf": "SP",
+      "aliquotas": {
+        "cbs": 8.4,
+        "ibsEstadual": 0.05,
+        "ibsMunicipal": 0.05
+      },
+      "oficial": {
+        "estado": "CALCULO_SIMULADO",
+        "vCBS": "294.03",
+        "vIBSUF": "1.75",
+        "vIBSMun": "1.75",
+        "vIBS": "3.50"
+      }
+    },
+    {
+      "servicoId": "profissoes-intelectuais",
+      "ano": 2029,
+      "base": 5000.5,
+      "municipio": 3550308,
+      "uf": "SP",
+      "aliquotas": {
+        "cbs": 8.5,
+        "ibsEstadual": 1.6,
+        "ibsMunicipal": 0.25
+      },
+      "oficial": {
+        "estado": "CALCULO_SIMULADO",
+        "vCBS": "297.53",
+        "vIBSUF": "56.01",
+        "vIBSMun": "8.75",
+        "vIBS": "64.76"
+      }
+    },
+    {
+      "servicoId": "profissoes-intelectuais",
+      "ano": 2033,
+      "base": 5000.5,
+      "municipio": 3550308,
+      "uf": "SP",
+      "aliquotas": {
+        "cbs": 8.5,
+        "ibsEstadual": 16,
+        "ibsMunicipal": 2.5
+      },
+      "oficial": {
+        "estado": "CALCULO_SIMULADO",
+        "vCBS": "297.53",
+        "vIBSUF": "560.06",
+        "vIBSMun": "87.51",
+        "vIBS": "647.57"
+      }
+    },
+    {
+      "servicoId": "profissoes-intelectuais",
+      "ano": 2026,
+      "base": 250.5,
+      "municipio": 3550308,
+      "uf": "SP",
+      "oficial": {
+        "estado": "CALCULADO",
+        "vCBS": "1.58",
+        "vIBSUF": "0.18",
+        "vIBSMun": "0.00",
+        "vIBS": "0.18"
+      }
+    },
+    {
+      "servicoId": "profissoes-intelectuais",
+      "ano": 2027,
+      "base": 250.5,
+      "municipio": 3550308,
+      "uf": "SP",
+      "aliquotas": {
+        "cbs": 8.4,
+        "ibsEstadual": 0.05,
+        "ibsMunicipal": 0.05
+      },
+      "oficial": {
+        "estado": "CALCULO_SIMULADO",
+        "vCBS": "14.73",
+        "vIBSUF": "0.09",
+        "vIBSMun": "0.09",
+        "vIBS": "0.18"
+      }
+    },
+    {
+      "servicoId": "profissoes-intelectuais",
+      "ano": 2029,
+      "base": 250.5,
+      "municipio": 3550308,
+      "uf": "SP",
+      "aliquotas": {
+        "cbs": 8.5,
+        "ibsEstadual": 1.6,
+        "ibsMunicipal": 0.25
+      },
+      "oficial": {
+        "estado": "CALCULO_SIMULADO",
+        "vCBS": "14.90",
+        "vIBSUF": "2.81",
+        "vIBSMun": "0.44",
+        "vIBS": "3.25"
+      }
+    },
+    {
+      "servicoId": "profissoes-intelectuais",
+      "ano": 2033,
+      "base": 250.5,
+      "municipio": 3550308,
+      "uf": "SP",
+      "aliquotas": {
+        "cbs": 8.5,
+        "ibsEstadual": 16,
+        "ibsMunicipal": 2.5
+      },
+      "oficial": {
+        "estado": "CALCULO_SIMULADO",
+        "vCBS": "14.90",
+        "vIBSUF": "28.06",
+        "vIBSMun": "4.38",
+        "vIBS": "32.44"
+      }
+    },
+    {
+      "servicoId": "profissoes-intelectuais",
+      "ano": 2026,
+      "base": 100000,
+      "municipio": 3304557,
+      "uf": "RJ",
+      "oficial": {
+        "estado": "CALCULADO",
+        "vCBS": "630.00",
+        "vIBSUF": "70.00",
+        "vIBSMun": "0.00",
+        "vIBS": "70.00"
+      }
+    },
+    {
+      "servicoId": "profissoes-intelectuais",
+      "ano": 2027,
+      "base": 100000,
+      "municipio": 3304557,
+      "uf": "RJ",
+      "aliquotas": {
+        "cbs": 8.4,
+        "ibsEstadual": 0.05,
+        "ibsMunicipal": 0.05
+      },
+      "oficial": {
+        "estado": "CALCULO_SIMULADO",
+        "vCBS": "5880.00",
+        "vIBSUF": "35.00",
+        "vIBSMun": "35.00",
+        "vIBS": "70.00"
+      }
+    },
+    {
+      "servicoId": "profissoes-intelectuais",
+      "ano": 2029,
+      "base": 100000,
+      "municipio": 3304557,
+      "uf": "RJ",
+      "aliquotas": {
+        "cbs": 8.5,
+        "ibsEstadual": 1.6,
+        "ibsMunicipal": 0.25
+      },
+      "oficial": {
+        "estado": "CALCULO_SIMULADO",
+        "vCBS": "5950.00",
+        "vIBSUF": "1120.00",
+        "vIBSMun": "175.00",
+        "vIBS": "1295.00"
+      }
+    },
+    {
+      "servicoId": "profissoes-intelectuais",
+      "ano": 2033,
+      "base": 100000,
+      "municipio": 3304557,
+      "uf": "RJ",
+      "aliquotas": {
+        "cbs": 8.5,
+        "ibsEstadual": 16,
+        "ibsMunicipal": 2.5
+      },
+      "oficial": {
+        "estado": "CALCULO_SIMULADO",
+        "vCBS": "5950.00",
+        "vIBSUF": "11200.00",
+        "vIBSMun": "1750.00",
+        "vIBS": "12950.00"
+      }
+    },
+    {
+      "servicoId": "profissoes-intelectuais",
+      "ano": 2026,
+      "base": 12345.67,
+      "municipio": 3304557,
+      "uf": "RJ",
+      "oficial": {
+        "estado": "CALCULADO",
+        "vCBS": "77.78",
+        "vIBSUF": "8.64",
+        "vIBSMun": "0.00",
+        "vIBS": "8.64"
+      }
+    },
+    {
+      "servicoId": "profissoes-intelectuais",
+      "ano": 2027,
+      "base": 12345.67,
+      "municipio": 3304557,
+      "uf": "RJ",
+      "aliquotas": {
+        "cbs": 8.4,
+        "ibsEstadual": 0.05,
+        "ibsMunicipal": 0.05
+      },
+      "oficial": {
+        "estado": "CALCULO_SIMULADO",
+        "vCBS": "725.93",
+        "vIBSUF": "4.32",
+        "vIBSMun": "4.32",
+        "vIBS": "8.64"
+      }
+    },
+    {
+      "servicoId": "profissoes-intelectuais",
+      "ano": 2029,
+      "base": 12345.67,
+      "municipio": 3304557,
+      "uf": "RJ",
+      "aliquotas": {
+        "cbs": 8.5,
+        "ibsEstadual": 1.6,
+        "ibsMunicipal": 0.25
+      },
+      "oficial": {
+        "estado": "CALCULO_SIMULADO",
+        "vCBS": "734.57",
+        "vIBSUF": "138.27",
+        "vIBSMun": "21.60",
+        "vIBS": "159.87"
+      }
+    },
+    {
+      "servicoId": "profissoes-intelectuais",
+      "ano": 2033,
+      "base": 12345.67,
+      "municipio": 3304557,
+      "uf": "RJ",
+      "aliquotas": {
+        "cbs": 8.5,
+        "ibsEstadual": 16,
+        "ibsMunicipal": 2.5
+      },
+      "oficial": {
+        "estado": "CALCULO_SIMULADO",
+        "vCBS": "734.57",
+        "vIBSUF": "1382.72",
+        "vIBSMun": "216.05",
+        "vIBS": "1598.77"
+      }
+    },
+    {
+      "servicoId": "profissoes-intelectuais",
+      "ano": 2026,
+      "base": 100000,
+      "municipio": 4314902,
+      "uf": "RS",
+      "oficial": {
+        "estado": "CALCULADO",
+        "vCBS": "630.00",
+        "vIBSUF": "70.00",
+        "vIBSMun": "0.00",
+        "vIBS": "70.00"
+      }
+    },
+    {
+      "servicoId": "profissoes-intelectuais",
+      "ano": 2027,
+      "base": 100000,
+      "municipio": 4314902,
+      "uf": "RS",
+      "aliquotas": {
+        "cbs": 8.4,
+        "ibsEstadual": 0.05,
+        "ibsMunicipal": 0.05
+      },
+      "oficial": {
+        "estado": "CALCULO_SIMULADO",
+        "vCBS": "5880.00",
+        "vIBSUF": "35.00",
+        "vIBSMun": "35.00",
+        "vIBS": "70.00"
+      }
+    },
+    {
+      "servicoId": "profissoes-intelectuais",
+      "ano": 2029,
+      "base": 100000,
+      "municipio": 4314902,
+      "uf": "RS",
+      "aliquotas": {
+        "cbs": 8.5,
+        "ibsEstadual": 1.6,
+        "ibsMunicipal": 0.25
+      },
+      "oficial": {
+        "estado": "CALCULO_SIMULADO",
+        "vCBS": "5950.00",
+        "vIBSUF": "1120.00",
+        "vIBSMun": "175.00",
+        "vIBS": "1295.00"
+      }
+    },
+    {
+      "servicoId": "profissoes-intelectuais",
+      "ano": 2033,
+      "base": 100000,
+      "municipio": 4314902,
+      "uf": "RS",
+      "aliquotas": {
+        "cbs": 8.5,
+        "ibsEstadual": 16,
+        "ibsMunicipal": 2.5
+      },
+      "oficial": {
+        "estado": "CALCULO_SIMULADO",
+        "vCBS": "5950.00",
+        "vIBSUF": "11200.00",
+        "vIBSMun": "1750.00",
+        "vIBS": "12950.00"
+      }
+    },
+    {
+      "servicoId": "profissoes-intelectuais",
+      "ano": 2026,
+      "base": 12345.67,
+      "municipio": 4314902,
+      "uf": "RS",
+      "oficial": {
+        "estado": "CALCULADO",
+        "vCBS": "77.78",
+        "vIBSUF": "8.64",
+        "vIBSMun": "0.00",
+        "vIBS": "8.64"
+      }
+    },
+    {
+      "servicoId": "profissoes-intelectuais",
+      "ano": 2027,
+      "base": 12345.67,
+      "municipio": 4314902,
+      "uf": "RS",
+      "aliquotas": {
+        "cbs": 8.4,
+        "ibsEstadual": 0.05,
+        "ibsMunicipal": 0.05
+      },
+      "oficial": {
+        "estado": "CALCULO_SIMULADO",
+        "vCBS": "725.93",
+        "vIBSUF": "4.32",
+        "vIBSMun": "4.32",
+        "vIBS": "8.64"
+      }
+    },
+    {
+      "servicoId": "profissoes-intelectuais",
+      "ano": 2029,
+      "base": 12345.67,
+      "municipio": 4314902,
+      "uf": "RS",
+      "aliquotas": {
+        "cbs": 8.5,
+        "ibsEstadual": 1.6,
+        "ibsMunicipal": 0.25
+      },
+      "oficial": {
+        "estado": "CALCULO_SIMULADO",
+        "vCBS": "734.57",
+        "vIBSUF": "138.27",
+        "vIBSMun": "21.60",
+        "vIBS": "159.87"
+      }
+    },
+    {
+      "servicoId": "profissoes-intelectuais",
+      "ano": 2033,
+      "base": 12345.67,
+      "municipio": 4314902,
+      "uf": "RS",
+      "aliquotas": {
+        "cbs": 8.5,
+        "ibsEstadual": 16,
+        "ibsMunicipal": 2.5
+      },
+      "oficial": {
+        "estado": "CALCULO_SIMULADO",
+        "vCBS": "734.57",
+        "vIBSUF": "1382.72",
+        "vIBSMun": "216.05",
+        "vIBS": "1598.77"
+      }
+    }
+  ]
+}

@@ -13,7 +13,7 @@ export function MemoriaDeCalculo({ linhas, avisos }: { linhas: string[]; avisos:
         </ol>
       </details>
       {avisos.length > 0 && (
-        <ul role="note" className="space-y-1 border-l-2 border-amber-400 pl-3 text-slate-700">
+        <ul aria-label="Avisos" className="space-y-1 border-l-2 border-amber-400 pl-3 text-slate-700">
           {avisos.map((aviso) => (
             <li key={aviso}>{aviso}</li>
           ))}

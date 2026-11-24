@@ -45,6 +45,44 @@ test('calculadora: abas do DAS e da CBS/IBS do Simples, com teclado e erro de en
   );
 });
 
+test('calculadora: aba do Simples oferece a conferência com a Receita só quando o serviço oficial sabe conferir (serviço, fração 1, ISS no Simples)', async () => {
+  const fetchOriginal = globalThis.fetch;
+  const chamadas: { url: string; corpo: unknown }[] = [];
+  globalThis.fetch = (async (url: string, init?: RequestInit) => {
+    chamadas.push({ url, corpo: JSON.parse(String(init?.body)) });
+    return Response.json({
+      local: { vCBS: 250, vIBS: 125 },
+      oficial: { estado: 'CALCULADO', vCBS: 250, vIBS: 125 },
+      iguais: true,
+      motivo: null,
+    });
+  }) as typeof fetch;
+  try {
+    render(<CalculadoraDeTributos />);
+    fireEvent.click(screen.getAllByRole('tab')[2]);
+    const botao = () => screen.queryByRole('button', { name: /Conferir com a calculadora da Receita/ });
+    assert.equal(botao(), null, 'sem as alíquotas do PGDAS-D não há o que conferir');
+    fireEvent.change(screen.getByLabelText('CBS sem redistribuição (%)'), { target: { value: '0,5' } });
+    fireEvent.change(screen.getByLabelText('IBS sem redistribuição (%)'), { target: { value: '0,25' } });
+    fireEvent.click(botao()!);
+    await screen.findByText(/Conferido: a calculadora oficial deu exatamente os mesmos valores/);
+    assert.equal(chamadas[0].url, '/api/rtc/simples-nacional');
+    assert.deepEqual(chamadas[0].corpo, {
+      receita: 50000,
+      anexo: 'IV',
+      comRedistribuicao: { cbs: 0.5, ibs: 0.25 },
+      semRedistribuicao: { cbs: 0.5, ibs: 0.25 },
+      retido: true,
+      semIss: false,
+      isencao: false,
+    });
+    fireEvent.change(screen.getByLabelText('Fração tributada (0 a 1)'), { target: { value: '0,5' } });
+    assert.equal(botao(), null, 'fração diferente de 1 não é conferida (o serviço a resolve pelo cClassTrib)');
+  } finally {
+    globalThis.fetch = fetchOriginal;
+  }
+});
+
 test('orçamento: escolher Reforma Tributária mostra a nota com CBS/IBS e a comparação; Simples sem RBT12 avisa e mantém as regras atuais', async () => {
   render(<FormularioOrcamento />);
   await screen.findByText('Posto 1');

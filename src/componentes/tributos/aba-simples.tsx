@@ -7,6 +7,7 @@ import { AvisoLateral } from '@/componentes/ui/aviso';
 import { CampoDecimal } from '@/componentes/ui/campo';
 import { LinhaDeResultado, MemoriaDeCalculo } from '@/componentes/tributos/partes-do-resultado';
 import { SeletorDeAnexo } from '@/componentes/tributos/seletores';
+import { ConferenciaOficial } from '@/componentes/tributos/conferencia-oficial';
 
 type ParDeTextos = { cbs: string; ibs: string };
 type Fatos = { retido: boolean; sublimite: boolean; semIss: boolean; isencao: boolean };
@@ -65,6 +66,32 @@ function calcularSimples({ receita, fator, comRedistribuicao, semRedistribuicao,
       optaRegimeRegular: regular,
     }),
   );
+}
+
+/**
+ * O que a calculadora oficial confere: só serviços (Anexos III, IV e V), receita sem fração e ISS dentro do Simples. O par que o contribuinte não preencheu
+ * repete o preenchido (o serviço oficial faz o mesmo quando falta um deles, porque os dois coincidem quando o ISS não passa do teto).
+ */
+function entradaParaConferir(e: EntradaDoSimples & { anexo: Anexo; fatos: Fatos }) {
+  if (e.regular || e.fatos.sublimite || !['III', 'IV', 'V'].includes(e.anexo) || lerNumero(e.fator) !== 1)
+    return undefined;
+  const lerPar = (p: ParDeTextos) => ({ cbs: lerNumero(p.cbs), ibs: lerNumero(p.ibs) });
+  const com = lerPar(e.comRedistribuicao);
+  const sem = lerPar(e.semRedistribuicao);
+  const usado = e.par.par === 'sem-redistribuicao' ? sem : com;
+  const receita = lerNumero(e.receita);
+  if (receita === undefined || usado.cbs === undefined || usado.ibs === undefined) return undefined;
+  const inteiro = (p: typeof com) =>
+    p.cbs === undefined || p.ibs === undefined ? { cbs: usado.cbs!, ibs: usado.ibs! } : { cbs: p.cbs, ibs: p.ibs };
+  return {
+    receita,
+    anexo: e.anexo,
+    comRedistribuicao: inteiro(com),
+    semRedistribuicao: inteiro(sem),
+    retido: e.fatos.retido,
+    semIss: e.fatos.semIss,
+    isencao: e.fatos.isencao,
+  };
 }
 
 /** As situações do ISS na operação, que definem o par de alíquotas, e o par escolhido. */
@@ -173,6 +200,16 @@ export function AbaSimples() {
     [receita, fator, comRedistribuicao, semRedistribuicao, par, regular],
   );
 
+  const paraConferir = entradaParaConferir({
+    receita,
+    fator,
+    comRedistribuicao,
+    semRedistribuicao,
+    par,
+    regular,
+    anexo,
+    fatos,
+  });
   const marcar = (chave: keyof Fatos) => (marcada: boolean) => setFatos({ ...fatos, [chave]: marcada });
   return (
     <div className="space-y-5">
@@ -196,6 +233,9 @@ export function AbaSimples() {
         <AvisoLateral role="status">{resultado.falha}</AvisoLateral>
       ) : (
         <ResultadoSimples r={resultado.ok} />
+      )}
+      {paraConferir && !('falha' in resultado) && (
+        <ConferenciaOficial rota="/api/rtc/simples-nacional" entrada={paraConferir} />
       )}
     </div>
   );

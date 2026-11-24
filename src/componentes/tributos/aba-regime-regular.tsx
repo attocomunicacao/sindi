@@ -6,6 +6,7 @@ import { SERVICOS } from '@/lib/tributos/servicos';
 import { AvisoLateral } from '@/componentes/ui/aviso';
 import { CampoDecimal } from '@/componentes/ui/campo';
 import { Seletor } from '@/componentes/ui/seletor';
+import { ConferenciaOficial } from '@/componentes/tributos/conferencia-oficial';
 import { LinhaDeResultado, MemoriaDeCalculo } from '@/componentes/tributos/partes-do-resultado';
 import { SeletorDeAno } from '@/componentes/tributos/seletores';
 
@@ -34,6 +35,13 @@ export function AbaRegimeRegular() {
     return tentar(() => calcularCbsIbsServico({ base: valorBase, ano, servicoId, aliquotas: informadas }));
   }, [base, ano, servicoId, aliquotas]);
 
+  // A conferência com a Receita usa exatamente os valores da conta da tela (e recomeça quando eles mudam).
+  const valorBase = lerNumero(base);
+  const informadas = lerAliquotas(ano, aliquotas);
+  const entradaDaConferencia =
+    valorBase !== undefined && valorBase >= 0.01 && informadas !== 'incompletas' && 'ok' in resultado
+      ? { ano, base: valorBase, servicoId, ...(informadas ? { aliquotas: informadas } : {}) }
+      : undefined;
   const trocarAno = (novo: number) => {
     setAno(novo);
     if (novo >= 2027) setAliquotas(aliquotasEmTexto(novo));
@@ -82,7 +90,12 @@ export function AbaRegimeRegular() {
       {'falha' in resultado ? (
         <AvisoLateral role="status">{resultado.falha}</AvisoLateral>
       ) : (
-        <ResultadoRegular r={resultado.ok} />
+        <>
+          <ResultadoRegular r={resultado.ok} />
+          {entradaDaConferencia && (
+            <ConferenciaOficial key={JSON.stringify(entradaDaConferencia)} entrada={entradaDaConferencia} />
+          )}
+        </>
       )}
     </div>
   );

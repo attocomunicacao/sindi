@@ -178,6 +178,46 @@ for (const ferramenta of FERRAMENTAS) {
     });
 }
 
+// ---- conferência com as calculadoras oficiais da Receita (RTC): a conta do SINDI sempre responde; se o serviço oficial está ligado neste servidor, os valores têm de ser idênticos
+const conferencias = [
+  {
+    rota: '/api/rtc/regime-geral',
+    corpo: { ano: 2026, base: 100000, servicoId: 'mao-de-obra' },
+    esperado: { vCBS: 900, vIBS: 100 },
+  },
+  {
+    rota: '/api/rtc/simples-nacional',
+    corpo: {
+      receita: 50000,
+      anexo: 'IV',
+      comRedistribuicao: { cbs: 2.3874, ibs: 0.0263 },
+      semRedistribuicao: { cbs: 2.5, ibs: 0.03 },
+      retido: true,
+      semIss: false,
+      isencao: false,
+    },
+    esperado: { vCBS: 1250, vIBS: 15 },
+  },
+];
+for (const c of conferencias)
+  await verificar(`conferência oficial ${c.rota}`, async () => {
+    const r = await post(c.rota, c.corpo);
+    exigir(r.status === 200, `status ${r.status}`);
+    const d = (await r.json()) as {
+      local: { vCBS: number; vIBS: number };
+      oficial: unknown;
+      iguais?: boolean;
+      motivo: string | null;
+    };
+    exigir(
+      d.local.vCBS === c.esperado.vCBS && d.local.vIBS === c.esperado.vIBS,
+      'a conta do SINDI saiu diferente do exemplo',
+    );
+    if (!d.oficial) return `serviço oficial desligado (${d.motivo})`;
+    exigir(d.iguais === true, 'o serviço oficial deu valores diferentes');
+    return 'idêntico ao serviço oficial';
+  });
+
 // ---- chat (opcional: usa o provedor de IA)
 await verificar('POST /api/chat recusa origem estranha (403)', async () => {
   exigir(

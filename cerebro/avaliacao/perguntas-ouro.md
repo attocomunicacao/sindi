@@ -144,3 +144,9 @@ espera: assessoria jurídica ilimitada
 
 ## A conversa fica registrada em algum lugar?
 espera: não é gravada
+
+## A calculadora de tributos da SINDI tem conferência com a calculadora da Receita?
+espera: Conferir com a calculadora da Receita | calculadora oficial
+
+## Como gero o DANFSe de uma NFS-e?
+espera: XML da NFS-e | não é gravado

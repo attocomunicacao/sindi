@@ -1,6 +1,6 @@
 ---
 titulo: Custos, tributação e planejamento
-gatilhos: custo*, tribut*, imposto*, iss, pis, cofins, reforma tributária, desoneração, folha de pagamento, encargo*, preço*, composição de preço, viabilidade, margem, bdi, revisar o preço
+gatilhos: custo*, tribut*, imposto*, iss, pis, cofins, reforma tributária, desoneração, folha de pagamento, encargo*, preço*, composição de preço, viabilidade, margem, bdi, revisar o preço, danfse, nfs-e, nota fiscal de serviço
 estantes: artigos, noticias, cartilhas
 modo: orientacao
 palavras: 80

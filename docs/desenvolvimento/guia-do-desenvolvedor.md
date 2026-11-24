@@ -14,7 +14,7 @@ antes de mostrá-la (e-mail, site, telefone, valor, número e lei precisam const
 
 ```
 src/
-  app/                    páginas (page.tsx) e rotas finas em api/{atualizar,biblioteca,cerebro,chat,conhecimento,danfse,orcamento,painel,uso}/route.ts
+  app/                    páginas (page.tsx) e rotas finas em api/{atualizar,biblioteca,cerebro,chat,conhecimento,danfse,orcamento,painel,rtc,uso}/route.ts
   proxy.ts                CSP com nonce por requisição (não cobre /api)
   componentes/            interface por assunto
     ui/                   botao, campo, seletor, cartao, aviso, pagina-ferramenta, usar-acao, usar-tecla-esc
@@ -34,6 +34,7 @@ src/
     agentes/              orquestrador de especialistas do chat
     pdf/                  base única de PDF (A4, paleta, seguro, Documento); orcamento e painel (dados/dashboard-pdf) só fornecem conteúdo
     ferramentas/          contrato (tipos.ts) e registro (registro.ts); cada ferramenta com chat.executar
+    rtc/                  clientes das calculadoras oficiais da Receita (regime regular e Simples, só 127.0.0.1) e o endereço seguro compartilhado
     orcamento/ tributos/ custos/ danfse/   lógica de cada ferramenta (o DANFSe tem desenho próprio: geometria, estilo, rotulos, pdf)
     paginas.ts            registro das páginas (menu, marca, robots.txt, 404); atualizacao.ts, sugestoes.ts
 cerebro/                  o que ensina a SINDI (instruções, conectores, conhecimento, avaliação); nome e pasta não mudam
@@ -55,6 +56,7 @@ A lista completa fica em `CLAUDE.md` (seção Comandos); aqui só o essencial.
 | `npm run check` | Lint, typecheck e testes |
 | `npm run build` | Build de produção (rode também antes de abrir um PR) |
 | `npm run verificar:funcional` | Percorre páginas, rotas, PDFs e as ferramentas do registro **no servidor em execução** e imprime um relatório (`--chat` inclui uma pergunta real) |
+| `npm run rtc:conferir` | Confere CBS/IBS (regime regular e Simples), o catálogo de serviços e o DANFSe com as calculadoras oficiais da Receita. Precisa de `rtc-instalar.ps1` e `rtc-subir.ps1`; a CI só confere as fixtures gravadas (`tests/fixtures/rtc/`) |
 | `npm run cerebro:indexar` | Indexa a busca por significado (usa `GEMINI_API_KEY`) |
 | `npm run avaliar:treino` | Perguntas de treinamento contra o chat em execução. **Gasta o limite gratuito**: use `SINDI_COTA_IP_DIA=0` e `SINDI_COTA_GLOBAL_DIA=0` e leia as respostas |
 
@@ -117,6 +119,7 @@ Siga esta ordem; o teste `tests/ferramentas/ferramentas.test.ts` confere os iten
 - **Rotas do Next só exportam métodos HTTP** e configuração (`runtime`, `maxDuration`, `dynamic`). Funções auxiliares ficam em `src/lib`.
 - **Pastas que começam com `_` em `src/app` são privadas** (não viram rota).
 - **Um servidor `next dev` por pasta.** Para trocar a configuração, reinicie: `.env.local` só é lido na partida.
+- **Calculadoras oficiais da Receita (RTC)**: opcionais e só locais (`SINDI_RTC_REGIME_URL`, `SINDI_RTC_SIMPLES_URL`; qualquer endereço que não seja 127.0.0.1/localhost/::1 desliga a integração). O site nunca depende delas: a rota devolve a conta da SINDI e, se o serviço responder, a dele. O Windows pode bloquear executáveis novos, por isso o gerador de DANFSe oficial (Go) roda em WASM dentro do Node, só nos scripts. Mudou a versão da Receita? Atualize o commit em `rtc-instalar.ps1`, rode `npm run rtc:conferir -- --gravar` e leia as diferenças antes de aceitar. As alíquotas de 2027 a 2033 não existem na Receita: seguem estimadas e marcadas como simuladas.
 - **Leitor de PDF (`pdf-parse`) toma posse do buffer**: depois da leitura o `Uint8Array` fica inutilizável; passe uma cópia se precisar reaproveitá-lo.
 - **Limites por IP dependem do cabeçalho do IP** (`SINDI_IP_HEADER`). Atrás de Vercel + túnel, confirme qual cabeçalho traz o visitante; sem ele todos caem no mesmo grupo.
 - **Avaliação gasta os limites gratuitos dos provedores**; indexação gasta o do Gemini (100 textos por minuto).

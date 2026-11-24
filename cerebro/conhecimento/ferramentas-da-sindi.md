@@ -2,7 +2,7 @@
 titulo: Ferramentas da SINDI
 tipo: curado
 prioridade: 2
-gatilhos: ferramenta, painel, cérebro, grafo, rede de conhecimento, orçamento, orçamento de terceirização, cotação, quanto custa terceirizar, pdf, relatório de custo, indicadores, calcular, estimativa, encargos, custo de funcionário, custo por funcionário, posto de trabalho
+gatilhos: ferramenta, painel, cérebro, grafo, rede de conhecimento, orçamento, orçamento de terceirização, cotação, quanto custa terceirizar, pdf, relatório de custo, indicadores, calcular, estimativa, encargos, custo de funcionário, custo por funcionário, posto de trabalho, danfse, nfs-e, nota fiscal de serviço, calculadora de tributos, conferir com a receita
 ---
 
 # Ferramentas da SINDI
@@ -24,10 +24,13 @@ Salário da função (tabela de referência), adicionais de periculosidade (30%)
 - Nada é gravado: os dados digitados servem apenas para montar o PDF.
 
 ## Calculadora de tributos (/tributos) e a tributação do orçamento
-A calculadora tem três abas, todas calculadas no navegador, sem enviar nada: CBS e IBS de um serviço no regime regular (Reforma Tributária), o DAS do Simples Nacional (Anexos III, IV e V, com faixas, alíquota efetiva, partilha entre os tributos e Fator R) e a CBS/IBS dentro do Simples. Cada resultado traz a memória de cálculo. O orçamento (/orcamento) tem um seletor de tributação: regras atuais (padrão), Reforma Tributária (ano de 2026 a 2033) ou Simples Nacional, com a comparação entre as regras atuais e a escolhida.
+A calculadora tem três abas, e a conta de cada uma roda no navegador (nada é enviado para calcular): CBS e IBS de um serviço no regime regular (Reforma Tributária), o DAS do Simples Nacional (Anexos III, IV e V, com faixas, alíquota efetiva, partilha entre os tributos e Fator R) e a CBS/IBS dentro do Simples. Cada resultado traz a memória de cálculo. O orçamento (/orcamento) tem um seletor de tributação: regras atuais (padrão), Reforma Tributária (ano de 2026 a 2033) ou Simples Nacional, com a comparação entre as regras atuais e a escolhida.
 - Em 2026 a CBS (0,90%) e o IBS (0,10%) são de teste: aparecem na nota, sem custo. A partir de 2027 a Receita não publicou as alíquotas: a ferramenta usa uma estimativa editável e marca o cálculo como simulado; o usuário deve informar as alíquotas definitivas.
 - Na transição, o PIS e a COFINS deixam de existir em 2027 e o ISS cai a 90% (2029), 80% (2030), 70% (2031), 60% (2032) e acaba em 2033. CBS e IBS são cobrados por fora do preço; o tomador no regime regular aproveita o crédito.
 - No Simples, o preço usa a alíquota efetiva do DAS; no Anexo IV a contribuição patronal fica fora do DAS. A cessão de mão de obra só é permitida no Simples nas atividades de vigilância, limpeza, conservação e construção (Anexo IV). A partilha do Simples a partir de 2027 ainda não está implementada, e as tabelas do DAS devem ser conferidas com a LC 123/2006 antes de uso comercial.
+- O botão "Conferir com a calculadora da Receita" (abas do regime regular e do Simples) pede ao servidor o mesmo cálculo na calculadora oficial da Receita Federal e diz se os valores são idênticos. Só vão ao servidor os números do cálculo (ano, valor, serviço, alíquotas), nunca dados pessoais. A conferência só funciona quando o servidor tem a calculadora oficial ligada; sem ela, o botão avisa e a conta da SINDI vale sozinha. No Simples ela cobre os Anexos III, IV e V, com a receita inteira tributada e o ISS dentro do Simples.
+- Em testes da equipe, a conta da SINDI deu exatamente os mesmos centavos que as calculadoras oficiais da Receita (regime regular e Simples) nos serviços do catálogo (mão de obra, vigilância, limpeza e o exemplo de profissão intelectual com redução de 30%). Isso vale para 2026, único ano com alíquotas oficiais; de 2027 a 2033 o cálculo continua sendo simulado com as alíquotas estimadas ou informadas.
+- Gerar DANFSe (/danfse): o usuário envia o XML da NFS-e nacional e baixa o DANFSe (Documento Auxiliar da NFS-e) em PDF, no leiaute do gerador oficial da Receita. O XML é processado em memória e não é gravado. Em testes, o texto do PDF saiu igual ao do gerador oficial em 19 casos (situação da nota, homologação, campos ausentes, textos longos e XML inválido). Não é um produto oficial da Receita: o usuário deve conferir o resultado antes de usá-lo como documento fiscal.
 - É uma estimativa para planejamento; não substitui contador nem parecer jurídico.
 
 ## Cérebro da SINDI (/cerebro)

@@ -20,6 +20,7 @@
     "cerebro:avaliar": "tsx scripts/cerebro/avaliar-cerebro.ts",
     "cerebro:indexar": "tsx scripts/cerebro/indexar-cerebro.ts",
     "cerebro:comparar": "tsx scripts/cerebro/comparar-busca.ts",
+    "rtc:conferir": "tsx scripts/rtc/conferir-tudo.ts",
     "rtc:conferir:regime": "tsx scripts/rtc/conferir.ts",
     "rtc:conferir:simples": "tsx scripts/rtc/conferir-simples.ts",
     "rtc:catalogo": "tsx scripts/rtc/conferir-catalogo.ts",

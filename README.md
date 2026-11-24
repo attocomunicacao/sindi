@@ -20,13 +20,14 @@ src/
   app/          páginas e rotas /api (finas)
   componentes/  interface por assunto (ui/, chat/, orcamento/, ...)
   lib/          base, infra, http, ia, chat, seguranca, recuperacao, cerebro, grafo,
-                biblioteca, dados, agentes, pdf, ferramentas, orcamento, tributos, custos, danfse
+                biblioteca, dados, agentes, pdf, ferramentas, rtc, orcamento, tributos, custos, danfse
                 (mapa e regra de dependência no guia do desenvolvedor)
 scripts/
   cerebro/      gerar, indexar, avaliar e comparar a busca
   avaliacao/    perguntas de treinamento contra o chat em execução
   dados/        coleta de dados públicos
-  operacao/     publicar, parar, agendar a atualização, verificar
+  operacao/     publicar, parar, agendar a atualização, verificar, instalar e ligar as calculadoras da Receita (rtc-*.ps1)
+  rtc/          conferência com as calculadoras oficiais da Receita (npm run rtc:conferir)
   (raiz)        coleta do espelho antigo do site (legado)
 deployment/     repasse do endereço fixo na Vercel
 docs/           produto, ia, operacao, seguranca, desenvolvimento, historico (índice em docs/README.md)

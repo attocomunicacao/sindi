@@ -1,7 +1,7 @@
 # Guia do desenvolvedor
 
-Este é o guia vigente para quem vai mexer no código ou acrescentar uma ferramenta. Ele substitui o `ia/16-resumo-e-guia-do-desenvolvedor.md` (histórico de 13/10/2026,
-que ainda fala de Ollama e de "sem cota"). Para o fluxo de uma pergunta e as medições, leia também [`../ia/21-fluxo-e-modelo-reduzido.md`](../ia/21-fluxo-e-modelo-reduzido.md);
+Este é o guia vigente para quem vai mexer no código ou acrescentar uma ferramenta. Ele substitui o `historico/16-resumo-e-guia-do-desenvolvedor.md` (histórico de 13/10/2026,
+que ainda fala de Ollama e de "sem cota"). Para o fluxo de uma pergunta e as medições, leia também [`../historico/21-fluxo-e-modelo-reduzido.md`](../historico/21-fluxo-e-modelo-reduzido.md) (histórico);
 para ensinar a SINDI, [`../../cerebro/README.md`](../../cerebro/README.md).
 
 ## 1. O que é
@@ -12,27 +12,42 @@ antes de mostrá-la (e-mail, site, telefone, valor, número e lei precisam const
 
 ## 2. Mapa do código
 
-| Onde | O que mora ali |
-|---|---|
-| `src/app/` | Páginas (`page.tsx`) e rotas de API (`api/**/route.ts`). Uma rota só exporta os métodos HTTP e a configuração; funções auxiliares ficam em `src/lib` |
-| `src/proxy.ts` | CSP com nonce por requisição (não cobre `/api`) |
-| `src/componentes/` | Componentes por assunto: `ui/` (botão, campo, seletor, cartão, aviso, `pagina-ferramenta`), `chat/`, `orcamento/`, `tributos/`, `custos/`, `danfse/`, `painel/`, `cerebro/`, `biblioteca/`, `uso/`, `layout/`. Os que têm `'use client'` não podem importar módulos que puxam `node:*`, `sqlite` ou `zod` (ver "Armadilhas") |
-| `src/lib/chat/` | O chat em etapas: `requisicao` → `situacao` → `prompt` → `respostas` → `geracao` → `stream`. A rota `api/chat/route.ts` só orquestra |
-| `src/lib/ferramentas/` | Contrato `Ferramenta` e registro. O orçamento (`src/lib/orcamento/ferramenta.ts`) é o exemplo |
-| `src/lib/http/guarda.ts` | Proteções de rota: origem, tipo, limite por minuto, tamanho do corpo, erro JSON, PDF |
-| `src/lib/paginas.ts` | Registro das páginas (menu, marca, `robots.txt`, 404) |
-| `src/lib/ia/` | Cascata de provedores de IA: tipos, adaptadores (OpenAI-compatível, Anthropic), disjuntor e limites conhecidos, fila |
-| `src/lib/ia/gemini.ts`, `infra/cota.ts`, `infra/limite-por-minuto.ts`, `infra/redis.ts`, `http/ip.ts` | Provedor Gemini, cota de mensagens, limite por minuto, Redis (Upstash) |
-| `src/lib/grafo/`, `src/lib/agentes/` | Grafo do cérebro (construção, entidades, Obsidian, consulta do chat) e orquestra de especialistas |
-| `src/lib/cerebro/`, `recuperacao/`, `seguranca/` | Conectores e busca no cérebro (palavras + significado); recuperação dos trechos de cada pergunta (topo da pilha); verificação de fatos e redação de dados sensíveis |
-| `src/lib/dados/`, `biblioteca/` | Coleta de dados públicos (SQLite), painel, biblioteca |
-| `src/lib/orcamento/` | Cálculo, encargos, tabela de referência, PDFs |
-| `src/lib/pdf/` | Base única de geração de PDF (`base.ts`: A4, paleta, `seguro`, `Documento`); usada pelo orçamento e pelo painel. O DANFSe (`src/lib/danfse/`) tem desenho próprio, fiel ao layout oficial (`geometria.ts`, `estilo.ts`, `rotulos.ts`, `pdf.ts`) |
-| `cerebro/` | O que ensina a SINDI (instruções, conectores, conhecimento, avaliação) |
-| `scripts/` | Coleta, indexação, avaliação, publicação |
-| `tests/` | `node:test` via `tsx`; um arquivo por assunto |
+```
+src/
+  app/                    páginas (page.tsx) e rotas finas em api/{atualizar,biblioteca,cerebro,chat,conhecimento,danfse,orcamento,painel,uso}/route.ts
+  proxy.ts                CSP com nonce por requisição (não cobre /api)
+  componentes/            interface por assunto
+    ui/                   botao, campo, seletor, cartao, aviso, pagina-ferramenta, usar-acao, usar-tecla-esc
+    chat/ orcamento/ tributos/ custos/ danfse/ painel/ cerebro/ biblioteca/ uso/ layout/
+  lib/
+    base/                 sem domínio: constantes (SITE), texto, tipos, formato (moeda, %, número), url-segura, classes, baixar-arquivo
+    infra/                cota, limite-por-minuto, redis (Upstash), uso (métricas), cache-respostas, origem
+    http/                 guarda.ts (origem, tipo, limite, corpo, erro JSON, PDF) e ip.ts (ipDoPedido)
+    ia/                   cascata, provedores, gemini, anthropic, openai-compat, saude (disjuntor), vez (fila), sse, tipos
+    chat/                 etapas do chat: requisicao, situacao, prompt, respostas, geracao, stream; esquema, historico, leitor-ndjson (cliente), escopo, notas
+    seguranca/            redacao (dados sensíveis) e verificar-fatos
+    recuperacao/          escolha das fontes de cada pergunta (contexto, recuperar, leis, indicadores, sindicato, ...); legado/ = espelho antigo do site
+    cerebro/              carregar, buscar (palavras + significado), conectores, instrucoes, embeddings, gerar, publicar, casos
+    grafo/                construir, entidades, consulta (chat), obsidian, arquitetura
+    biblioteca/           estantes de /base e a pesquisa que o chat faz nelas
+    dados/                coletores/ (dados públicos), db (SQLite), painel, dashboard(-pdf), sync, http (politeFetch)
+    agentes/              orquestrador de especialistas do chat
+    pdf/                  base única de PDF (A4, paleta, seguro, Documento); orcamento e painel (dados/dashboard-pdf) só fornecem conteúdo
+    ferramentas/          contrato (tipos.ts) e registro (registro.ts); cada ferramenta com chat.executar
+    orcamento/ tributos/ custos/ danfse/   lógica de cada ferramenta (o DANFSe tem desenho próprio: geometria, estilo, rotulos, pdf)
+    paginas.ts            registro das páginas (menu, marca, robots.txt, 404); atualizacao.ts, sugestoes.ts
+cerebro/                  o que ensina a SINDI (instruções, conectores, conhecimento, avaliação); nome e pasta não mudam
+scripts/                  cerebro/, dados/, avaliacao/, operacao/ (a tarefa agendada do Windows usa dados/ e operacao/)
+tests/ e2e/               node:test via tsx; Playwright
+```
+
+**Regra de dependência** (só de cima para baixo; nada importa de um nível acima):
+`app → componentes/ferramentas → recuperacao/chat → cerebro/grafo/biblioteca/dados → infra/http/ia → base`.
+`recuperacao/` é o topo da pilha: só `chat/` e `app/` a usam. Arquivo com `'use client'` só importa módulos puros (ver "Armadilhas").
 
 ## 3. Comandos
+
+A lista completa fica em `CLAUDE.md` (seção Comandos); aqui só o essencial.
 
 | Comando | Para quê |
 |---|---|

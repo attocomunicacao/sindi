@@ -1,3 +1,5 @@
+Documento histórico: descreve o estado de 13/10/2026 (Ollama, sem cota); o guia vigente é docs/desenvolvimento/guia-do-desenvolvedor.md
+
 # SINDI — Resumo e guia do desenvolvedor
 
 > **Histórico.** O guia vigente é [`../desenvolvimento/guia-do-desenvolvedor.md`](../desenvolvimento/guia-do-desenvolvedor.md). Este documento descreve a versão de 13/10/2026 (Ollama, "sem cota") e não deve ser seguido para mudanças novas.

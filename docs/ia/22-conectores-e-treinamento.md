@@ -1,7 +1,7 @@
 # SINDI — Conectores e treinamento da versão 1.0
 
 > Como os dois documentos da comunicação do SINDEPRESTEM (as perguntas de treinamento e o posicionamento em seis áreas) viraram arquivos que ensinam a SINDI.
-> Escrito em 13/10/2026. As medições estão em `docs/ia/21-fluxo-e-modelo-reduzido.md`.
+> Escrito em 13/10/2026. As medições estão em `docs/historico/21-fluxo-e-modelo-reduzido.md`.
 
 ## 1. Do documento ao arquivo
 
@@ -87,7 +87,7 @@ O documento pede que "as respostas institucionais [sejam] validadas pelo Sindepr
 | Compare os indicadores de emprego nos últimos 12 meses | A série mensal do CAGED guardada tem 3 meses (06 a 08/2026); os demais indicadores têm só o período atual e o anterior |
 | Transcrições do Podprestem, conteúdo de cursos e palestras | Não coletados. Só as notícias que anunciam os episódios e eventos |
 
-Cada lacuna se resolve com conteúdo, não com modelo: uma seção em `cerebro/conhecimento/` (com a fonte) ou um novo coletor em `src/lib/dados/collectors/`.
+Cada lacuna se resolve com conteúdo, não com modelo: uma seção em `cerebro/conhecimento/` (com a fonte) ou um novo coletor em `src/lib/dados/coletores/`.
 
 ## 6. O que ficou para a Premium (conforme o documento)
 

@@ -1,3 +1,5 @@
+Documento histórico: descreve o estado de novembro de 2026 (painel /uso e cotas internas removidas; hoje há cota por IP e global); o guia vigente é docs/desenvolvimento/guia-do-desenvolvedor.md
+
 # Implementação
 
 Atualização autorizada: cotas internas removidas; sem teto de 500 tokens ou corte de resposta. Painel público /uso e GET /api/usage, com dados diários de requisições, erros, duração e usage do Gemini. Arquivo .data local (servidor único) ou Redis compartilhado. Falha na coleta não bloqueia geração. Substitui a arquitetura de limitadores descrita anteriormente.

@@ -67,7 +67,7 @@ qual cabeçalho traz o IP do visitante (`SINDI_IP_HEADER`); sem isso, todos pode
 | `POST /api/chat` com `Origin` de outro site | HTTP 403 |
 | Pergunta pelo endereço público, com streaming ("Qual o prazo máximo do trabalho temporário?") | resposta correta com referências, 71 trechos de texto. Logo após reiniciar (modelo ainda fora da memória): 1ª palavra em 21,7 s, total 28,7 s; com o modelo carregado, na publicação anterior do mesmo dia: 7,3 s e 15,3 s |
 | A mesma pergunta de novo | 0,4 a 0,9 s (memória de respostas) |
-| 48 perguntas de treinamento contra o servidor de produção | mediana 22,3 s; detalhes em `docs/ia/21-fluxo-e-modelo-reduzido.md`, seção 5 |
+| 48 perguntas de treinamento contra o servidor de produção | mediana 22,3 s; detalhes em `docs/historico/21-fluxo-e-modelo-reduzido.md`, seção 5 |
 
 **Não verificado nesta rodada:** nova varredura ZAP e Semgrep (as anteriores estão em `docs/seguranca/verification.md` e são de versões anteriores do código);
 uso por várias pessoas ao mesmo tempo; teste em celular; comportamento após reinício do computador; disponibilidade ao longo de dias.

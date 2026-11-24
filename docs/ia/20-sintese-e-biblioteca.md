@@ -86,7 +86,7 @@ A antiga página `/base` era um relatório da coleta. Agora é a **biblioteca na
 **Código:**
 - `src/lib/biblioteca/estantes.ts`: catálogo (nome, ala, ícone, condição SQL, facetas). Para criar uma estante, acrescente um item aqui.
 - `src/lib/biblioteca/consulta.ts`: leitura do SQLite em modo somente leitura, FTS5, paginação, facetas e leitura de documentos.
-- `src/components/biblioteca.tsx` e `src/app/base/**`: interface (Server Components, sem JavaScript no navegador; busca e filtros são formulários e links).
+- `src/componentes/biblioteca/` e `src/app/base/**`: interface (Server Components, sem JavaScript no navegador; busca e filtros são formulários e links).
 - `tests/biblioteca.test.ts`: consulta segura, estantes, filtros, destaque e leitura (num banco temporário).
 
 **Segurança e privacidade.** Só conteúdo público já coletado; SQLite aberto somente para leitura; consulta FTS5 montada **apenas com palavras** (sem operadores nem aspas do usuário); as condições SQL das estantes são constantes do código; texto renderizado pelo React (sem HTML injetado); nenhuma pergunta é gravada. O arquivo de identidade e regras da assistente (`cerebro/instrucoes/identidade-e-regras.md`) **não é exibido**, por conter instruções internas.
@@ -101,7 +101,7 @@ A antiga página `/base` era um relatório da coleta. Agora é a **biblioteca na
 
 ## 5. Painel (`/painel`): indicadores sem duplicidade
 
-O dashboard que aparecia no fim da página repetia os mesmos números da grade de indicadores. Foi removido; a seção **Indicadores** (`src/components/painel-indicadores.tsx`) agora segue a lógica do dashboard e traz o botão **Gerar PDF** (`/api/painel/pdf`, uma página A4):
+O dashboard que aparecia no fim da página repetia os mesmos números da grade de indicadores. Foi removido; a seção **Indicadores** (`src/componentes/painel/painel-indicadores.tsx`) agora segue a lógica do dashboard e traz o botão **Gerar PDF** (`/api/painel/pdf`, uma página A4):
 
 1. **Destaques** (Selic, IPCA em 12 meses, desocupação, saldo do Novo CAGED): valor grande, variação com cor (verde favorável, vermelho desfavorável, cinza neutra) e período.
 2. **Emprego formal, mês a mês**: quatro gráficos de colunas (Brasil, São Paulo, serviços administrativos, trabalho temporário), com o zero marcado, valores sobre as colunas, negativo em vermelho e o mês mais recente em destaque. Usam a série mensal que o coletor já guardava (`series`), agora exposta em `/api/painel`. Cada gráfico tem escala própria (o Brasil esconderia o trabalho temporário numa escala comum).

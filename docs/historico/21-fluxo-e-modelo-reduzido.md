@@ -1,3 +1,5 @@
+Documento histórico: descreve o estado de 13/10/2026 (modelo local reduzido e medições daquela época); o guia vigente é docs/desenvolvimento/guia-do-desenvolvedor.md
+
 # SINDI — Fluxo de resposta e modelo reduzido
 
 > Escrito em 13/10/2026, depois da leitura completa do código e de medições feitas no computador do projeto (Intel i7-1255U, 10 núcleos / 12 threads,

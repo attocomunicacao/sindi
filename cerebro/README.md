@@ -28,7 +28,7 @@ pergunta
   6. resposta + referências (links das fontes usadas)
 ```
 
-Detalhes do desenho, das medições e do modelo em `docs/ia/21-fluxo-e-modelo-reduzido.md`. O mapa das áreas e das perguntas de treinamento está em
+Detalhes do desenho, das medições e do modelo em `docs/historico/21-fluxo-e-modelo-reduzido.md` (histórico) e `docs/desenvolvimento/guia-do-desenvolvedor.md`. O mapa das áreas e das perguntas de treinamento está em
 `docs/ia/22-conectores-e-treinamento.md`.
 
 ## O que editar para quê

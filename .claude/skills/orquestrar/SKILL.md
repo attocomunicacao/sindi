@@ -1,6 +1,6 @@
 ---
 name: orquestrar
-description: Orquestra a equipe de agentes da SINDI (arquiteto-ia, engenheiro-cerebro, engenheiro-ferramentas, guardiao-seguranca, avaliador-qualidade) para executar uma mudança de ponta a ponta. Use quando o pedido toca mais de uma área do projeto ou quando o usuário pedir "use a equipe", "orquestre", "rode o fluxo completo".
+description: Orquestra a equipe de agentes da SINDI (arquiteto-ia, engenheiro-cerebro, engenheiro-ferramentas, refatorador-estrutura, auditor-codigo-limpo, guardiao-seguranca, avaliador-qualidade) para executar uma mudança de ponta a ponta. Use quando o pedido toca mais de uma área do projeto ou quando o usuário pedir "use a equipe", "orquestre", "rode o fluxo completo".
 ---
 
 # Orquestrar a equipe SINDI
@@ -9,12 +9,16 @@ Você (sessão principal) é o **orquestrador**. Subagentes não criam subagente
 
 ```
 orquestrador (você)
-├── arquiteto-ia ............ src/lib/ia/, gemini, geracao, cota, usage, embeddings
-├── engenheiro-cerebro ...... cerebro/, busca, biblioteca, grafo, agentes do chat
-├── engenheiro-ferramentas .. páginas, rotas, ferramentas, interface, e2e
-├── guardiao-seguranca ...... revisão somente leitura
+├── arquiteto-ia ............ src/lib/ia/ (cascata, gemini), src/lib/chat/geracao.ts, src/lib/infra/ (cota, uso, redis), cerebro/embeddings
+├── engenheiro-cerebro ...... cerebro/, src/lib/{cerebro,recuperacao,seguranca,biblioteca,dados,grafo,agentes}/, scripts/{cerebro,dados}/
+├── engenheiro-ferramentas .. src/app/, src/componentes/, src/lib/{ferramentas,orcamento,tributos,custos,danfse,pdf}/, e2e/
+├── refatorador-estrutura ... renomes e movimentos (git mv + imports com @/), devolve o mapa antigo→novo, sem mudar lógica
+├── auditor-codigo-limpo .... leitura por pasta: funções longas, nomes, duplicação, código morto, ciclos (só leitura)
+├── guardiao-seguranca ...... revisão somente leitura (src/lib/http/, infra/, seguranca/)
 └── avaliador-qualidade ..... verificações e leitura das respostas
 ```
+
+Regra de dependência (só de cima para baixo): `app → componentes/ferramentas → recuperacao/chat → cerebro/grafo/biblioteca/dados → infra/http/ia → base`.
 
 ## Fluxo
 1. **Entender**: leia o pedido, `AGENTS.md` e os arquivos citados. Se houver decisão que é do usuário (custo, provedor pago, dado pessoal), pergunte antes.

@@ -5,7 +5,7 @@ com o modelo de linguagem numa **cascata de APIs gratuitas** (Gemini, Groq, Open
 
 A SINDI não é um modelo treinado com fatos do sindicato: ela consulta uma biblioteca (documentos coletados + conhecimento escrito pela equipe), entrega ao modelo
 só os trechos que respondem à pergunta e confere a resposta antes de mostrar. O fluxo, o modelo e as medições estão em
-[`docs/ia/21-fluxo-e-modelo-reduzido.md`](docs/ia/21-fluxo-e-modelo-reduzido.md).
+[`docs/desenvolvimento/guia-do-desenvolvedor.md`](docs/desenvolvimento/guia-do-desenvolvedor.md) (histórico das medições de 13/10/2026 em `docs/historico/`).
 
 ## Estrutura
 
@@ -17,23 +17,19 @@ cerebro/        o que ensina a SINDI (Markdown; relido em até 5 s); o grafo del
   auto/         resumos gerados dos dados coletados (não editar)
   avaliacao/    perguntas de teste
 src/
-  app/          páginas (/, /base, /painel, /orcamento, /uso) e rotas /api
-  lib/cerebro/  conectores, instruções, busca no cérebro, embeddings, avaliação
-  lib/biblioteca/ estantes de /base e a pesquisa que o chat faz nelas
-  lib/recuperacao/ escolha das fontes de cada pergunta (topo da pilha: só chat e app a usam)
-  lib/seguranca/ verificação de fatos e redação de dados sensíveis
-  lib/dados/    coletores de fontes públicas, SQLite, painel
-  lib/orcamento/ cálculo e PDF do orçamento de terceirização
+  app/          páginas e rotas /api (finas)
+  componentes/  interface por assunto (ui/, chat/, orcamento/, ...)
+  lib/          base, infra, http, ia, chat, seguranca, recuperacao, cerebro, grafo,
+                biblioteca, dados, agentes, pdf, ferramentas, orcamento, tributos, custos, danfse
+                (mapa e regra de dependência no guia do desenvolvedor)
 scripts/
-  modelo/       criar e medir os modelos locais
   cerebro/      gerar, indexar, avaliar e comparar a busca
   avaliacao/    perguntas de treinamento contra o chat em execução
   dados/        coleta de dados públicos
-  operacao/     publicar e parar o endereço público
-  (raiz)        coleta do espelho do site, usada pela tarefa agendada SINDI-Knowledge
-modelo/         Modelfiles gerados (não editar)
+  operacao/     publicar, parar, agendar a atualização, verificar
+  (raiz)        coleta do espelho antigo do site (legado)
 deployment/     repasse do endereço fixo na Vercel
-docs/           produto, ia, operacao, seguranca, imagens (índice em docs/README.md)
+docs/           produto, ia, operacao, seguranca, desenvolvimento, historico (índice em docs/README.md)
 tests/          node:test via tsx
 .data/ .tools/  dados locais, registros e ferramentas (fora do versionamento)
 ```
@@ -75,19 +71,7 @@ Depois: `npm run cerebro:indexar` e `npm run avaliar:treino`. O mapa das áreas 
 
 ## Comandos
 
-| Comando | Para quê |
-|---|---|
-| `npm run dev` / `build` / `start` | Aplicação |
-| `npm run lint` / `typecheck` / `test` / `check` | Verificações (com `npm run build` e `npm audit --audit-level=high`); `check` roda as três |
-| `npm run test:e2e` | Testes de ponta a ponta e de acessibilidade (Playwright + axe), em desktop e celular; a primeira vez pede `npx playwright install chromium` |
-| `npm run verificar:funcional` | Percorre páginas, rotas, PDFs e ferramentas no servidor em execução (`-- --chat` inclui uma pergunta real) |
-| `npm run avaliar:treino` | Responde as perguntas de `cerebro/avaliacao/treino-v1.md` no chat em execução: tempo, área, resposta |
-| `npm run grafo:gerar` | Grafo do cérebro (página /cerebro, expansão da busca) e cofre do Obsidian em `.data/obsidian/SINDI` |
-| `npm run cerebro:gerar` / `indexar` / `avaliar` / `comparar` | Resumos automáticos, vetores (usa `GEMINI_API_KEY`), perguntas de ouro, comparação da busca |
-| `npm run dados:sync` / `dados:watch` | Coleta de dados públicos (uma vez / contínua) |
-| `npm run knowledge:sync` / `knowledge:watch` | Espelho do site (base antiga) |
-| `powershell -File scripts/operacao/publicar.ps1` | Sobe o servidor de produção, o túnel e atualiza o endereço público |
-| `powershell -File scripts/operacao/parar.ps1` | Encerra a publicação |
+A lista completa (desenvolvimento, verificações, cérebro, coleta, publicação) fica em um só lugar: a seção Comandos de [`CLAUDE.md`](CLAUDE.md). Guia para mexer no código: [`docs/desenvolvimento/guia-do-desenvolvedor.md`](docs/desenvolvimento/guia-do-desenvolvedor.md).
 
 ## Chat e consumo
 

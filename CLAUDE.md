@@ -20,6 +20,10 @@ O guia vigente do código é `docs/desenvolvimento/guia-do-desenvolvedor.md` (ma
 - Com o servidor rodando: `npm run verificar:funcional` (páginas, rotas, PDFs, ferramentas do registro; `-- --chat` faz uma pergunta real) e `npm run avaliar:treino` (gasta os limites gratuitos: rode com `SINDI_COTA_IP_DIA=0 SINDI_COTA_GLOBAL_DIA=0 SINDI_CHAT_POR_MINUTO=0` e leia as respostas).
 - `npm run grafo:gerar` — refaz o grafo do cérebro e o cofre do Obsidian (sem chamar API).
 - `npm run cerebro:indexar` após mudar `cerebro/` (embeddings; usa `GEMINI_API_KEY`).
+- `npm run cerebro:gerar` (resumos automáticos em `cerebro/auto/`), `cerebro:avaliar` (perguntas de ouro), `cerebro:comparar` (busca por palavras × significado × híbrida; obrigatório ao mudar a busca).
+- `npm run dados:sync` / `dados:watch` — coleta de dados públicos (uma vez / contínua; a tarefa agendada usa `scripts/dados/dados-sync.ts`). `npm run knowledge:sync` / `knowledge:watch` — espelho antigo do site (legado, ver `docs/avaliacao/pendencias-da-refatoracao.md`).
+- `npm run test:coverage` — cobertura sem limite. `npm run build` / `npm start` — produção.
+- `powershell -File scripts/operacao/publicar.ps1` sobe servidor de produção, túnel e endereço público; `parar.ps1` encerra. `agendar-atualizacao.ps1` recria a tarefa agendada.
 - Scripts em `scripts/` não carregam `.env.local`: `npx tsx --env-file=.env.local scripts/...`.
 - CI (`.github/workflows`): lint, typecheck, `test:ci`, build, audit, e2e e Semgrep (`p/nextjs`, `p/typescript` em `src`).
 

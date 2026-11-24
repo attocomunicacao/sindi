@@ -56,15 +56,15 @@ function casa(pergunta: string, palavras: Set<string>, gatilho: string) {
   if (gatilho.endsWith('*')) { const prefixo = gatilho.slice(0, -1); return [...palavras].some(p => p.startsWith(prefixo)); }
   return gatilho.includes(' ') || gatilho.includes('-') ? pergunta.includes(gatilho) : palavras.has(gatilho);
 }
-/**
- * Área da pergunta: o conector com mais gatilhos presentes (expressões valem o dobro de palavras soltas). Sem nenhum gatilho, devolve `undefined`
- * e a SINDI segue só com as regras gerais. `anteriores` são as perguntas anteriores do usuário, usadas quando a atual é uma continuação curta.
- */
 /** Placar de todos os conectores para um texto (só os que casam, do maior para o menor; empate fica na ordem dos arquivos). */
 export function pontuarConectores(texto: string, todos: Conector[] = conectores()) {
   const q = normalizar(texto); const palavras = new Set(q.match(/[a-z0-9]+/g) ?? []);
   return todos.map(conector => ({ conector, pontos: conector.gatilhos.reduce((soma, g) => soma + (casa(q, palavras, g) ? (g.includes(' ') ? 2 : 1) : 0), 0) })).filter(r => r.pontos > 0).sort((a, b) => b.pontos - a.pontos);
 }
+/**
+ * Área da pergunta: o conector com mais gatilhos presentes (expressões valem o dobro de palavras soltas). Sem nenhum gatilho, devolve `undefined`
+ * e a SINDI segue só com as regras gerais. `anteriores` são as perguntas anteriores do usuário, usadas quando a atual é uma continuação curta.
+ */
 export function escolherConector(pergunta: string, anteriores: string[] = [], todos: Conector[] = conectores()): Conector | undefined {
   const pontuar = (texto: string) => pontuarConectores(texto, todos);
   const atual = pontuar(pergunta);

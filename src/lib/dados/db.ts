@@ -1,6 +1,6 @@
 import { DatabaseSync } from 'node:sqlite';
 import { createHash } from 'node:crypto';
-import { mkdirSync } from 'node:fs';
+import { existsSync, mkdirSync } from 'node:fs';
 import path from 'node:path';
 import { urlDeDocumentoValida } from '@/lib/dados/url-documento';
 
@@ -31,6 +31,19 @@ export function openDb(file = dbPath()) {
   return db;
 }
 export type Db = ReturnType<typeof openDb>;
+
+/**
+ * Abre o banco só para leitura, roda `fn` e fecha. Sem o arquivo, ou se abrir ou ler falhar, devolve `vazio`: quem consulta o banco no chat nunca derruba a pergunta,
+ * que segue sem aquela fonte.
+ */
+export function comBancoSomenteLeitura<T>(arquivo: string, fn: (db: DatabaseSync) => T, vazio: T): T {
+  if (!existsSync(arquivo)) return vazio;
+  let db: DatabaseSync;
+  try { db = new DatabaseSync(arquivo, { readOnly: true }); } catch { return vazio; }
+  try { return fn(db); } catch { return vazio; } finally { db.close(); }
+}
+/** Consulta FTS5 por prefixo de cada palavra (as palavras já vêm limpas, sem aspas nem operadores), unidas por `operador`. */
+export const consultaPorPrefixos = (palavras: string[], operador: 'AND' | 'OR' = 'OR') => palavras.map(w => `"${w}"*`).join(` ${operador} `);
 
 const sha = (text: string) => createHash('sha256').update(text).digest('hex');
 
@@ -121,11 +134,11 @@ export function falhasSeguidas(db: Db, source: string, olhar = 20) {
 }
 
 /** Busca de texto integral (BM25) nas fontes externas, usada pelo chat para citar dados oficiais. */
-export function searchDocuments(db: Db, terms: string[], limit = 3, sources?: string[]) {
+export function searchDocuments(db: Db, terms: string[], limit = 3, sources?: string[], maxCaracteres = 1500) {
   const words = terms.map(t => t.replace(/[^\p{L}\p{N}]/gu, '')).filter(t => t.length >= 3);
   if (!words.length) return [];
-  const match = words.map(w => `"${w}"*`).join(' OR ');
+  const match = consultaPorPrefixos(words);
   const filter = sources?.length ? `AND d.source IN (${sources.map(() => '?').join(',')})` : '';
-  return db.prepare(`SELECT d.url, d.source, d.title, substr(d.content, 1, 1500) AS content, d.fetched_at AS fetchedAt FROM documents_fts f JOIN documents d ON d.rowid = f.rowid
+  return db.prepare(`SELECT d.url, d.source, d.title, substr(d.content, 1, ${maxCaracteres}) AS content, d.fetched_at AS fetchedAt FROM documents_fts f JOIN documents d ON d.rowid = f.rowid
     WHERE documents_fts MATCH ? ${filter} ORDER BY bm25(documents_fts, 4.0, 1.0) LIMIT ?`).all(match, ...(sources ?? []), limit) as { url: string; source: string; title: string; content: string; fetchedAt: string }[];
 }

@@ -1,11 +1,10 @@
-import { SITE } from '@/lib/base/constantes';
+import { PRESIDENTE, SITE } from '@/lib/base/constantes';
+import { dataBR } from '@/lib/base/formato';
 // Gera os arquivos autogerados do cérebro da SINDI (cerebro/auto/*.md) a partir dos dados coletados.
 // Os arquivos curados, na pasta cerebro/, nunca são alterados por esta geração.
 import type { Db } from '@/lib/dados/db';
 import { contatoDaFonte } from '@/lib/cerebro/contato-do-site';
 
-/** Presidente da entidade (gestão 2026–2029). Está aqui, num só lugar, para ser atualizado quando a gestão mudar; o texto gerado cita o nome. */
-export const PRESIDENTE = 'Vander Morales';
 /** Convenções "vigentes" e "recentes" são as do ano anterior em diante: a regra acompanha o calendário em vez de um ano fixo no código. */
 const anoMinimoRecente = (hoje: string) => Number(hoje.slice(0, 4)) - 1;
 const formatarFaixa = (faixa: string) => {
@@ -13,27 +12,42 @@ const formatarFaixa = (faixa: string) => {
   return m ? `capital social de ${m[1]} até ${m[2]}: ${m[3].replace('Parcelas', 'parcelas')}` : faixa.replace('Parcelas', 'parcelas').replace(/^Empresas sem colaboradores/, 'empresas sem colaboradores:').replace(/^Acima de/, 'capital social acima de');
 };
 
-/** Gera todos os arquivos autogerados em memória: { "institucional.md": "...", ... }. */
-export function gerarArquivos(db: Db, hoje = new Date().toISOString().slice(0, 10)): Record<string, string> {
-  const arquivos: Record<string, string> = {};
 type Linha = { title: string; url: string; content: string; published_at: string | null; category: string | null; year: number | null; type: string | null; region: string | null };
-const consulta = (sql: string, ...args: (string | number)[]) => db.prepare(sql).all(...args) as Linha[];
-const base = `SELECT title, url, content, published_at, json_extract(meta,'$.category') AS category, json_extract(meta,'$.year') AS year, json_extract(meta,'$.type') AS type, json_extract(meta,'$.region') AS region FROM documents`;
-const pagina = (caminho: string) => (db.prepare("SELECT content FROM documents WHERE source = 'sindeprestem' AND url LIKE ?").get('%' + caminho) as { content: string } | undefined)?.content.split('Rodapé institucional')[0] ?? '';
-/** Rodapé institucional guardado na página de contato; vazio (e a geração segue) se a página ainda não foi coletada. */
-const rodapeDoContato = () => (db.prepare("SELECT content FROM documents WHERE source='sindeprestem' AND url LIKE '%/contato'").get() as { content: string } | undefined)?.content ?? '';
+const BASE = `SELECT title, url, content, published_at, json_extract(meta,'$.category') AS category, json_extract(meta,'$.year') AS year, json_extract(meta,'$.type') AS type, json_extract(meta,'$.region') AS region FROM documents`;
+/** Filtros de endereço das seções: PDFs publicados, ou posts com data (as páginas de listagem não entram). */
+const SO_PDF = "url LIKE '%.pdf'";
+const SO_POSTS = "url LIKE '%/post/%' AND published_at IS NOT NULL";
+/** Documentos de uma seção do site do sindicato (`filtroUrl` e `ordem` são trechos fixos de SQL, nunca texto de usuário). */
+const documentosDaSecao = (db: Db, secao: string, filtroUrl: string, ordem: string, limite?: number) =>
+  db.prepare(`${BASE} WHERE source = 'sindeprestem' AND json_extract(meta,'$.section') = ? AND ${filtroUrl} ORDER BY ${ordem}${limite ? ` LIMIT ${limite}` : ''}`).all(secao) as Linha[];
 const linhasDe = (texto: string) => texto.split('\n').map(l => l.trim()).filter(Boolean);
 const compacto = (texto: string, limite: number) => { const t = texto.replace(/\s+/g, ' ').trim(); return t.length > limite ? t.slice(0, limite).replace(/\s+\S*$/, '') + ' […]' : t; };
-const data = (v: string | null) => v ? new Date(v).toLocaleDateString('pt-BR', { timeZone: 'America/Sao_Paulo' }) : 's/d';
-const cabecalho = (titulo: string, fonte: string, gatilhos: string[], prioridade = 1) => `---\ntitulo: ${titulo}\nfonte: ${fonte}\natualizado: ${hoje}\ntipo: autogerado\nprioridade: ${prioridade}\ngatilhos: ${gatilhos.join(', ')}\n---\n\n<!-- AUTOGERADO por src/lib/cerebro/gerar.ts em ${hoje}. Não edite: as alterações serão perdidas. Para ajustar regras e respostas, edite os arquivos da pasta cerebro/. -->\n\n`;
-const gravar = (arquivo: string, texto: string) => { arquivos[arquivo] = texto.trimEnd() + String.fromCharCode(10); };
+const data = (v: string | null) => v ? dataBR(v) : 's/d';
 const sem = (texto: string, ...padroes: RegExp[]) => padroes.reduce((t, p) => t.replace(p, ''), texto);
 
-// 1. Institucional
-{
+/** O que cada arquivo precisa do banco e da data da geração. */
+type Contexto = {
+  db: Db; hoje: string;
+  /** Texto de uma página do site já coletada (sem o rodapé institucional); vazio se ela ainda não foi coletada. */
+  pagina: (caminho: string) => string;
+  /** Rodapé institucional guardado na página de contato; vazio (e a geração segue) se a página ainda não foi coletada. */
+  rodapeDoContato: () => string;
+  cabecalho: (titulo: string, fonte: string, gatilhos: string[], prioridade?: number) => string;
+};
+function contextoDe(db: Db, hoje: string): Contexto {
+  return {
+    db, hoje,
+    pagina: caminho => (db.prepare("SELECT content FROM documents WHERE source = 'sindeprestem' AND url LIKE ?").get('%' + caminho) as { content: string } | undefined)?.content.split('Rodapé institucional')[0] ?? '',
+    rodapeDoContato: () => (db.prepare("SELECT content FROM documents WHERE source='sindeprestem' AND url LIKE '%/contato'").get() as { content: string } | undefined)?.content ?? '',
+    cabecalho: (titulo, fonte, gatilhos, prioridade = 1) => `---\ntitulo: ${titulo}\nfonte: ${fonte}\natualizado: ${hoje}\ntipo: autogerado\nprioridade: ${prioridade}\ngatilhos: ${gatilhos.join(', ')}\n---\n\n<!-- AUTOGERADO por src/lib/cerebro/gerar.ts em ${hoje}. Não edite: as alterações serão perdidas. Para ajustar regras e respostas, edite os arquivos da pasta cerebro/. -->\n\n`,
+  };
+}
+
+/** Página institucional, contatos e benefícios. */
+function institucional({ pagina, rodapeDoContato, cabecalho }: Contexto): string {
   const inst = linhasDe(pagina('/institucional-do-sindeprestem-sindicat'));
   const bloco = (titulo: string) => { const i = inst.findIndex(l => l === titulo); return i >= 0 ? inst[i + 1] : ''; };
-  const contato = contatoDaFonte(pagina('/contato') + '\nRodapé institucional: ' + rodapeDoContato().split('Rodapé institucional')[1], 'pt') ?? '';
+  const contato = contatoDaFonte(pagina('/contato') + '\nRodapé institucional: ' + rodapeDoContato().split('Rodapé institucional')[1]) ?? '';
   const rodape = rodapeDoContato();
   const endereco = rodape.match(/(?:Av\.|Avenida|Rua)\s+[^\n]{3,160}?São Paulo\s*[-–,]\s*SP/i)?.[0] ?? '';
   const associe = linhasDe(pagina('/associe'));
@@ -41,7 +55,7 @@ const sem = (texto: string, ...padroes: RegExp[]) => padroes.reduce((t, p) => t.
   const conecta = linhasDe(pagina('/conecta')).join(' ');
   const quem = conecta.match(/O Sindeprestem representa mais de [^.]*\.\s*Há [^.]*\./)?.[0] ?? '';
   const temporario = associe.find(l => /^Regulamentado pela Lei Federal/.test(l)) ?? '';
-  gravar('institucional.md', cabecalho('SINDEPRESTEM — institucional', `${SITE}/institucional-do-sindeprestem-sindicat`, ['sindeprestem', 'sindicato', 'quem somos', 'o que é', 'missão', 'visão', 'valores', 'diretoria', 'presidente', 'história', 'fenaserhtt', 'associado', 'filiado', 'benefícios', 'endereço', 'telefone', 'contato', 'horário'], 2) +
+  return cabecalho('SINDEPRESTEM — institucional', `${SITE}/institucional-do-sindeprestem-sindicat`, ['sindeprestem', 'sindicato', 'quem somos', 'o que é', 'missão', 'visão', 'valores', 'diretoria', 'presidente', 'história', 'fenaserhtt', 'associado', 'filiado', 'benefícios', 'endereço', 'telefone', 'contato', 'horário'], 2) +
 `## O que é o SINDEPRESTEM
 ${inst[0]}.
 
@@ -71,11 +85,11 @@ ${lista('EMPRESA FILIADA', 'Atividades setoriais').join('\n')}
 
 ## Trabalho temporário na página do sindicato
 ${temporario}
-`);
+`;
 }
 
-// 2. Contribuições
-{
+/** Contribuições: regulamento, vencimentos e tabelas. */
+function contribuicoes({ pagina, cabecalho }: Contexto): string {
   const texto = pagina('/contribuicao-sindical'); const linhas = linhasDe(texto);
   const regulamento = linhas.find(l => /^A Contribuição Patronal vigente/.test(l)) ?? '';
   const secao = (titulo: string) => {
@@ -88,7 +102,7 @@ ${temporario}
   const valorApos = (rotulo: string) => { const i = linhas.findIndex(l => l === rotulo); return i >= 0 ? linhas[i + 1] : ''; };
   const teto = linhas.find(l => /^\(\*\)\s*-\s*Teto/i.test(l)) ?? '';
   const negocial = [`trabalhador temporário: ${valorApos('Trabalhador temporário')} por mês`, `trabalhador celetista: ${valorApos('Trabalhador celetista')} por mês`, teto.replace(/^\(\*\)\s*-\s*/, '')];
-  gravar('contribuicoes.md', cabecalho('Contribuições do SINDEPRESTEM', `${SITE}/contribuicao-sindical`, ['contribuição', 'contribuições', 'mensalidade', 'associativa', 'confederativa', 'negocial', 'valor', 'tabela', 'quanto custa', 'vencimento', 'boleto', 'cartão de crédito', 'capital social', 'filiação', 'associação'], 2) +
+  return cabecalho('Contribuições do SINDEPRESTEM', `${SITE}/contribuicao-sindical`, ['contribuição', 'contribuições', 'mensalidade', 'associativa', 'confederativa', 'negocial', 'valor', 'tabela', 'quanto custa', 'vencimento', 'boleto', 'cartão de crédito', 'capital social', 'filiação', 'associação'], 2) +
 `## Regulamento e vencimentos
 ${regulamento}
 
@@ -107,12 +121,12 @@ ${secao('Contribuição confederativa')}
 
 ## Formas de pagamento
 Boleto bancário: gerado na página de contribuição; pagamento até o vencimento. Cartão de crédito: disponível; para ativar, procurar o setor financeiro do SINDEPRESTEM.
-`);
+`;
 }
 
-// 3. Convenções coletivas
-{
-  const todas = consulta(`${base} WHERE source = 'sindeprestem' AND json_extract(meta,'$.section') = 'convencao' AND url LIKE '%.pdf' ORDER BY COALESCE(json_extract(meta,'$.year'),0) DESC, title`);
+/** Convenções coletivas: documentos recentes por categoria e os trechos de salários e correção. */
+function convencoes({ db, hoje, cabecalho }: Contexto): string {
+  const todas = documentosDaSecao(db, 'convencao', SO_PDF, "COALESCE(json_extract(meta,'$.year'),0) DESC, title");
   const categorias = [...new Set(todas.map(c => c.category ?? 'Outras'))].filter(c => c !== 'Outras').sort();
   const clausula = (texto: string, padrao: RegExp, limite: number) => { const m = texto.match(padrao); return m ? compacto(m[0], limite) : ''; };
   const secoes = categorias.map(categoria => {
@@ -127,48 +141,48 @@ ${recentes.map(d => `- [${d.title}](${d.url})`).join('\n') || '- (nenhum documen
 ${vigente ? `\nTrecho literal da cláusula de salários em [${vigente.title}](${vigente.url}) (confira o documento e os aditivos):\n> ${salarios || 'cláusula não localizada no texto extraído; consulte o documento.'}\n${correcao ? `\nTrecho literal da cláusula de correção salarial:\n> ${correcao}\n` : ''}` : ''}`;
   });
   const anos = todas.map(c => c.year ?? 0).filter(Boolean);
-  gravar('convencoes.md', cabecalho('Convenções coletivas do SINDEPRESTEM', `${SITE}/convencoes-coletivas`, ['convenção', 'convenções', 'convenção coletiva', 'cct', 'aditivo', 'comunicado', 'errata', 'piso', 'piso salarial', 'salário', 'reajuste', 'correção salarial', 'data-base', 'categoria', 'geral', 'portaria', 'poupatempo', 'promoção', 'merchandising', 'leiturista', 'promotores', 'bombeiros', 'jundiaí', 'quanto ganha'], 3) +
+  return cabecalho('Convenções coletivas do SINDEPRESTEM', `${SITE}/convencoes-coletivas`, ['convenção', 'convenções', 'convenção coletiva', 'cct', 'aditivo', 'comunicado', 'errata', 'piso', 'piso salarial', 'salário', 'reajuste', 'correção salarial', 'data-base', 'categoria', 'geral', 'portaria', 'poupatempo', 'promoção', 'merchandising', 'leiturista', 'promotores', 'bombeiros', 'jundiaí', 'quanto ganha'], 3) +
 `## Como funcionam as convenções no site
 O SINDEPRESTEM publica convenções coletivas de trabalho (CCT), aditivos, errata e comunicados conjuntos na página [Documentos coletivos](${SITE}/convencoes-coletivas). São ${todas.length} documentos em PDF, de ${Math.min(...anos)} a ${Math.max(...anos)}, para São Paulo e Jundiaí. Categorias: ${categorias.join(', ')}.
 
 A convenção Geral do SINDEPRESTEM exclui, entre outros, trabalhadores de empresas de asseio e conservação, higiene e limpeza pública urbana, da construção civil e de vigilância e segurança patrimonial, que têm convenções próprias de outras entidades.
 
 ${secoes.join('\n\n')}
-`);
+`;
 }
 
-// 4. Jurídico
-{
-  const docs = consulta(`${base} WHERE source = 'sindeprestem' AND json_extract(meta,'$.section') = 'juridico' AND url LIKE '%.pdf' ORDER BY title`);
+/** Documentos jurídicos publicados pelo sindicato. */
+function juridico({ db, cabecalho }: Contexto): string {
+  const docs = documentosDaSecao(db, 'juridico', SO_PDF, 'title');
   const grupos = new Map<string, Linha[]>();
   for (const d of docs) { const chave = d.title.split(' — ')[0]; grupos.set(chave, [...(grupos.get(chave) ?? []), d]); }
-  gravar('juridico.md', cabecalho('Documentos jurídicos publicados pelo SINDEPRESTEM', `${SITE}/juridico`, ['jurídico', 'legislação', 'lei', 'decreto', 'portaria', 'medida provisória', 'processos judiciais', '6.019', 'trabalho temporário', 'feriados', 'comércio'], 2) +
+  return cabecalho('Documentos jurídicos publicados pelo SINDEPRESTEM', `${SITE}/juridico`, ['jurídico', 'legislação', 'lei', 'decreto', 'portaria', 'medida provisória', 'processos judiciais', '6.019', 'trabalho temporário', 'feriados', 'comércio'], 2) +
 `## O que a página Jurídico oferece
 A página [Jurídico](${SITE}/juridico) dá "acesso às legislações, processos judiciais e documentos oficiais do setor", organizados em Leis Ordinárias, Portarias, Decretos e Processos Judiciais. Há ${docs.length} documentos em PDF. A SINDI lista e cita esses documentos; ela não faz parecer jurídico.
 
 ## Documentos
 ${[...grupos.entries()].map(([norma, lista]) => `- **${norma}** — ${lista.length} arquivo(s): ${lista.slice(0, 3).map(d => `[${d.title.includes(' — ') ? d.title.split(' — ')[1] : d.title}](${d.url})`).join(', ')}${lista.length > 3 ? ', …' : ''}`).join('\n')}
-`);
+`;
 }
 
-// 5. Cartilhas
-{
-  const docs = consulta(`${base} WHERE source = 'sindeprestem' AND json_extract(meta,'$.section') = 'cartilha' AND url LIKE '%.pdf' ORDER BY title`);
-  gravar('cartilhas.md', cabecalho('Cartilhas do SINDEPRESTEM', `${SITE}/cartilhas`, ['cartilha', 'cartilhas', 'guia', 'esg', 'bombeiro civil', 'trabalho temporário', 'lei 13.429', 'material', 'orientação'], 2) +
+/** Cartilhas: lista com o início do texto. */
+function cartilhas({ db, cabecalho }: Contexto): string {
+  const docs = documentosDaSecao(db, 'cartilha', SO_PDF, 'title');
+  return cabecalho('Cartilhas do SINDEPRESTEM', `${SITE}/cartilhas`, ['cartilha', 'cartilhas', 'guia', 'esg', 'bombeiro civil', 'trabalho temporário', 'lei 13.429', 'material', 'orientação'], 2) +
 `## Cartilhas disponíveis
 "Conteúdos informativos produzidos para orientar empresas, associados e profissionais sobre temas relevantes do setor" ([página Cartilhas](${SITE}/cartilhas)).
 
 ${docs.map(d => { const texto = d.content.replace(/\s+/g, ' ').trim(); const util = !/sem texto extraível/.test(texto);
   return `### ${d.title}\n[Abrir PDF](${d.url})${util ? `\nInício do texto: ${compacto(texto.replace(/^[^A-Za-zÀ-ú]*/, ''), 420)}` : '\nPDF digitalizado (imagem): o texto não está disponível para a SINDI; consulte o documento.'}`; }).join('\n\n')}
-`);
+`;
 }
 
-// 6. Artigos e notícias
-{
-  const artigos = consulta(`${base} WHERE source = 'sindeprestem' AND json_extract(meta,'$.section') = 'artigo' AND url LIKE '%/post/%' AND published_at IS NOT NULL ORDER BY published_at DESC`);
-  const noticias = consulta(`${base} WHERE source = 'sindeprestem' AND json_extract(meta,'$.section') = 'noticia' AND url LIKE '%/post/%' AND published_at IS NOT NULL ORDER BY published_at DESC LIMIT 40`);
+/** Artigos do presidente e notícias mais recentes. */
+function artigosENoticias({ db, cabecalho }: Contexto): string {
+  const artigos = documentosDaSecao(db, 'artigo', SO_POSTS, 'published_at DESC');
+  const noticias = documentosDaSecao(db, 'noticia', SO_POSTS, 'published_at DESC', 40);
   const lead = (c: string) => compacto(sem(c, new RegExp(`Por ${PRESIDENTE}[^\\n]*`, 'g')), 330);
-  gravar('artigos-e-noticias.md', cabecalho('Artigos do presidente e notícias do SINDEPRESTEM', `${SITE}/artigos`, ['artigo', 'artigos', 'vander morales', 'presidente', 'opinião', 'notícia', 'notícias', 'novidades', 'posicionamento', '6x1', 'escala', 'reforma', 'clt', 'nr-1', 'pec do emprego', 'jornada', 'custo brasil', 'inclusão'], 2) +
+  return cabecalho('Artigos do presidente e notícias do SINDEPRESTEM', `${SITE}/artigos`, ['artigo', 'artigos', 'vander morales', 'presidente', 'opinião', 'notícia', 'notícias', 'novidades', 'posicionamento', '6x1', 'escala', 'reforma', 'clt', 'nr-1', 'pec do emprego', 'jornada', 'custo brasil', 'inclusão'], 2) +
 `## Artigos assinados pelo presidente (${artigos.length})
 Artigos de ${PRESIDENTE}, presidente do SINDEPRESTEM, com "análises e reflexões sobre os principais temas em evidência no setor" ([página Artigos](${SITE}/artigos)). Indicam o posicionamento do sindicato sobre cada tema.
 
@@ -178,14 +192,14 @@ ${artigos.map(a => `- **${a.title.replace(/^Artigo\s*[-–]\s*/i, '')}** (${data
 ${noticias.map(n => `- **${n.title}** (${data(n.published_at)}) [ler](${n.url})`).join('\n')}
 
 Todas as notícias desde 2020 estão em [${SITE}/noticias](${SITE}/noticias).
-`);
+`;
 }
 
-// 7. Fontes de dados
-{
+/** De onde vêm os dados e com que frequência são atualizados. */
+function fontesDeDados({ db, cabecalho }: Contexto): string {
   const contagens = new Map((db.prepare('SELECT source, COUNT(*) AS n, MAX(fetched_at) AS ultima FROM documents GROUP BY source').all() as { source: string; n: number; ultima: string }[]).map(r => [r.source, r]));
   const linha = (id: string, nome: string, descricao: string, cadencia: string) => `- **${nome}** (${contagens.get(id)?.n ?? 0} documentos; última coleta ${data(contagens.get(id)?.ultima ?? null)}): ${descricao} Atualização: ${cadencia}.`;
-  gravar('fontes-de-dados.md', cabecalho('Fontes de dados que alimentam a SINDI', `${SITE}`, ['fontes', 'dados', 'indicadores', 'selic', 'ipca', 'desemprego', 'caged', 'ibge', 'tst', 'câmara', 'senado', 'constituição', 'regimento', 'ministério do trabalho', 'wec', 'painel', 'de onde vêm', 'atualização', 'coleta'], 1) +
+  return cabecalho('Fontes de dados que alimentam a SINDI', `${SITE}`, ['fontes', 'dados', 'indicadores', 'selic', 'ipca', 'desemprego', 'caged', 'ibge', 'tst', 'câmara', 'senado', 'constituição', 'regimento', 'ministério do trabalho', 'wec', 'painel', 'de onde vêm', 'atualização', 'coleta'], 1) +
 `## De onde vêm as informações
 A SINDI coleta dados públicos de fontes oficiais e os guarda neste computador, sem enviar conversas a terceiros. O [Painel](/painel) mostra indicadores e novidades; o chat usa os textos coletados e cita a fonte.
 
@@ -205,7 +219,20 @@ ${linha('regimentos', 'Regimentos', 'Regimento Interno da Câmara, do Senado e R
 - Os indicadores mensais (IPCA, PNAD, CAGED) só mudam quando o órgão divulga um novo mês.
 - O saldo do CAGED é o do arquivo mensal de movimentações, sem ajustes posteriores.
 - A SINDI não determina a vigência jurídica de normas nem a situação atual de projetos: indica o link oficial para conferir.
-`);
+`;
 }
-  return arquivos;
+
+/** Gera todos os arquivos autogerados em memória: { "institucional.md": "...", ... }. */
+export function gerarArquivos(db: Db, hoje = new Date().toISOString().slice(0, 10)): Record<string, string> {
+  const contexto = contextoDe(db, hoje);
+  const gravar = (texto: string) => texto.trimEnd() + String.fromCharCode(10);
+  return {
+    'institucional.md': gravar(institucional(contexto)),
+    'contribuicoes.md': gravar(contribuicoes(contexto)),
+    'convencoes.md': gravar(convencoes(contexto)),
+    'juridico.md': gravar(juridico(contexto)),
+    'cartilhas.md': gravar(cartilhas(contexto)),
+    'artigos-e-noticias.md': gravar(artigosENoticias(contexto)),
+    'fontes-de-dados.md': gravar(fontesDeDados(contexto)),
+  };
 }

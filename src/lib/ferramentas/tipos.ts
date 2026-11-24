@@ -3,7 +3,7 @@ import type { Conector } from '@/lib/cerebro/conectores';
 import type { Pagina } from '@/lib/paginas';
 
 /** O que o chat entrega à ferramenta: a pergunta já está dentro dos limites de tamanho e livre de dados pessoais (a redação roda antes do modelo; a ferramenta lê a original só para reconhecer o pedido). */
-export type ContextoDaFerramenta = { idioma: string; conector?: Conector };
+export type ContextoDaFerramenta = { conector?: Conector };
 /** O resultado vira uma fonte para o modelo: ele apresenta os números com palavras próprias, e a verificação de fatos confere que cada valor citado está em `passagem.content`. */
 export type ResultadoDaFerramenta = {
   passagem: Pick<Passagem, 'url' | 'title' | 'content'>;

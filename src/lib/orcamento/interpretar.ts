@@ -49,34 +49,31 @@ export function linkFerramenta(i: Interpretacao) {
   const postos = i.postos.map(p => `${p.funcaoId}:${p.quantidade}:${p.turno}`).join(',');
   return `/orcamento?postos=${encodeURIComponent(postos)}${i.metrosQuadrados ? `&m2=${i.metrosQuadrados}` : ''}`;
 }
-const moeda = (v: number, en = false) => brl(v, en ? 'en-US' : 'pt-BR');
-const nomeTurno = (t: string, en: boolean) => (t === 'noturno' ? (en ? 'night' : 'noturno') : (en ? 'day' : 'diurno'));
+const nomeTurno = (t: string) => (t === 'noturno' ? 'noturno' : 'diurno');
 
 /**
  * Resposta do chat a um pedido de orçamento: cálculo determinístico com a tabela de referência e o link da ferramenta com os postos
  * preenchidos (onde se baixam os PDFs). Sem função reconhecida, apresenta a ferramenta.
  */
-export function orcamentoAnswer(pergunta: string, language: string): string | undefined {
+export function orcamentoAnswer(pergunta: string): string | undefined {
   if (/redij|escrev|reescrev|traduz|draft|write|translate/.test(norm(pergunta))) return undefined;
   if (!PEDIDO_ORCAMENTO.test(pergunta)) return undefined;
-  const en = language === 'en'; const interpretado = interpretarPostos(pergunta);
+  const interpretado = interpretarPostos(pergunta);
   const explicito = /or[cç]amento|cota[cç][aã]o|estimativa|budget|quote/i.test(pergunta);
   if (!interpretado) {
     return explicito && /terceiriz|funcion[aá]rio|mao de obra|m[aã]o de obra|posto|auxiliar|limpeza|portaria|zelador/i.test(pergunta)
-      ? (en ? 'I can estimate the monthly cost of outsourced staff. Tell me the positions, for example "3 cleaning assistants day and 3 night", or open the [budget tool](/orcamento) to choose positions and download the PDF.'
-        : 'Posso estimar o custo mensal de mão de obra terceirizada. Diga os postos, por exemplo "3 auxiliares de limpeza diurno e 3 noturno", ou abra a [ferramenta de orçamento](/orcamento) para escolher os postos e baixar o PDF.') : undefined;
+      ? ('Posso estimar o custo mensal de mão de obra terceirizada. Diga os postos, por exemplo "3 auxiliares de limpeza diurno e 3 noturno", ou abra a [ferramenta de orçamento](/orcamento) para escolher os postos e baixar o PDF.') : undefined;
   }
   const r = calcularOrcamento({ postos: interpretado.postos as PostoEntrada[], metrosQuadrados: interpretado.metrosQuadrados });
   if (!r.postos.length) return undefined;
-  const linhas = r.postos.map(p => `- ${p.quantidade}× ${p.funcao.nome} (${nomeTurno(p.entrada.turno, en)}): **${moeda(p.valorMensal, en)}**/${en ? 'month' : 'mês'} (${moeda(p.valorPorFuncionario, en)} ${en ? 'each' : 'por funcionário'})`);
-  const area = r.precoPorMetro !== null ? ` · ${moeda(r.precoPorMetro, en)}/m²` : '';
+  const linhas = r.postos.map(p => `- ${p.quantidade}× ${p.funcao.nome} (${nomeTurno(p.entrada.turno)}): **${brl(p.valorMensal)}**/mês (${brl(p.valorPorFuncionario)} por funcionário)`);
+  const area = r.precoPorMetro !== null ? ` · ${brl(r.precoPorMetro)}/m²` : '';
   return [
-    en ? `Estimated monthly cost for ${r.funcionarios} employee(s): **${moeda(r.valorContrato, en)}** (${moeda(r.valorAnual, en)} in 12 months)${area}.` : `Estimativa mensal para ${r.funcionarios} funcionário(s): **${moeda(r.valorContrato)}** (${moeda(r.valorAnual)} em 12 meses)${area}.`,
+    `Estimativa mensal para ${r.funcionarios} funcionário(s): **${brl(r.valorContrato)}** (${brl(r.valorAnual)} em 12 meses)${area}.`,
     linhas.join('\n'),
-    en ? `Includes salaries, ${(r.taxaEncargos * 100).toFixed(2)}% payroll charges, benefits, uniforms, PPE, taxes, overhead and margin, based on a reference price table.`
-      : `Inclui salários, ${(r.taxaEncargos * 100).toLocaleString('pt-BR', { maximumFractionDigits: 2 })}% de encargos, benefícios, uniformes, EPIs, tributos, BDI e lucro, com base em tabela de referência de custos.`,
-    en ? `[Open the budget tool to adjust positions and download the PDF quote and cost report](${linkFerramenta(interpretado)}).` : `[Abra a ferramenta para ajustar os postos e baixar o orçamento e o relatório de custo em PDF](${linkFerramenta(interpretado)}).`,
-    ...(interpretado.ajustados?.length ? [en ? `Note: the reference table has no night shift for ${interpretado.ajustados.join(', ')}; I used the day shift.` : `Observação: a tabela de referência não prevê turno noturno para ${interpretado.ajustados.join(', ')}; considerei o turno diurno.`] : []),
-    en ? 'This is an estimate, not a commercial proposal; confirm the applicable collective agreement.' : 'É uma estimativa, não uma proposta comercial; confirme a convenção coletiva aplicável à categoria.',
+    `Inclui salários, ${(r.taxaEncargos * 100).toLocaleString('pt-BR', { maximumFractionDigits: 2 })}% de encargos, benefícios, uniformes, EPIs, tributos, BDI e lucro, com base em tabela de referência de custos.`,
+    `[Abra a ferramenta para ajustar os postos e baixar o orçamento e o relatório de custo em PDF](${linkFerramenta(interpretado)}).`,
+    ...(interpretado.ajustados?.length ? [`Observação: a tabela de referência não prevê turno noturno para ${interpretado.ajustados.join(', ')}; considerei o turno diurno.`] : []),
+    'É uma estimativa, não uma proposta comercial; confirme a convenção coletiva aplicável à categoria.',
   ].join('\n\n');
 }

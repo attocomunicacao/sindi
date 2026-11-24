@@ -43,26 +43,26 @@ test('executarFerramentas: a primeira que reconhece o pedido responde, com a mar
     fake('b', async pergunta => { chamadas.push('b'); return pergunta.includes('cnpj') ? { passagem: { url: '/cnpj', title: 'Consulta de CNPJ', content: 'Razão social: Acme' }, orientacao: 'Cite só os dados da fonte.' } : undefined; }),
     fake('c', () => { chamadas.push('c'); return { passagem: { url: '/c', title: 'C', content: 'c' }, orientacao: 'c' }; }),
   ];
-  const resposta = await executarFerramentas('consulte o cnpj 00.000.000/0001-91', { idioma: 'pt' }, ferramentas);
+  const resposta = await executarFerramentas('consulte o cnpj 00.000.000/0001-91', {}, ferramentas);
   assert.deepEqual(chamadas, ['a', 'b'], 'a seguinte não é chamada depois de uma resposta');
   assert.equal(resposta.length, 1); assert.equal(resposta[0].title, 'Consulta de CNPJ'); assert.equal(resposta[0].pinned, true);
   assert.deepEqual(resposta[0].ferramenta, { id: 'b', orientacao: 'Cite só os dados da fonte.' }); assert.match(resposta[0].fetchedAt, /^\d{4}-\d{2}-\d{2}T/);
-  assert.deepEqual(await executarFerramentas('bom dia', { idioma: 'pt' }, [ferramentas[0], ferramentas[1]]), []);
-  assert.deepEqual(await executarFerramentas('qualquer coisa', { idioma: 'pt' }, [{ id: 'sem-chat', testes: [] }]), []);
+  assert.deepEqual(await executarFerramentas('bom dia', {}, [ferramentas[0], ferramentas[1]]), []);
+  assert.deepEqual(await executarFerramentas('qualquer coisa', {}, [{ id: 'sem-chat', testes: [] }]), []);
 });
 
 test('executarFerramentas: uma ferramenta que lança erro não derruba o chat, e a seguinte ainda é consultada', async () => {
   const aviso = console.warn; const avisos: unknown[][] = []; console.warn = (...a: unknown[]) => { avisos.push(a); };
   try {
     const ferramentas = [fake('quebrada', () => { throw new Error('serviço fora do ar'); }), fake('boa', () => ({ passagem: { url: '/b', title: 'B', content: 'ok' }, orientacao: 'o' }))];
-    const resposta = await executarFerramentas('pergunta', { idioma: 'pt' }, ferramentas);
+    const resposta = await executarFerramentas('pergunta', {}, ferramentas);
     assert.equal(resposta[0]?.ferramenta?.id, 'boa'); assert.equal(avisos.length, 1);
     assert.deepEqual(avisos[0][1], { ferramenta: 'quebrada' }, 'o aviso traz só o id da ferramenta, nunca a pergunta nem o erro');
   } finally { console.warn = aviso; }
 });
 
 test('o orçamento é a ferramenta do chat para pedidos de orçamento e ignora as outras perguntas', async () => {
-  const resposta = await executarFerramentas('Preciso de um orçamento para 3 auxiliares de limpeza diurno', { idioma: 'pt' });
+  const resposta = await executarFerramentas('Preciso de um orçamento para 3 auxiliares de limpeza diurno', {});
   assert.equal(resposta[0]?.ferramenta?.id, 'orcamento'); assert.match(resposta[0].url, /^\/orcamento/);
-  assert.deepEqual(await executarFerramentas('Qual o telefone do sindicato?', { idioma: 'pt' }), []);
+  assert.deepEqual(await executarFerramentas('Qual o telefone do sindicato?', {}), []);
 });

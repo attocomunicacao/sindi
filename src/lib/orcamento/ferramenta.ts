@@ -9,8 +9,8 @@ export const ORIENTACAO_DO_ORCAMENTO = 'Apresente o resultado com os números ex
  * Cálculo do orçamento de terceirização (uma conta sobre a tabela de referência) como trecho para o modelo: ele apresenta o resultado com palavras próprias,
  * e a verificação de fatos confere que cada valor citado está no cálculo. A referência leva à ferramenta, com os postos já preenchidos.
  */
-export function calculoDoOrcamento(question: string, language: string): Pick<Passagem, 'url' | 'title' | 'content'> | undefined {
-  const texto = orcamentoAnswer(question, language); if (!texto) return undefined;
+export function calculoDoOrcamento(question: string): Pick<Passagem, 'url' | 'title' | 'content'> | undefined {
+  const texto = orcamentoAnswer(question); if (!texto) return undefined;
   const ferramenta = texto.match(/\]\((\/orcamento[^)]*)\)/)?.[1] ?? '/orcamento';
   return { url: ferramenta, title: 'Ferramenta de orçamento de terceirização', content: texto.replace(/\[([^\]]+)\]\([^)]*\)/g, '$1') };
 }
@@ -21,8 +21,8 @@ export const ferramentaOrcamento: Ferramenta = {
   api: ['/api/orcamento/calcular', '/api/orcamento/catalogo', '/api/orcamento/pdf'],
   testes: ['tests/lib/orcamento/orcamento.test.ts', 'tests/app/orcamento-rotas.test.ts'],
   chat: {
-    executar(pergunta, { idioma }) {
-      const passagem = calculoDoOrcamento(pergunta, idioma);
+    executar(pergunta) {
+      const passagem = calculoDoOrcamento(pergunta);
       return passagem ? { passagem, orientacao: ORIENTACAO_DO_ORCAMENTO } : undefined;
     },
   },

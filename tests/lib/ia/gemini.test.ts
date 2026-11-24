@@ -1,6 +1,16 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { gerarTextoGemini, LlmError, mensagemDeLimite, montarCorpo } from '@/lib/ia/gemini';
+import { chaveConfigurada, gerarNoGemini, LlmError, mensagemDeLimite, montarCorpo } from '@/lib/ia/gemini';
+import { entrarNaVez, sairDaVez } from '@/lib/ia/vez';
+import type { Mensagem } from '@/lib/base/tipos';
+import type { OpcoesDeGeracao } from '@/lib/ia/tipos';
+
+/** Chamada direta ao Gemini com a fila (sem cascata): o que o provedor faz por baixo da cascata, só para testar o provedor isolado. */
+async function gerarTextoGemini(messages: Mensagem[], signal: AbortSignal, onDelta?: (text: string) => void, opcoes?: OpcoesDeGeracao, modelo?: string) {
+  if (!chaveConfigurada()) throw new LlmError('O serviço de IA ainda não foi configurado (GEMINI_API_KEY).', 503, 'configuracao');
+  await entrarNaVez(signal);
+  try { return await gerarNoGemini(messages, signal, onDelta, opcoes, modelo); } finally { sairDaVez(); }
+}
 
 const sse = (...pedacos: object[]) => pedacos.map(p => `data: ${JSON.stringify(p)}\n\n`).join('');
 const corrente = (partes: Uint8Array[]) => new Response(new ReadableStream({ start(c) { partes.forEach(p => c.enqueue(p)); c.close(); } }), { headers: { 'content-type': 'text/event-stream' } });

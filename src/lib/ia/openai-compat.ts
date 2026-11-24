@@ -1,4 +1,4 @@
-import { contagem, esperaDoCabecalho, inteiro, LlmError, NOME_DE_MODELO, type Nivel, type OpcoesDeGeracao, type Provedor, type Resultado } from '@/lib/ia/tipos';
+import { contagem, esperaDoCabecalho, LlmError, NOME_DE_MODELO, tempoLimiteMs, type Nivel, type OpcoesDeGeracao, type Provedor, type Resultado } from '@/lib/ia/tipos';
 import type { Mensagem } from '@/lib/base/tipos';
 import { lerSse } from '@/lib/ia/sse';
 
@@ -6,7 +6,7 @@ import { lerSse } from '@/lib/ia/sse';
  * Um adaptador para todos os provedores que seguem a API de chat da OpenAI (`POST {base}/chat/completions`, SSE com `data: [DONE]`): Groq, OpenRouter,
  * Mistral, Cloudflare Workers AI e o Ollama local. Cada um muda só a configuração abaixo. Sem SDK: `fetch`, como o Gemini.
  */
-export type ConfigCompat = {
+type ConfigCompat = {
   id: string;
   /** Endereço base (sem `/chat/completions`). `undefined` = provedor não configurado. */
   base: () => string | undefined;
@@ -41,7 +41,7 @@ function erroHttp(status: number, espera: number | undefined) {
   return new LlmError('Provedor indisponível.', 502, 'indisponivel');
 }
 
-export async function gerarCompat(cfg: ConfigCompat, mensagens: Mensagem[], signal: AbortSignal, onDelta: ((t: string) => void) | undefined, opcoes: OpcoesDeGeracao, nivel: Nivel): Promise<Resultado> {
+async function gerarCompat(cfg: ConfigCompat, mensagens: Mensagem[], signal: AbortSignal, onDelta: ((t: string) => void) | undefined, opcoes: OpcoesDeGeracao, nivel: Nivel): Promise<Resultado> {
   const base = cfg.base(); const chave = cfg.chave();
   if (!base || (!cfg.local && !chave)) throw new LlmError('Provedor não configurado.', 503, 'configuracao');
   const modelo = cfg.modelos(nivel);
@@ -56,7 +56,7 @@ export async function gerarCompat(cfg: ConfigCompat, mensagens: Mensagem[], sign
     ...(streaming && cfg.usoNoFluxo ? { stream_options: { include_usage: true } } : {}),
     ...cfg.extras?.(modelo),
   };
-  const sinal = AbortSignal.any([signal, AbortSignal.timeout(cfg.tempoMs?.() ?? inteiro(process.env.SINDI_TIMEOUT_MS, 45000, 1, 240000))]);
+  const sinal = AbortSignal.any([signal, AbortSignal.timeout(cfg.tempoMs?.() ?? tempoLimiteMs())]);
   let response: Response;
   try {
     response = await fetch(`${base.replace(/\/+$/, '')}/chat/completions`, {

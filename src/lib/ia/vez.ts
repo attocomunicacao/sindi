@@ -7,7 +7,7 @@ import { inteiro, LlmError } from '@/lib/ia/tipos';
 let ativos = 0; const fila: (() => void)[] = [];
 const limiteSimultaneo = () => inteiro(process.env.SINDI_CONCORRENCIA, 4, 1, 16);
 const limiteDaFila = () => inteiro(process.env.SINDI_FILA_MAX, 40, 1, 500);
-export const MENSAGEM_DE_FILA = 'Há muitas conversas acontecendo agora. Tente novamente em instantes.';
+const MENSAGEM_DE_FILA = 'Há muitas conversas acontecendo agora. Tente novamente em instantes.';
 
 export async function entrarNaVez(signal: AbortSignal) {
   signal.throwIfAborted();

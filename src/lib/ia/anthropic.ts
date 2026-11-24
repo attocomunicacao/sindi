@@ -1,6 +1,6 @@
 import Anthropic from '@anthropic-ai/sdk';
 import type { Mensagem } from '@/lib/base/tipos';
-import { contagem, LlmError, type Nivel, type OpcoesDeGeracao, type Provedor, type Resultado } from '@/lib/ia/tipos';
+import { contagem, env, LlmError, type Nivel, type OpcoesDeGeracao, type Provedor, type Resultado } from '@/lib/ia/tipos';
 
 /**
  * Claude (Anthropic), pela SDK oficial. **Pago e desligado por padrão**: só entra na cascata com `ANTHROPIC_API_KEY` no servidor, o que só deve acontecer
@@ -9,8 +9,7 @@ import { contagem, LlmError, type Nivel, type OpcoesDeGeracao, type Provedor, ty
  * - `ANTHROPIC_MODEL` (padrão `claude-haiku-5-5`) e `ANTHROPIC_MODEL_RAPIDO` (padrão: o mesmo).
  * - Sem raciocínio estendido (chatbot curto: menos latência e custo) e sem novas tentativas da SDK (quem tenta de novo é a cascata, com outro provedor).
  */
-export const MODELO_ANTHROPIC_PADRAO = 'claude-haiku-5-5';
-const env = (nome: string) => process.env[nome]?.trim() || undefined;
+const MODELO_ANTHROPIC_PADRAO = 'claude-haiku-5-5';
 const modelo = (nivel: Nivel) => (nivel === 'rapido' && env('ANTHROPIC_MODEL_RAPIDO')) || env('ANTHROPIC_MODEL') || MODELO_ANTHROPIC_PADRAO;
 
 let cliente: { chave: string; sdk: Anthropic } | undefined;
@@ -31,7 +30,7 @@ function traduzir(falha: unknown): unknown {
   return falha;
 }
 
-export async function gerarNaAnthropic(mensagens: Mensagem[], signal: AbortSignal, onDelta: ((t: string) => void) | undefined, opcoes: OpcoesDeGeracao, nivel: Nivel): Promise<Resultado> {
+async function gerarNaAnthropic(mensagens: Mensagem[], signal: AbortSignal, onDelta: ((t: string) => void) | undefined, opcoes: OpcoesDeGeracao, nivel: Nivel): Promise<Resultado> {
   const sistema = mensagens.filter(m => m.role === 'system').map(m => m.content).join('\n\n');
   const conversa = mensagens.filter((m): m is Mensagem & { role: 'user' | 'assistant' } => m.role !== 'system');
   // Regras e exemplos vêm sempre iguais e primeiro: o ponto de cache fica no fim do último exemplo fixo (a mensagem antes da conversa real).

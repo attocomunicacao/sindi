@@ -177,12 +177,12 @@ test('position questions list the president\'s articles and news on the topic, i
     upsertDocument(db, { source: 'sindeprestem', url: `${SITE}/post/escala`, title: 'Artigo - Fim da escala 6x1', content: 'Ninguém é contra trabalhar menos, mas o método importa. Por Vander Morales', publishedAt: '2026-06-01T12:00:00.000Z', meta: { section: 'artigo' } });
     upsertDocument(db, { source: 'sindeprestem', url: `${SITE}/post/curso`, title: 'Curso sobre jornada', content: 'Curso presencial sobre jornada e controle de ponto.', publishedAt: '2026-05-01T12:00:00.000Z', meta: { section: 'noticia' } });
     db.close();
-    const passagens = trechosDePosicionamento('Qual o posicionamento do sindicato sobre a escala 6x1?', 'pt', arquivo).passages;
+    const passagens = trechosDePosicionamento('Qual o posicionamento do sindicato sobre a escala 6x1?', arquivo).passages;
     const resposta = passagens.map(p => `${p.title} ${p.content}`).join(' ');
     assert.match(resposta, /Fim da escala 6x1/); assert.match(resposta, /Ninguém é contra trabalhar menos/); assert.doesNotMatch(resposta, /Curso sobre jornada/); assert.doesNotMatch(resposta, /Por Vander Morales/);
     assert.match(passagens[0].url, /post\/escala/);
-    assert.match(trechosDePosicionamento('Qual a opinião do sindicato sobre criptomoedas?', 'pt', arquivo).semResposta ?? '', /Não encontrei artigos ou notícias/);
-    assert.deepEqual(trechosDePosicionamento('Qual o telefone do sindicato?', 'pt', arquivo), { passages: [] });
+    assert.match(trechosDePosicionamento('Qual a opinião do sindicato sobre criptomoedas?', arquivo).semResposta ?? '', /Não encontrei artigos ou notícias/);
+    assert.deepEqual(trechosDePosicionamento('Qual o telefone do sindicato?', arquivo), { passages: [] });
   } finally { rmSync(diretorio, { recursive: true, force: true }); }
 });
 

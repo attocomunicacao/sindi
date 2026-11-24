@@ -1,6 +1,6 @@
-import { DatabaseSync } from 'node:sqlite';
-import { existsSync } from 'node:fs';
-import { dbPath } from '@/lib/dados/db';
+import { dataBR, mesAno } from '@/lib/base/formato';
+import { PRESIDENTE, RODAPE_INSTITUCIONAL } from '@/lib/base/constantes';
+import { comBancoSomenteLeitura, consultaPorPrefixos, dbPath } from '@/lib/dados/db';
 import { fraseDoIndicador } from '@/lib/dados/frase-do-indicador';
 import { normalizar, numeroDaNR, trechosRelevantes } from '@/lib/base/texto';
 import { lerPainel } from '@/lib/dados/painel';
@@ -53,16 +53,12 @@ const frequencias = new Map<string, { peso: number; ate: number }>();
  */
 export function pesosDosTermos(termos: string[], arquivo = dbPath()): number[] {
   const agora = Date.now(); const faltam = termos.filter(t => (frequencias.get(`${arquivo}|${radical(t)}`)?.ate ?? 0) < agora);
-  if (faltam.length && existsSync(arquivo)) {
-    try {
-      const db = new DatabaseSync(arquivo, { readOnly: true });
-      try {
-        const total = (db.prepare('SELECT count(*) AS n FROM documents').get() as { n: number }).n || 1;
-        const contar = db.prepare('SELECT count(*) AS n FROM documents_fts WHERE documents_fts MATCH ?');
-        for (const t of faltam) frequencias.set(`${arquivo}|${radical(t)}`, { peso: Math.max(0.3, Math.log(total / ((contar.get(`"${radical(t)}"*`) as { n: number }).n + 1))), ate: agora + 3600e3 });
-      } finally { db.close(); }
-    } catch { /* sem o banco, todos os termos pesam o mesmo */ }
-  }
+  // Sem o banco, todos os termos pesam o mesmo.
+  if (faltam.length) comBancoSomenteLeitura(arquivo, db => {
+    const total = (db.prepare('SELECT count(*) AS n FROM documents').get() as { n: number }).n || 1;
+    const contar = db.prepare('SELECT count(*) AS n FROM documents_fts WHERE documents_fts MATCH ?');
+    for (const t of faltam) frequencias.set(`${arquivo}|${radical(t)}`, { peso: Math.max(0.3, Math.log(total / ((contar.get(consultaPorPrefixos([radical(t)])) as { n: number }).n + 1))), ate: agora + 3600e3 });
+  }, undefined);
   return termos.map(t => frequencias.get(`${arquivo}|${radical(t)}`)?.peso ?? 1);
 }
 /** Peso a partir do qual um termo distingue o assunto (aparece em menos de um terço dos documentos). */
@@ -70,8 +66,9 @@ const PESO_DISTINTIVO = 1.2;
 
 const ROTULO: Record<string, string> = { noticias: 'Notícia publicada pelo SINDEPRESTEM', artigos: 'Artigo do presidente do SINDEPRESTEM', cartilhas: 'Cartilha do SINDEPRESTEM', juridico: 'Documento jurídico publicado pelo SINDEPRESTEM',
   proposicoes: 'Projeto em tramitação no Congresso', 'noticias-setor': 'Notícia do setor', orientacoes: 'Orientação do Ministério do Trabalho e Emprego', institucional: 'Página institucional do SINDEPRESTEM' };
-const dataBr = (iso: string | null) => iso ? new Date(iso).toLocaleDateString('pt-BR', { timeZone: 'America/Sao_Paulo' }) : undefined;
-const limpar = (texto: string) => texto.replace(/Rodapé institucional[\s\S]*$/, '').replace(/^Por Vander Morales[^\n]*$/gm, '').replace(/[ \t]+/g, ' ').trim();
+const dataBr = (iso: string | null) => iso ? dataBR(iso) : undefined;
+const ASSINATURA_DO_PRESIDENTE = new RegExp(`^Por ${PRESIDENTE}[^\\n]*$`, 'gm');
+const limparParaTrecho = (texto: string) => texto.replace(RODAPE_INSTITUCIONAL, '').replace(ASSINATURA_DO_PRESIDENTE, '').replace(/[ \t]+/g, ' ').trim();
 type Linha = { title: string; url: string; content: string; published_at: string | null; fetched_at: string; rank: number };
 
 /** `antigos: false` dispensa textos com mais de três anos (quando o conhecimento escrito pela equipe já responde, notícia antiga só acrescenta ruído). */
@@ -81,11 +78,9 @@ export function pesquisarNaBiblioteca(pergunta: string, estantes: string[], { li
   // "NR-1" não sobrevive como termo (duas letras e um número): vira uma expressão obrigatória no índice e no texto.
   const nr = numeroDaNR(pergunta); const citaNr = nr === undefined ? undefined : new RegExp(`\\bnr[- ]?0?${nr}\\b`);
   const alvos = ESTANTES.filter(e => estantes.includes(e.id) && e.onde);
-  if ((!termos.length && nr === undefined) || !alvos.length || !existsSync(arquivo)) return [];
-  let db: DatabaseSync;
-  try { db = new DatabaseSync(arquivo, { readOnly: true }); } catch { return []; }
-  try {
-    const porTermos = termos.map(t => `"${radical(t)}"*`).join(' OR '); const porNr = nr === undefined ? '' : `("nr ${nr}" OR "nr 0${nr}")`;
+  if ((!termos.length && nr === undefined) || !alvos.length) return [];
+  return comBancoSomenteLeitura(arquivo, db => {
+    const porTermos = consultaPorPrefixos(termos.map(radical)); const porNr = nr === undefined ? '' : `("nr ${nr}" OR "nr 0${nr}")`;
     const consulta = porNr && porTermos ? `${porNr} AND (${porTermos})` : porNr || porTermos;
     const pesos = pesosDosTermos(termos, arquivo);
     // Um documento trata do assunto quando um termo distintivo da pergunta está no título. Palavras da pergunta espalhadas pelo corpo de uma notícia sobre
@@ -123,15 +118,14 @@ export function pesquisarNaBiblioteca(pergunta: string, estantes: string[], { li
       if (vistos.has(normalizar(titulo))) continue; vistos.add(normalizar(titulo));
       const data = dataBr(c.published_at);
       escolhidos.push({ url: c.url.split('#')[0], title: titulo, fetchedAt: c.fetched_at, pinned: true,
-        content: `${ROTULO[c.estante] ?? 'Documento da biblioteca'}${data ? ` em ${data}` : ''}. ${trechosRelevantes(limpar(c.content), [...termos.map(radical), ...(nr === undefined ? [] : [`nr-${nr}`, `nr ${nr}`])], 650, 320).replace(/\s+/g, ' ')}` });
+        content: `${ROTULO[c.estante] ?? 'Documento da biblioteca'}${data ? ` em ${data}` : ''}. ${trechosRelevantes(limparParaTrecho(c.content), [...termos.map(radical), ...(nr === undefined ? [] : [`nr-${nr}`, `nr ${nr}`])], 650, 320).replace(/\s+/g, ' ')}` });
       if (escolhidos.length === limite) break;
     }
     return escolhidos;
-  } catch { return []; } finally { db.close(); }
+  }, [] as Passagem[]);
 }
 
 const numero = (valor: number, unidade: string) => valor.toLocaleString('pt-BR', /%/.test(unidade) ? { minimumFractionDigits: 2, maximumFractionDigits: 2 } : { maximumFractionDigits: 0 });
-const mesBr = (periodo: string) => { const m = periodo.match(/^(\d{4})-?(\d{2})/); return m ? `${m[2]}/${m[1]}` : periodo; };
 /**
  * Material de um relatório setorial (SINDI Relatórios): os indicadores oficiais mais recentes, as últimas publicações do SINDEPRESTEM e os projetos em tramitação
  * com movimentação recente, cada bloco com a data de referência. O modelo redige o resumo; os números vêm todos daqui, com a fonte.
@@ -148,7 +142,7 @@ export function materialDoRelatorio(pergunta: string, arquivo = dbPath()): Passa
   if (/12 meses|mes a mes|evolucao|compar|historico|ultimos meses/.test(q)) {
     const id = /servico/.test(q) ? 'caged.saldo-servicos' : /temporari/.test(q) ? 'caged.saldo-temporario' : /sao paulo|\bsp\b|estado/.test(q) ? 'caged.saldo-sp' : 'caged.saldo';
     const serie = (painel.series[id] ?? []).slice(-12); const rotulo = painel.indicators.find(i => i.id === id)?.label ?? 'Saldo do Novo CAGED';
-    if (serie.length > 1) blocos.push({ url: '/painel', title: `${rotulo}, mês a mês`, fetchedAt: painel.updatedAt ?? agora, pinned: true, content: serie.map(s => `${mesBr(s.period)}: ${s.value < 0 ? 'fechou' : 'abriu'} ${numero(Math.abs(s.value), 'vagas')} vagas`).join('; ') + `. A coleta guarda ${serie.length} meses desta série; não há dados de meses anteriores.` });
+    if (serie.length > 1) blocos.push({ url: '/painel', title: `${rotulo}, mês a mês`, fetchedAt: painel.updatedAt ?? agora, pinned: true, content: serie.map(s => `${mesAno(s.period)}: ${s.value < 0 ? 'fechou' : 'abriu'} ${numero(Math.abs(s.value), 'vagas')} vagas`).join('; ') + `. A coleta guarda ${serie.length} meses desta série; não há dados de meses anteriores.` });
   }
   if (painel.sindicato.noticias.length) blocos.push({ url: 'https://www.sindeprestem.com.br/noticias', title: 'Publicações recentes do SINDEPRESTEM', fetchedAt: agora, pinned: true,
     content: [...painel.sindicato.artigos.slice(0, 1), ...painel.sindicato.noticias.slice(0, 4)].map(n => `- ${dataBr(n.publishedAt) ?? 's/d'}: ${n.title.replace(/\s+/g, ' ').slice(0, 130)}`).join('\n') });

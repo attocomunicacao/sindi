@@ -1,4 +1,5 @@
 import { createHash } from 'node:crypto';
+import { dataBR } from '@/lib/base/formato';
 import tabela from '@/lib/orcamento/tabela.json';
 import { AJUSTES_TABELA } from '@/lib/orcamento/catalogo';
 import { HORAS_NOTURNAS_PADRAO, type OrcamentoEntrada, type PostoCalculado, type Resultado } from '@/lib/orcamento/calculo';
@@ -6,7 +7,7 @@ import { COR, Documento, moeda, numero, percentual } from '@/lib/pdf/base';
 
 export type Cliente = { empresa?: string; contato?: string; local?: string; observacoes?: string };
 
-const dataBr = () => new Date().toLocaleDateString('pt-BR', { timeZone: 'America/Sao_Paulo' });
+const dataBr = () => dataBR(new Date());
 /** Código curto e determinístico do orçamento (mesmos dados, mesmo código); não é gravado em lugar nenhum. */
 export function referencia(entrada: OrcamentoEntrada, cliente: Cliente) {
   return createHash('sha256').update(JSON.stringify({ entrada, cliente })).digest('hex').slice(0, 6).toUpperCase();

@@ -6,8 +6,8 @@ const ROTULO_DA_FONTE: Record<string, string> = { bcb: 'Banco Central', ibge: 'I
  * Um indicador como frase completa, com o sentido do número já dito ("abriu", "fechou", "subiu", "caiu"). Um modelo pequeno copia bem uma frase, mas erra ao
  * interpretar sinal e variação: aqui a conta e a comparação são feitas pelo código, e o modelo só escolhe e redige.
  */
-export function fraseDoIndicador(i: PainelIndicator, locale = 'pt-BR'): string {
-  const numero = (valor: number) => numeroDoIndicador(Math.abs(valor), i.unit, locale);
+export function fraseDoIndicador(i: PainelIndicator): string {
+  const numero = (valor: number) => numeroDoIndicador(Math.abs(valor), i.unit, 'pt-BR');
   const fonte = ROTULO_DA_FONTE[i.source] ?? i.source.toUpperCase();
   if (/vagas/.test(i.unit)) {
     // O dado mais recente vem primeiro e rotulado: medido, até o modelo de 3B respondeu com o número do mês anterior quando os dois vinham na mesma oração.

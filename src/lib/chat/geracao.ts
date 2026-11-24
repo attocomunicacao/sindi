@@ -1,11 +1,10 @@
 import { gerarTexto } from '@/lib/ia/cascata';
-import type { Nivel } from '@/lib/ia/tipos';
-import type { Mensagem } from '@/lib/base/tipos';
-import type { Passagem } from '@/lib/base/tipos';
+import type { Nivel, Uso } from '@/lib/ia/tipos';
+import type { Mensagem, Passagem } from '@/lib/base/tipos';
 import { notaDaSituacao, type Situacao } from '@/lib/chat/notas';
 import { trechoDeContato } from '@/lib/recuperacao/fontes';
 import { verificarFatos } from '@/lib/seguranca/verificar-fatos';
-import { ateAUltimaFrase, limparResposta, somar, type Uso } from '@/lib/chat/prompt';
+import { ateAUltimaFrase, limparResposta, somar } from '@/lib/chat/prompt';
 
 export type Tentativa = { nota: string; fontes: Passagem[] };
 /**
@@ -21,7 +20,7 @@ export function tentativasDeResposta(situacao: Situacao | undefined, choices: Pa
 }
 const fatosDas = (fontes: Passagem[]) => fontes.map(p => `${p.title} ${p.content}`).join(' ');
 
-export type OpcoesDaEscrita = {
+type OpcoesDaEscrita = {
   base: Mensagem[]; tentativas: Tentativa[];
   pedido: (nota: string, fontes: Passagem[]) => { texto: string; palavras: number };
   /** O pedido da primeira tentativa, já montado (a chave da memória de respostas depende dele). */

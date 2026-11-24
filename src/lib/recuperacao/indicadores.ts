@@ -1,6 +1,7 @@
 import { existsSync } from 'node:fs';
 import type { PassagemFixa } from '@/lib/base/tipos';
 import { normalizar } from '@/lib/base/texto';
+import { mesAno } from '@/lib/base/formato';
 import { dbPath } from '@/lib/dados/db';
 import { PEDIDO_DE_REDACAO } from '@/lib/recuperacao/intencao';
 import { fraseDoIndicador } from '@/lib/dados/frase-do-indicador';
@@ -22,7 +23,7 @@ function recorteDoCaged(q: string, ids: string[]): string[] {
  * Números oficiais mais recentes que a pergunta menciona, entregues ao modelo como trechos (um por indicador, com a fonte); a SINDI explica o número
  * com palavras próprias em vez de devolver uma ficha pronta. Perguntas de definição ("O que é o CAGED?") não trazem números: vão ao glossário do cérebro.
  */
-export function trechosDeIndicadores(question: string, language: string, file = dbPath()): PassagemFixa[] {
+export function trechosDeIndicadores(question: string, file = dbPath()): PassagemFixa[] {
   const q = normalizar(question);
   if (PEDIDO_DE_REDACAO.test(q)) return [];
   if (/^(o que (e|significa|quer dizer)|what (is|does)|para que serve|defina|qual (e )?o significado)/.test(q.trim()) && /\b(caged|pnad|pms|ipca|selic)\b/.test(q)) return [];
@@ -32,9 +33,8 @@ export function trechosDeIndicadores(question: string, language: string, file = 
   const emSp = /sao paulo|paulista|\bsp\b/.test(q); const serieSp = emSp && /temporari/.test(q) ? 'caged.saldo-temporario-sp' : emSp && /servic/.test(q) ? 'caged.saldo-servicos-sp' : undefined;
   if (serieSp && ids.some(id => id.startsWith('caged.'))) {
     const painel = lerPainel(file); const serie = painel.series[serieSp] ?? []; const base = painel.indicators.find(i => i.id === serieSp.replace(/-sp$/, ''));
-    const mes = (p: string) => p.replace(/^(\d{4})-?(\d{2}).*$/, '$2/$1');
     if (serie.length && base) return [{ url: base.url, title: `${base.label} — Estado de São Paulo`, fetchedAt: base.fetchedAt, pinned: true as const,
-      content: fraseDoIndicador({ ...base, label: `${base.label} — Estado de São Paulo`, value: serie.at(-1)!.value, period: mes(serie.at(-1)!.period), previous: serie.at(-2)?.value ?? null }, language === 'en' ? 'en-US' : 'pt-BR') }];
+      content: fraseDoIndicador({ ...base, label: `${base.label} — Estado de São Paulo`, value: serie.at(-1)!.value, period: mesAno(serie.at(-1)!.period), previous: serie.at(-2)?.value ?? null }) }];
   }
-  return lerPainel(file).indicators.filter(i => ids.includes(i.id)).map(i => ({ url: i.url, title: i.label, fetchedAt: i.fetchedAt, pinned: true as const, content: fraseDoIndicador(i, language === 'en' ? 'en-US' : 'pt-BR') }));
+  return lerPainel(file).indicators.filter(i => ids.includes(i.id)).map(i => ({ url: i.url, title: i.label, fetchedAt: i.fetchedAt, pinned: true as const, content: fraseDoIndicador(i) }));
 }

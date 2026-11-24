@@ -18,7 +18,6 @@ export { LlmError } from '@/lib/ia/tipos';
 
 /** O nível rápido só é usado quando foi pedido explicitamente (no Gemini, era assim: só com `GEMINI_MODEL_RAPIDO`). */
 export const rapidoLigado = () => Boolean(process.env.GEMINI_MODEL_RAPIDO) || process.env.SINDI_NIVEL_RAPIDO === '1';
-export const iaConfigurada = () => provedoresAtivos().length > 0;
 
 export async function gerarTexto(
   messages: Mensagem[], signal: AbortSignal, onDelta?: (text: string) => void, opcoes: OpcoesDeGeracao = {}, nivel: Nivel = 'principal', onReset?: () => void,

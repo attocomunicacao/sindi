@@ -1,8 +1,8 @@
 // Datas do painel no horário de São Paulo; valor ausente vira travessão.
-const FUSO = 'America/Sao_Paulo';
+import { dataBR, dataEHoraBR } from '@/lib/base/formato';
 
-export const dataCurta = (valor?: string | null) => valor ? new Date(valor).toLocaleDateString('pt-BR', { timeZone: FUSO }) : '—';
-export const dataEHora = (valor?: string | null) => valor ? new Date(valor).toLocaleString('pt-BR', { timeZone: FUSO, dateStyle: 'short', timeStyle: 'short' }) : '—';
+export const dataCurta = (valor?: string | null) => valor ? dataBR(valor) : '—';
+export const dataEHora = (valor?: string | null) => valor ? dataEHoraBR(valor) : '—';
 
 /** Nome por extenso de cada fonte de dados coletada. */
 export const NOMES_DAS_FONTES: Record<string, string> = {

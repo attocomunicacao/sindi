@@ -29,9 +29,9 @@ export type OpcoesTabela = { zebra?: boolean; negrito?: Set<number>; destaque?: 
 /** Construtor de documentos A4 com quebra de página, cabeçalho de tabela repetido e rodapé numerado. */
 export class Documento {
   pdf!: PDFDocument; normal!: PDFFont; negrito!: PDFFont; pagina!: PDFPage; y = 0; paginas: PDFPage[] = [];
-  constructor(private titulo: string, private rodape: string) {}
+  constructor(private rodape: string) {}
   static async criar(titulo: string, rodape: string) {
-    const doc = new Documento(titulo, rodape);
+    const doc = new Documento(rodape);
     doc.pdf = await PDFDocument.create();
     doc.pdf.setTitle(titulo); doc.pdf.setCreator('SINDI'); doc.pdf.setProducer('SINDI'); doc.pdf.setCreationDate(new Date());
     doc.normal = await doc.pdf.embedFont(StandardFonts.Helvetica); doc.negrito = await doc.pdf.embedFont(StandardFonts.HelveticaBold);

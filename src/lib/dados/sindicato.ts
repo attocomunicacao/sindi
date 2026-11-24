@@ -4,7 +4,6 @@ import type { AnyNode, Element } from 'domhandler';
 
 /** Seções do site do SINDEPRESTEM, na ordem em que a SINDI as apresenta. */
 export type Section = 'institucional' | 'juridico' | 'convencao' | 'cartilha' | 'contribuicao' | 'contato' | 'noticia' | 'artigo' | 'outro';
-export const SECTION_NAMES: Record<Section, string> = { institucional: 'Institucional', juridico: 'Jurídico', convencao: 'Convenções coletivas', cartilha: 'Cartilhas', contribuicao: 'Contribuições e filiação', contato: 'Contato', noticia: 'Notícias', artigo: 'Artigos', outro: 'Outros' };
 
 const PAGE_SECTIONS: Record<string, Section> = {
   '/institucional-do-sindeprestem-sindicat': 'institucional', '/conecta': 'institucional', '/juridico': 'juridico', '/convencoes-coletivas': 'convencao',

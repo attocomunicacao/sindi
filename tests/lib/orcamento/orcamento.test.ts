@@ -119,12 +119,12 @@ test('the chat understands staffing requests, inherits the role for "3 noturno" 
   assert.equal(interpretarPostos('quanto custa contratar dois zeladores e um porteiro noturno para 800 m²')?.metrosQuadrados, 800);
   assert.equal(interpretarPostos('O que é terceirização?'), undefined);
   assert.equal(interpretarPostos('convenção coletiva da portaria 2025')?.postos[0].quantidade === 202, false);
-  const resposta = orcamentoAnswer('Preciso de um orçamento para 3 auxiliares de limpeza diurno e 3 noturno', 'pt') || '';
+  const resposta = orcamentoAnswer('Preciso de um orçamento para 3 auxiliares de limpeza diurno e 3 noturno') || '';
   assert.match(resposta, /R\$\s?30\.756,86/); assert.match(resposta, /\/orcamento\?postos=auxiliar-de-limpeza%3A3%3Adiurno/);
-  assert.equal(orcamentoAnswer('Quais são as 10 convenções de portaria?', 'pt'), undefined);
-  assert.equal(orcamentoAnswer('Qual o valor da mensalidade de associação?', 'pt'), undefined);
-  assert.match(orcamentoAnswer('Quero um orçamento de terceirização de limpeza', 'pt') || '', /ferramenta de orçamento/);
-  assert.match(orcamentoAnswer('quanto custa 1 jardineiro noturno?', 'pt') || '', /não prevê turno noturno para Jardineiro/);
+  assert.equal(orcamentoAnswer('Quais são as 10 convenções de portaria?'), undefined);
+  assert.equal(orcamentoAnswer('Qual o valor da mensalidade de associação?'), undefined);
+  assert.match(orcamentoAnswer('Quero um orçamento de terceirização de limpeza') || '', /ferramenta de orçamento/);
+  assert.match(orcamentoAnswer('quanto custa 1 jardineiro noturno?') || '', /não prevê turno noturno para Jardineiro/);
   assert.equal(linkFerramenta({ postos: [{ funcaoId: 'zelador', quantidade: 2, turno: 'diurno' }], metrosQuadrados: 500 }), '/orcamento?postos=zelador%3A2%3Adiurno&m2=500');
 });
 test('PDFs are generated with accents and unsupported characters, with a stable reference code and no page overflow', async () => {

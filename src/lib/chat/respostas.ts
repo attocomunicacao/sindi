@@ -8,7 +8,7 @@ export function chaveDaGeracao({ mensagens, situacao, modelo, base, texto }: { m
 }
 
 /** Ou há uma resposta pronta (`texto`), ou esta requisição vai gerar e deve chamar `concluir` ao terminar (com o texto, ou sem ele se falhar). */
-export type Reuso = { texto: string } | { concluir?: (texto?: string) => void };
+type Reuso = { texto: string } | { concluir?: (texto?: string) => void };
 /**
  * Resposta que esta requisição não precisa gerar: a já guardada na memória ou a que outra pessoa está gerando agora para a mesma pergunta (espera o resultado dela em
  * vez de gastar outra requisição do limite gratuito). Se ninguém gera, registra esta requisição como a que gera. Verificar e registrar acontecem no mesmo passo,

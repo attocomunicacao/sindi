@@ -1,5 +1,14 @@
 // Formatação pt-BR compartilhada. Sem imports de Node: também é usada por componentes do navegador.
 
+/** Fuso de todas as datas que a SINDI mostra e de todos os dias que ela conta (cota, uso). */
+export const FUSO = 'America/Sao_Paulo';
+/** Data no fuso de São Paulo ("24/11/2026"). */
+export const dataBR = (valor: string | number | Date) => new Date(valor).toLocaleDateString('pt-BR', { timeZone: FUSO });
+/** Data e hora curtas no fuso de São Paulo ("24/11/2026 14:30"). */
+export const dataEHoraBR = (valor: string | number | Date) => new Date(valor).toLocaleString('pt-BR', { timeZone: FUSO, dateStyle: 'short', timeStyle: 'short' });
+/** Período "2026-03" (ou "202603", ou "2026-03-01") como "03/2026"; o que não tem esse formato fica como veio. */
+export const mesAno = (periodo: string) => periodo.replace(/^(\d{4})-?(\d{2}).*$/, '$2/$1');
+
 /** "R$ 1.234,56". */
 export const brl = (v: number, locale = 'pt-BR') => v.toLocaleString(locale, { style: 'currency', currency: 'BRL' });
 

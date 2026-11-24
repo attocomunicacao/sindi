@@ -51,8 +51,4 @@ export function registrarFalha(id: string, erro: LlmError, agora = Date.now()) {
   const segundos = erro.tipo === 'limite' ? Math.min(erro.esperaSegundos ?? 600, 86_400) : erro.tipo === 'configuracao' ? 3600 : 60;
   e.foraAte = agora + Math.max(1, segundos) * 1000; e.motivo = erro.tipo;
 }
-/** Para a tela de uso e o relatório funcional: só estado agregado (sem conteúdo). */
-export function saudeDosProvedores(agora = Date.now()) {
-  return [...estados.entries()].map(([id, e]) => ({ id, disponivel: e.foraAte <= agora, motivo: e.foraAte > agora ? e.motivo : undefined, pedidosHoje: e.dia.usados }));
-}
 export function reiniciarSaude() { estados.clear(); }

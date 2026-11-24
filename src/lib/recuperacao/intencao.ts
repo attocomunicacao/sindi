@@ -21,8 +21,10 @@ export const PERGUNTA_DE_ATUACAO = /(sindeprestem|sindicato|fenaserhtt|entidade)
 export const PERGUNTA_DE_CONVENCAO = /convenc|\bccts?\b|aditivo|acordo coletivo|collective (agreement|bargaining)/;
 // Perguntas sobre o conteúdo de uma cláusula seguem para a busca no texto das convenções, não para a lista de documentos.
 const CLAUSULA_RE = /clausula|piso|salario|reajuste|vale|auxilio|jornada|hora extra|adicional|beneficio|ferias|rescis|multa|estabilidade|contribuicao|quanto|valor|prazo|direito|obrigat|pode |posso /;
-/** Pergunta sobre o conteúdo de uma cláusula de convenção coletiva (e não sobre a lista de documentos). `q` já normalizada. */
-// "Como apresentar ao cliente o reajuste da convenção?" pede método, não o texto da cláusula.
+/**
+ * Pergunta sobre o conteúdo de uma cláusula de convenção coletiva (e não sobre a lista de documentos). `q` já normalizada.
+ * "Como apresentar ao cliente o reajuste da convenção?" pede método, não o texto da cláusula.
+ */
 export const perguntaDeClausula = (q: string) => PERGUNTA_DE_CONVENCAO.test(q) && !/artigo|noticia|cliente|apresentar|explicar/.test(q) && CLAUSULA_RE.test(q);
 /** Categorias de convenção que a pergunta pode citar, com o rótulo usado nos metadados dos documentos. */
 export const CATEGORIAS_DE_CONVENCAO: [RegExp, string][] = [[/poupatempo|detran/, 'Poupatempo'], [/portaria|porteir|controle de acesso|controlador de acesso/, 'Portaria'], [/promo[cç]|merchandising/, 'Promoção e merchandising'], [/leiturista|leitura|agua|energia/, 'Leiturista'],

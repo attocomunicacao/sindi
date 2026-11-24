@@ -34,7 +34,7 @@ test('prompt: a orientação vem da ferramenta, da situação, da redação ou d
 });
 
 test('situação: dados sensíveis, saudação e fora do escopo são decididos por regra, antes de qualquer busca', async () => {
-  const situacao = async (...textos: string[]) => (await decidirSituacao({ mensagens: mensagens(...textos), language: 'pt' }));
+  const situacao = async (...textos: string[]) => (await decidirSituacao({ mensagens: mensagens(...textos) }));
   const cpf = await situacao('Meu CPF é 529.982.247-25, pode consultar?'); assert.equal(cpf.situacao, 'dados-sensiveis'); assert.deepEqual(cpf.choices, []);
   const oi = await situacao('Olá'); assert.equal(oi.situacao, 'saudacao'); assert.equal(oi.writing, false);
   const bolo = await situacao('Qual a melhor receita de bolo de cenoura?'); assert.equal(bolo.situacao, 'fora-do-escopo');

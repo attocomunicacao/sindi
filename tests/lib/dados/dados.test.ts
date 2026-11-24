@@ -67,10 +67,10 @@ test('panel, direct indicator answers and workbook come from the stored data', a
   const run = startRun(db, 'camara'); finishRun(db, run, { fetched: 1, changed: 1 });
   const painel = lerPainel(file);
   assert.equal(painel.available, true); assert.equal(painel.indicators[0].value, 13.75); assert.equal(painel.bills[0].title, 'PL 861/2023'); assert.ok(painel.updatedAt);
-  assert.match(trechosDeIndicadores('Qual a taxa Selic hoje?', 'pt', file).map(p => p.content).join(' '), /13,75/);
-  assert.deepEqual(trechosDeIndicadores('Redija um texto sobre a Selic', 'pt', file), []);
-  assert.deepEqual(trechosDeIndicadores('O que é terceirização?', 'pt', file), []);
-  assert.deepEqual(trechosDeIndicadores('O que é a Selic?', 'pt', file), [], 'definição vai ao glossário, não ao número');
+  assert.match(trechosDeIndicadores('Qual a taxa Selic hoje?', file).map(p => p.content).join(' '), /13,75/);
+  assert.deepEqual(trechosDeIndicadores('Redija um texto sobre a Selic', file), []);
+  assert.deepEqual(trechosDeIndicadores('O que é terceirização?', file), []);
+  assert.deepEqual(trechosDeIndicadores('O que é a Selic?', file), [], 'definição vai ao glossário, não ao número');
   const workbookFile = path.join(directory, 'dados.xlsx'); await exportWorkbook(db, workbookFile);
   assert.ok(existsSync(workbookFile));
   const files = unzipSync(readFileSync(workbookFile));

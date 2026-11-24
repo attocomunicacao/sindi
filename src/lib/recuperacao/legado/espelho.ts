@@ -1,4 +1,4 @@
-import { SITE } from '@/lib/base/constantes';
+import { URL_CONTATO } from '@/lib/base/constantes';
 import { readFile } from 'node:fs/promises';
 import path from 'node:path';
 import type { EspelhoDoSite, Passagem } from '@/lib/base/tipos';
@@ -20,7 +20,7 @@ export function buscarNoEspelho(snapshot: EspelhoDoSite, question: string, limit
     const matches = terms.filter(t => text.includes(t) || title.includes(t));
     const noise = /\/noticias\/(page\/|categories\/)/.test(d.url) ? 0.2 : 1;
     const score = noise * matches.length + terms.filter(t => title.includes(t)).length * 2 +
-      (contact && d.url === `${SITE}/contato` ? 8 : 0) + (news && d.publishedAt && index === 0 ? 2 : 0);
+      (contact && d.url === URL_CONTATO ? 8 : 0) + (news && d.publishedAt && index === 0 ? 2 : 0);
     return { url: d.url, title: d.title, content, fetchedAt: d.fetchedAt, score, date: d.publishedAt || '' };
   }));
   candidates.sort((a, b) => news ? b.date.localeCompare(a.date) || b.score - a.score : b.score - a.score);

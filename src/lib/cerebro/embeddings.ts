@@ -4,10 +4,10 @@ import path from 'node:path';
 import { dataDir } from '@/lib/dados/db';
 import { trechosDoCerebro, type TrechoDoCerebro } from '@/lib/cerebro/carregar';
 
-const NOME_DO_MODELO = process.env.GEMINI_EMBED_MODEL || 'gemini-embedding-001';
+const nomeDoModelo = () => process.env.GEMINI_EMBED_MODEL || 'gemini-embedding-001';
 /** Vetores de 768 dimensões (o modelo permite reduzir): índice menor e busca mais rápida. O nome no índice inclui o tamanho, então mudar qualquer um reindexa. */
 const DIMENSOES = 768;
-export const MODELO_EMBEDDING = `${NOME_DO_MODELO}:${DIMENSOES}`;
+const modeloDeEmbedding = () => `${nomeDoModelo()}:${DIMENSOES}`;
 export const arquivoDeVetores = () => path.join(dataDir(), 'cerebro-vetores.json');
 type Indice = { modelo: string; vetores: Record<string, { hash: string; vetor: number[] }> };
 
@@ -26,12 +26,12 @@ const chavesDe = (t: TrechoDoCerebro) => { let c = chaves.get(t); if (!c) { c = 
  */
 export async function embeddings(textos: string[], tipo: 'documento' | 'consulta', tempoMs = 60000): Promise<number[][]> {
   const chave = process.env.GEMINI_API_KEY; if (!chave) throw new Error('GEMINI_API_KEY ausente');
-  if (!/^[a-z0-9][a-z0-9._-]*$/i.test(NOME_DO_MODELO)) throw new Error('GEMINI_EMBED_MODEL inválido');
+  if (!/^[a-z0-9][a-z0-9._-]*$/i.test(nomeDoModelo())) throw new Error('GEMINI_EMBED_MODEL inválido');
   const taskType = tipo === 'documento' ? 'RETRIEVAL_DOCUMENT' : 'RETRIEVAL_QUERY';
-  const corpo = JSON.stringify({ requests: textos.map(texto => ({ model: `models/${NOME_DO_MODELO}`, content: { parts: [{ text: texto }] }, taskType, outputDimensionality: DIMENSOES })) });
+  const corpo = JSON.stringify({ requests: textos.map(texto => ({ model: `models/${nomeDoModelo()}`, content: { parts: [{ text: texto }] }, taskType, outputDimensionality: DIMENSOES })) });
   const tentativas = tipo === 'documento' ? 6 : 1;
   for (let tentativa = 1; ; tentativa++) {
-    const resposta = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${NOME_DO_MODELO}:batchEmbedContents`, { method: 'POST', headers: { 'Content-Type': 'application/json', 'x-goog-api-key': chave }, body: corpo, signal: AbortSignal.timeout(tempoMs), cache: 'no-store' });
+    const resposta = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${nomeDoModelo()}:batchEmbedContents`, { method: 'POST', headers: { 'Content-Type': 'application/json', 'x-goog-api-key': chave }, body: corpo, signal: AbortSignal.timeout(tempoMs), cache: 'no-store' });
     if (resposta.status === 429 && tentativa < tentativas) {
       // O nível gratuito limita por minuto (cada texto do lote conta): espera o tempo que o provedor informa ("Please retry in 29.4s") ou, sem ele, um intervalo crescente.
       const informado = Number(/retry in ([\d.]+)s/i.exec(await resposta.text().catch(() => ''))?.[1]);
@@ -48,10 +48,10 @@ export function cosseno(a: number[], b: number[]) {
   for (let i = 0; i < a.length; i++) { produto += a[i] * b[i]; na += a[i] * a[i]; nb += b[i] * b[i]; }
   return na && nb ? produto / Math.sqrt(na * nb) : 0;
 }
-function lerIndice(): Indice { try { const i = JSON.parse(readFileSync(arquivoDeVetores(), 'utf8')) as Indice; return i.modelo === MODELO_EMBEDDING ? i : { modelo: MODELO_EMBEDDING, vetores: {} }; } catch { return { modelo: MODELO_EMBEDDING, vetores: {} }; } }
+function lerIndice(): Indice { try { const i = JSON.parse(readFileSync(arquivoDeVetores(), 'utf8')) as Indice; return i.modelo === modeloDeEmbedding() ? i : { modelo: modeloDeEmbedding(), vetores: {} }; } catch { return { modelo: modeloDeEmbedding(), vetores: {} }; } }
 let memoria: { mtime: number; indice: Indice } | undefined;
 function indiceEmMemoria(): Indice {
-  try { const arquivo = arquivoDeVetores(); const { mtimeMs } = statSync(arquivo); if (memoria?.mtime === mtimeMs) return memoria.indice; memoria = { mtime: mtimeMs, indice: lerIndice() }; return memoria.indice; } catch { return { modelo: MODELO_EMBEDDING, vetores: {} }; }
+  try { const arquivo = arquivoDeVetores(); const { mtimeMs } = statSync(arquivo); if (memoria?.mtime === mtimeMs) return memoria.indice; memoria = { mtime: mtimeMs, indice: lerIndice() }; return memoria.indice; } catch { return { modelo: modeloDeEmbedding(), vetores: {} }; }
 }
 
 function gravarIndice(indice: Indice) {
@@ -88,7 +88,7 @@ export type Semantico = { trecho: TrechoDoCerebro; similaridade: number };
  */
 const vetores = new Map<string, { em: number; vetor: number[] }>();
 async function vetorDaConsulta(pergunta: string, tempoMs: number) {
-  const chave = createHash('sha256').update(`${MODELO_EMBEDDING}|${pergunta.normalize('NFC').trim().toLowerCase().replace(/\s+/g, ' ')}`).digest('hex');
+  const chave = createHash('sha256').update(`${modeloDeEmbedding()}|${pergunta.normalize('NFC').trim().toLowerCase().replace(/\s+/g, ' ')}`).digest('hex');
   const guardado = vetores.get(chave);
   if (guardado && Date.now() - guardado.em < 6 * 3600_000) { vetores.delete(chave); vetores.set(chave, guardado); return guardado.vetor; }
   const [vetor] = await embeddings([pergunta], 'consulta', tempoMs);
@@ -96,7 +96,6 @@ async function vetorDaConsulta(pergunta: string, tempoMs: number) {
   if (vetores.size > 500) vetores.delete(vetores.keys().next().value!);
   return vetor;
 }
-export function esquecerVetoresDeConsulta() { vetores.clear(); }
 /** Trechos mais parecidos em significado com a pergunta. Sem índice ou sem resposta do provedor, devolve vazio (a busca por palavras continua valendo). */
 export async function buscarSemantico(pergunta: string, limite = 5, trechos: TrechoDoCerebro[] = trechosDoCerebro(), tempoMs = 2500): Promise<Semantico[]> {
   const indice = indiceEmMemoria(); if (!Object.keys(indice.vetores).length) return [];

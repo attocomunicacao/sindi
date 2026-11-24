@@ -6,16 +6,6 @@ export const aliquotasSchema = z.object({ cbs: pct(), ibsUf: pct(), ibsMun: pct(
 export const anoSchema = z.number().int().min(2026).max(2033);
 export const anexoSchema = z.enum(['III', 'IV', 'V']);
 
-export const regimeRegularSchema = z.object({
-  base: z.number().min(0).max(1e12), ano: anoSchema, servicoId: z.string().max(40).optional(), aliquotas: aliquotasSchema.optional(), reducaoPct: pct().optional(),
-});
-export const dasSchema = z.object({
-  anexo: anexoSchema, rbt12: z.number().gt(0).max(4_800_000), folha12: z.number().min(0).max(1e12).optional(), receitaMes: z.number().min(0).max(1e12).optional(), ano: anoSchema.optional(),
-});
-export const simplesCbsIbsSchema = z.object({
-  receita: z.number().min(0).max(1e12), fatorReceita: z.number().min(0).max(1).optional(), pCBSSN: pct(), pIBSSN: pct(), optaRegimeRegular: z.boolean().optional(),
-});
-
 /** Tributação do orçamento: regras atuais (padrão), Reforma Tributária (CBS/IBS) ou Simples Nacional. */
 export const tributacaoSchema = z.discriminatedUnion('modo', [
   z.object({ modo: z.literal('atual') }),

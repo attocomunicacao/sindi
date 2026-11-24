@@ -12,13 +12,13 @@ import { trechosDePosicionamento, trechosDoSindicato } from '@/lib/recuperacao/s
  * indicadores, posição do sindicato em artigos e notícias, e listas de documentos do sindicato. Os trechos vão ao modelo, nunca ao usuário: a SINDI explica, não copia.
  * `semResposta` é o aviso quando o documento pedido não consta da coleta. `lista` indica que há vários documentos curtos (mais trechos cabem na evidência).
  */
-export function trechosDeDocumentos(question: string, terms: string[], language: string, file = dbPath()): TrechosDeDocumentos {
+export function trechosDeDocumentos(question: string, terms: string[], file = dbPath()): TrechosDeDocumentos {
   const q = normalizar(question);
-  const nr = trechosDeNR(question, language, file); if (nr.passages.length || nr.semResposta) return nr;
-  const law = trechosDeLei(question, terms, language, file); if (law.passages.length || law.semResposta) return law;
-  if (perguntaDeClausula(q)) return trechosDeClausula(question, language, file);
-  const indicadores = trechosDeIndicadores(question, language, file); if (indicadores.length) return { passages: indicadores };
-  const posicao = trechosDePosicionamento(question, language, file); if (posicao.passages.length || posicao.semResposta) return posicao;
-  const lista = trechosDoSindicato(question, language, file); if (lista.length) return { passages: lista, lista: true };
+  const nr = trechosDeNR(question, file); if (nr.passages.length || nr.semResposta) return nr;
+  const law = trechosDeLei(question, terms, file); if (law.passages.length || law.semResposta) return law;
+  if (perguntaDeClausula(q)) return trechosDeClausula(question, file);
+  const indicadores = trechosDeIndicadores(question, file); if (indicadores.length) return { passages: indicadores };
+  const posicao = trechosDePosicionamento(question, file); if (posicao.passages.length || posicao.semResposta) return posicao;
+  const lista = trechosDoSindicato(question, file); if (lista.length) return { passages: lista, lista: true };
   return { passages: [] };
 }

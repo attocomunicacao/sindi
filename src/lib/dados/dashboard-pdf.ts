@@ -1,5 +1,6 @@
 import { PDFDocument, StandardFonts, rgb, type PDFFont } from 'pdf-lib';
 import { A4, seguro } from '@/lib/pdf/base';
+import { dataEHoraBR } from '@/lib/base/formato';
 import type { Dashboard, Par } from '@/lib/dados/dashboard';
 
 const INK = rgb(0.176, 0.153, 0.153); const GOLD = rgb(0.922, 0.725, 0.18); const RED = rgb(0.714, 0.075, 0.137); const GREEN = rgb(0.18, 0.49, 0.36);
@@ -23,7 +24,7 @@ export async function dashboardPdf(d: Dashboard): Promise<Uint8Array> {
   page.drawRectangle({ x: M, y: A4.height - 40, width: 28, height: 3, color: GOLD });
   texto('Painel do setor', M, A4.height - 62, 22, { bold: true, color: WHITE });
   texto('SINDEPRESTEM · SINDI · indicadores econômicos e de emprego', M, A4.height - 80, 9, { color: rgb(0.85, 0.82, 0.78) });
-  const atualizado = d.atualizadoEm ? new Date(d.atualizadoEm).toLocaleString('pt-BR', { timeZone: 'America/Sao_Paulo', dateStyle: 'short', timeStyle: 'short' }) : '—';
+  const atualizado = d.atualizadoEm ? dataEHoraBR(d.atualizadoEm) : '—';
   texto(`Atualizado em ${atualizado}`, A4.width - M, A4.height - 62, 9, { color: rgb(0.85, 0.82, 0.78), right: true });
   texto(`Referências: ${d.periodos}`, A4.width - M, A4.height - 76, 8, { color: rgb(0.7, 0.66, 0.62), right: true });
 

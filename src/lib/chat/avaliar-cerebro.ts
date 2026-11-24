@@ -1,13 +1,14 @@
+import { normalizar } from '@/lib/base/texto';
 import { recuperarConhecimento } from '@/lib/recuperacao/recuperar';
 import { casoJuridicoIndividual } from '@/lib/chat/escopo';
 import { escolherFontes } from '@/lib/recuperacao/fontes';
 import { evidenciaSuficiente } from '@/lib/recuperacao/contexto';
 import type { Caso, ResultadoCaso } from '@/lib/cerebro/casos';
 
-const norm = (t: string) => t.normalize('NFD').replace(/\p{Diacritic}/gu, '').replace(/\s+/g, ' ').toLowerCase();
+const norm = (t: string) => normalizar(t).replace(/\s+/g, ' ');
 
 /** Texto que a SINDI entrega ao modelo como fonte para a pergunta (nenhuma resposta pronta existe: o modelo sempre escreve). */
-export async function evidenciaDa(pergunta: string): Promise<{ origem: string; texto: string }> {
+async function evidenciaDa(pergunta: string): Promise<{ origem: string; texto: string }> {
   const conhecimento = await recuperarConhecimento(pergunta);
   const escolhidas = escolherFontes(conhecimento.passages, pergunta, conhecimento.lista ? 8 : 4).slice(0, conhecimento.lista ? 8 : 3);
   const texto = (evidenciaSuficiente(escolhidas, pergunta) ? escolhidas : []).map(p => `${p.title}\n${p.url}\n${p.content}`).join('\n\n');

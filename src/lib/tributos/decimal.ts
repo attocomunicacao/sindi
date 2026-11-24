@@ -26,8 +26,6 @@ export const arred2 = (v: Entrada): Dec => dec(v).toDecimalPlaces(2, MODO);
 export const publicarAliquota = (v: Entrada): Dec => dec(v).toDecimalPlaces(4, MODO);
 /** Alíquota efetiva do Simples na NFS-e (pontos percentuais): 2 casas, HALF_EVEN. */
 export const aliquotaNfse = (v: Entrada): Dec => dec(v).toDecimalPlaces(2, MODO);
-/** Percentual (pontos) para fração: 8,40 -> 0,084. Exato. */
-export const pctParaFracao = (v: Entrada): Dec => dec(v).div(100);
 /** Soma de valores já arredondados (o total fecha com as parcelas exibidas). */
 export const somar = (...v: Entrada[]): Dec => v.reduce<Dec>((a, b) => a.plus(dec(b)), dec(0));
 export const num = (v: Dec): number => v.toNumber();

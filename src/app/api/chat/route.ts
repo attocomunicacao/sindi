@@ -9,7 +9,7 @@ import { lerRequisicaoDoChat } from '@/lib/chat/requisicao';
 import { decidirSituacao } from '@/lib/chat/situacao';
 import { respostaEmFluxo } from '@/lib/chat/stream';
 import { LlmError, MENSAGEM_NEUTRA, rapidoLigado } from '@/lib/ia/cascata';
-import { erroJson } from '@/lib/http/guarda';
+import { erroJson, jsonSemCache } from '@/lib/http/guarda';
 import { redigirDadosSensiveis } from '@/lib/seguranca/redacao';
 import { referenciasDasFontes } from '@/lib/recuperacao/fontes';
 import { registrarUso as registrarUsoReal } from '@/lib/infra/uso';
@@ -17,7 +17,6 @@ import { registrarUso as registrarUsoReal } from '@/lib/infra/uso';
 export const runtime = 'nodejs';
 export const maxDuration = 300;
 const error = erroJson;
-const headers = { 'Cache-Control': 'no-store' };
 
 /**
  * Chat da SINDI. A rota só orquestra; cada etapa mora em src/lib/chat:
@@ -29,7 +28,7 @@ export async function POST(request: Request) {
   const lida = await lerRequisicaoDoChat(request);
   if ('resposta' in lida) return lida.resposta;
   const { mensagens, aquecimento } = lida;
-  const language = 'pt'; const started = Date.now();
+  const started = Date.now();
   const registrarUso: typeof registrarUsoReal = aquecimento ? async () => true : registrarUsoReal;
   const controller = new AbortController();
 
@@ -43,7 +42,7 @@ export async function POST(request: Request) {
       // Dados pessoais e segredos nunca chegam ao modelo: a pergunta e o histórico seguem com o trecho removido.
       const recentes = recentMessages(mensagens).map(message => ({ ...message, content: redigirDadosSensiveis(message.content) }));
       const pergunta = recentes.at(-1)!.content; const historico = historicoParaOModelo(recentes.slice(0, -1));
-      const { situacao, choices, lista, relatorio, conector, anteriores, writing, question } = await decidirSituacao({ mensagens, language });
+      const { situacao, choices, lista, relatorio, conector, anteriores, writing, question } = await decidirSituacao({ mensagens });
 
       // O que muda a cada pergunta custa tokens do limite gratuito (as regras e os exemplos vêm sempre iguais, primeiro): as fontes têm orçamento de caracteres
       // e a resposta tem limite de palavras, definido pelo conector da área.
@@ -62,9 +61,10 @@ export async function POST(request: Request) {
       if ('texto' in reuso) {
         onDelta?.(reuso.texto);
         const metricsRecorded = await registrarUso({ success: true, durationMs: Date.now() - started });
-        return Response.json({ text: reuso.texto, metricsRecorded }, { headers });
+        return jsonSemCache({ text: reuso.texto, metricsRecorded });
       }
       concluirGeracao = reuso.concluir;
+      // A cota é gasta antes de escrever e verificar os fatos: a geração já consome o limite do provedor, mesmo quando a verificação reprova e manda reescrever.
       const gasto = await gastarCota(request, aquecimento);
       if ('resposta' in gasto) return gasto.resposta;
 
@@ -72,12 +72,12 @@ export async function POST(request: Request) {
         base, tentativas, pedido, primeira, nivel, signal, onDelta, onReset, manterColchetes: writing || PEDE_MODELO.test(question), perguntas: [...anteriores, question].join(' '),
       });
       if (!confiavel) { await registrarUso({ success: false, durationMs: Date.now() - started, usage: uso, provedor }); return error('Não foi possível gerar uma resposta confiável. Tente reformular a pergunta.', 502); }
-      const references = !writing && texto.trim() && fontesUsadas.length ? referenciasDasFontes(fontesUsadas, language) : '';
+      const references = !writing && texto.trim() && fontesUsadas.length ? referenciasDasFontes(fontesUsadas) : '';
       if (references) onDelta?.(references);
       const metricsRecorded = await registrarUso({ success: Boolean(texto.trim()), durationMs: Date.now() - started, usage: uso, provedor });
       if (!texto.trim()) return error('Não foi possível gerar uma resposta. Tente novamente.', 502);
       if (chave && fontesUsadas === choices) { guardarResposta(chave, texto + references); concluirGeracao?.(texto + references); }
-      return Response.json({ text: texto + references, metricsRecorded, restantes: gasto.cota?.restantes }, { headers });
+      return jsonSemCache({ text: texto + references, metricsRecorded, restantes: gasto.cota?.restantes });
     } catch (cause) {
       await registrarUso({ success: false, durationMs: Date.now() - started });
       if (cause instanceof LlmError) return error(cause.message, cause.status);

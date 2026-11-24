@@ -1,6 +1,7 @@
 import type { Conector } from '@/lib/cerebro/conectores';
 import { mensagemDoPedido } from '@/lib/cerebro/instrucoes';
 import type { Passagem } from '@/lib/base/tipos';
+import type { Uso } from '@/lib/ia/tipos';
 
 // Orientações ao modelo, limpeza do texto que ele escreve e montagem do pedido de cada pergunta. Sem rede nem estado: tudo aqui é função pura e testável.
 
@@ -14,7 +15,7 @@ export const SEM_FONTES = 'Não há fonte para esta pergunta. Você pode dar ori
 export const LISTA = 'As fontes são só títulos de documentos. Diga em uma ou duas frases de que assuntos eles tratam e avise que os links estão nas referências. Não descreva o conteúdo de nenhum documento.';
 export const SITUACAO = 'Siga a SITUAÇÃO abaixo.';
 // Duas fontes por resposta: a terceira quase nunca traz o fato e, medido com o modelo pequeno, é a que ele mistura com as outras (número de uma fonte atribuído a outra).
-export const MAXIMO_DE_FONTES = Math.min(4, Math.max(1, Number(process.env.SINDI_MAX_FONTES) || 2));
+export const maximoDeFontes = () => Math.min(4, Math.max(1, Number(process.env.SINDI_MAX_FONTES) || 2));
 /** Corta o texto na última frase (ou item de lista) completa, desde que reste a maior parte dele. */
 export function ateAUltimaFrase(texto: string) {
   const fim = Math.max(texto.lastIndexOf('. '), texto.lastIndexOf('.\n'), texto.lastIndexOf('\n'));
@@ -33,10 +34,9 @@ export function limparResposta(texto: string, manterColchetes = true) {
   const limpo = semCampos.replace(/\n+\s*(?:—\s*)?SINDI\s*$/i, '').replace(/^(\s*)(\d+)\.\s+\2\.\s+/gm, '$1$2. ');
   return limpo.replace(/^\s*(?:Segundo|De acordo com|Conforme) as fontes,?\s+(\p{L})/u, (_, letra: string) => letra.toUpperCase()).replace(/^\s*As fontes (?:informam|indicam|mencionam|dizem|mostram|apontam) que\s+(\p{L})/u, (_, letra: string) => letra.toUpperCase()).trim();
 }
-export type Uso = { inputTokens?: number; outputTokens?: number; totalTokens?: number };
 export const somar = (a: Uso | undefined, b: Uso): Uso => ({ inputTokens: (a?.inputTokens ?? 0) + (b.inputTokens ?? 0), outputTokens: (a?.outputTokens ?? 0) + (b.outputTokens ?? 0), totalTokens: (a?.totalTokens ?? 0) + (b.totalTokens ?? 0) });
 
-export type ContextoDoPedido = { writing: boolean; lista: boolean; relatorio: boolean; conector: Conector | undefined; choices: Passagem[]; pergunta: string };
+type ContextoDoPedido = { writing: boolean; lista: boolean; relatorio: boolean; conector: Conector | undefined; choices: Passagem[]; pergunta: string };
 /**
  * Monta o pedido de cada tentativa: a orientação (a da ferramenta, quando a fonte vem de uma; a da situação; a do conector; ou a genérica), o limite de palavras e as
  * fontes com orçamento de caracteres. `choices` são as fontes escolhidas para a pergunta: só para elas valem a orientação do conector e a de lista.

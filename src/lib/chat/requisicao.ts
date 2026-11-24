@@ -10,7 +10,7 @@ export type MensagemDoChat = z.infer<typeof chatSchema>['messages'][number];
  * Aquecimento (scripts/operacao/aquecer.ts): o próprio servidor pergunta as perguntas frequentes para guardar as respostas. Essas chamadas trazem um token
  * gerado a cada publicação e não entram nas métricas públicas de uso nem gastam a cota; sem o token certo, o pedido é tratado como qualquer outro.
  */
-export function ehAquecimento(request: Request) {
+function ehAquecimento(request: Request) {
   const esperado = process.env.SINDI_AQUECIMENTO_TOKEN ?? ''; const recebido = request.headers.get('x-sindi-aquecimento') ?? '';
   return esperado.length >= 32 && recebido.length === esperado.length && timingSafeEqual(Buffer.from(recebido), Buffer.from(esperado));
 }

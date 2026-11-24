@@ -5,20 +5,19 @@
  * - `GEMINI_MODEL`: modelo das respostas com fatos.
  * - `GEMINI_MODEL_RAPIDO`: opcional, para saudação, recusa e encaminhamento. Vazio usa só o principal.
  */
-import { contagem, inteiro, LlmError, NOME_DE_MODELO, type Nivel, type OpcoesDeGeracao, type Provedor, type Resultado } from '@/lib/ia/tipos';
+import { contagem, inteiro, LlmError, NOME_DE_MODELO, tempoLimiteMs, type Nivel, type OpcoesDeGeracao, type Provedor, type Resultado } from '@/lib/ia/tipos';
 import type { Mensagem } from '@/lib/base/tipos';
 import { lerSse } from '@/lib/ia/sse';
-import { entrarNaVez, sairDaVez } from '@/lib/ia/vez';
 
 export { LlmError } from '@/lib/ia/tipos';
-export const MODELO_PADRAO = 'gemini-3.5-flash-lite';
-export const modeloPrincipal = () => process.env.GEMINI_MODEL || MODELO_PADRAO;
-export const modeloRapido = () => process.env.GEMINI_MODEL_RAPIDO ?? '';
+const MODELO_PADRAO = 'gemini-3.5-flash-lite';
+const modeloPrincipal = () => process.env.GEMINI_MODEL || MODELO_PADRAO;
+const modeloRapido = () => process.env.GEMINI_MODEL_RAPIDO ?? '';
 const API = 'https://generativelanguage.googleapis.com/v1beta';
 export const chaveConfigurada = () => Boolean(process.env.GEMINI_API_KEY);
 
 /** Segundos de espera informados pelo Gemini num 429 (`retryDelay`, ex.: "125s"), sem expor o corpo da resposta. */
-export function esperaDoGemini(corpo?: string): number | undefined {
+function esperaDoGemini(corpo?: string): number | undefined {
   try {
     const detalhes = JSON.parse(corpo || '{}').error?.details;
     const atraso = Array.isArray(detalhes) ? detalhes.find(d => typeof d?.retryDelay === 'string')?.retryDelay : undefined;
@@ -76,7 +75,7 @@ export async function gerarNoGemini(messages: Mensagem[], signal: AbortSignal, o
   if (!/^[a-z0-9][a-z0-9._-]*$/i.test(nome) || !NOME_DE_MODELO.test(nome)) throw new LlmError('Nome de modelo inválido.', 503, 'configuracao');
   const streaming = Boolean(onDelta);
   const url = `${API}/models/${nome}:${streaming ? 'streamGenerateContent?alt=sse' : 'generateContent'}`;
-  const sinalDaChamada = AbortSignal.any([signal, AbortSignal.timeout(inteiro(process.env.SINDI_TIMEOUT_MS, 45000, 1, 240000))]);
+  const sinalDaChamada = AbortSignal.any([signal, AbortSignal.timeout(tempoLimiteMs())]);
   const response = await fetch(url, { method: 'POST', headers: { 'Content-Type': 'application/json', 'x-goog-api-key': process.env.GEMINI_API_KEY! }, body: JSON.stringify(montarCorpo(messages, opcoes)), cache: 'no-store', signal: sinalDaChamada });
   if (!response.ok) throw erroHttp(response.status, await response.text().catch(() => ''));
   let content = ''; let finish: string | undefined; let usage: Pedaco['usageMetadata']; let bloqueio: string | undefined;
@@ -106,10 +105,3 @@ export const provedorGemini: Provedor = {
   modelo: (nivel: Nivel) => (nivel === 'rapido' && modeloRapido()) || modeloPrincipal(),
   gerar: (mensagens, signal, onDelta, opcoes, nivel) => gerarNoGemini(mensagens, signal, onDelta, opcoes, provedorGemini.modelo(nivel)),
 };
-
-/** Chamada direta ao Gemini com fila (sem cascata). Mantida para scripts e testes do provedor; o chat usa `gerarTexto` de src/lib/ia/cascata.ts. */
-export async function gerarTextoGemini(messages: Mensagem[], signal: AbortSignal, onDelta?: (text: string) => void, opcoes?: OpcoesDeGeracao, modelo?: string) {
-  if (!chaveConfigurada()) throw new LlmError('O serviço de IA ainda não foi configurado (GEMINI_API_KEY).', 503, 'configuracao');
-  await entrarNaVez(signal);
-  try { return await gerarNoGemini(messages, signal, onDelta, opcoes, modelo); } finally { sairDaVez(); }
-}

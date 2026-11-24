@@ -2,7 +2,6 @@ import { SITE } from '@/lib/base/constantes';
 import { existsSync } from 'node:fs';
 import type { Passagem } from '@/lib/base/tipos';
 import { normalizar, termosDaConsulta } from '@/lib/base/texto';
-import { textoDeContexto, evidenciaSuficiente } from '@/lib/recuperacao/contexto';
 import { espelhoDoSite } from '@/lib/recuperacao/legado/espelho';
 import { executarFerramentas } from '@/lib/ferramentas/registro';
 import { INTENCAO_EXTERNA, PERGUNTA_DE_ATUACAO, pedidoDeAjuda } from '@/lib/recuperacao/intencao';
@@ -17,6 +16,9 @@ import { documentosPeloGrafo } from '@/lib/grafo/consulta';
 import { estantesDaOrquestra, montarOrquestra } from '@/lib/agentes/orquestrador';
 try { process.loadEnvFile('.env.knowledge'); } catch { /* Optional outside the local installation. */ }
 
+/** O que `recuperarConhecimento` devolve: as passagens e, só quando há, o aviso de que o texto pedido não foi coletado, a marca de lista e a de relatório. */
+const resultadoDe = (passages: Passagem[], extras: { semResposta?: string; lista?: boolean; relatorio?: boolean } = {}) =>
+  ({ passages, semResposta: extras.semResposta, lista: extras.lista ?? false, relatorio: extras.relatorio ?? false });
 /** Estantes pesquisadas quando a pergunta não cai em nenhum conector. */
 const ESTANTES_PADRAO = ['artigos', 'noticias', 'cartilhas'];
 /**
@@ -29,22 +31,22 @@ const ESTANTES_PADRAO = ['artigos', 'noticias', 'cartilhas'];
  * 3. Demais perguntas: o cérebro (busca por palavras e por significado) e a pesquisa nas estantes da biblioteca indicadas pelo conector, ordenados pela cobertura
  *    dos termos da pergunta. Tudo é local (arquivos e SQLite), para a resposta não esperar por rede.
  */
-export async function recuperarConhecimento(question: string, language = 'pt', conector: Conector | undefined = escolherConector(question)) {
-  const ferramentas = await executarFerramentas(question, { idioma: language, conector });
-  if (ferramentas.length) return { context: textoDeContexto(ferramentas), sufficient: true, passages: ferramentas, semResposta: undefined, lista: false, relatorio: false };
+export async function recuperarConhecimento(question: string, conector: Conector | undefined = escolherConector(question)) {
+  const ferramentas = await executarFerramentas(question, { conector });
+  if (ferramentas.length) return resultadoDe(ferramentas);
   if (pedeRelatorio(conector, question)) {
     const relatorio = materialDoRelatorio(question);
-    if (relatorio.length) return { context: textoDeContexto(relatorio), sufficient: true, passages: relatorio, semResposta: undefined, lista: false, relatorio: true };
+    if (relatorio.length) return resultadoDe(relatorio, { relatorio: true });
   }
   if (PERGUNTA_DE_ATUACAO.test(normalizar(question))) {
     const atuacao = pesquisarNaBiblioteca(question, ['noticias', 'artigos', 'cartilhas'], { limite: 3 });
-    if (atuacao.length) return { context: textoDeContexto(atuacao), sufficient: true, passages: atuacao, semResposta: undefined, lista: false, relatorio: false };
+    if (atuacao.length) return resultadoDe(atuacao);
   }
-  const documentos = trechosDeDocumentos(question, termosDaConsulta(question), language);
-  if (documentos.passages.length) return { context: textoDeContexto(documentos.passages), sufficient: true, passages: documentos.passages as Passagem[], semResposta: undefined, lista: documentos.lista === true, relatorio: false };
+  const documentos = trechosDeDocumentos(question, termosDaConsulta(question));
+  if (documentos.passages.length) return resultadoDe(documentos.passages as Passagem[], { lista: documentos.lista === true });
   // Contribuição por faixa (capital social ou número de colaboradores citado): só a linha da tabela que se aplica, e os vencimentos.
   const faixas = faixasDeContribuicao(question);
-  if (faixas.length) return { context: textoDeContexto(faixas), sufficient: true, passages: faixas, semResposta: undefined, lista: false, relatorio: false };
+  if (faixas.length) return resultadoDe(faixas);
   const termos = termosDaPesquisa(question); const pesos = pesosDosTermos(termos);
   // A relevância de um trecho do cérebro conta também as "Variações:" da seção (formas de perguntar), que não vão ao modelo.
   const cerebro = (await buscarHibrido(question, 3)).map(({ trecho }) => ({ relevancia: cobertura(termos, `${trecho.titulo} ${trecho.secao} ${trecho.texto}`, pesos), curado: trecho.tipo === 'curado',
@@ -73,5 +75,5 @@ export async function recuperarConhecimento(question: string, language = 'pt', c
   } else if (cerebro.length || existsSync(dbPath())) passages = cerebro.map(c => c.passagem);
   // Sem a coleta local (por exemplo, numa hospedagem sem o banco), vale o espelho do site.
   else passages = await espelhoDoSite(question);
-  return { context: textoDeContexto(passages), sufficient: evidenciaSuficiente(passages, question), passages, semResposta: documentos.semResposta, lista: false, relatorio: false };
+  return resultadoDe(passages, { semResposta: documentos.semResposta });
 }

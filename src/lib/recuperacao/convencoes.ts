@@ -13,8 +13,8 @@ const NL = String.fromCharCode(10);
  * Pergunta sobre o conteúdo de uma cláusula: devolve trechos do texto da convenção mais recente da categoria citada, com link, para o modelo
  * explicar. Sem trecho aplicável, devolve `semResposta`; o modelo não responde valores de convenção de memória.
  */
-export function trechosDeClausula(question: string, language: string, file = dbPath()): TrechosDeDocumentos {
-  const en = language === 'en'; const q = normalizar(question);
+export function trechosDeClausula(question: string, file = dbPath()): TrechosDeDocumentos {
+  const q = normalizar(question);
   const wanted = CATEGORIAS_DE_CONVENCAO.find(([test]) => test.test(q))?.[1]; const anos = [...q.matchAll(/\b(20\d{2})\b/g)].map(m => Number(m[1])); const year = anos.length ? Math.max(...anos) : undefined;
   const terms = [...new Set((q.match(/[a-z0-9]{4,}/g) ?? []).filter(w => !PALAVRAS_VAZIAS_DA_PERGUNTA.has(w) && !/^\d{4}$/.test(w)))].slice(0, 8);
   const phrases = [...new Set(terms.flatMap(t => SYNONYMS[t] ?? []))]; const chaves = terms.filter(t => SYNONYMS[t]);
@@ -28,7 +28,7 @@ export function trechosDeClausula(question: string, language: string, file = dbP
     const pool = docs.filter(d => (!wanted || d.category === wanted) && (!anos.length || anos.includes(d.year ?? 0)) && !/jundia/i.test(d.title));
     const latest = Math.max(0, ...pool.map(d => d.year ?? 0));
     const candidates = pool.filter(d => d.type === 'Convenção coletiva' && (d.year ?? 0) >= (year ?? latest)).sort((a, b) => (b.year ?? 0) - (a.year ?? 0)).slice(0, 2);
-    if (!candidates.length) return { passages: [], semResposta: `${en ? 'I did not find the agreement for that category and year. See' : 'Não encontrei a convenção dessa categoria e ano. Veja'} [${en ? 'Collective documents' : 'Documentos coletivos'}](${SITE}/convencoes-coletivas).` };
+    if (!candidates.length) return { passages: [], semResposta: `Não encontrei a convenção dessa categoria e ano. Veja [Documentos coletivos](${SITE}/convencoes-coletivas).` };
     const passages: PassagemFixa[] = [];
     for (const doc of candidates) {
       const all = doc.content.split(NL); const wins: { score: number; at: number }[] = [];
@@ -47,9 +47,7 @@ export function trechosDeClausula(question: string, language: string, file = dbP
       const excerpts = best.map(w => { const first = all.slice(w.at, w.at + 10).findIndex(l => terms.some(t => normalizar(l).includes(t))); const from = w.at + Math.max(0, first); return all.slice(from, from + 14).join(' ').replace(/\s+/g, ' ').trim().slice(0, 750); });
       if (excerpts.length) passages.push({ url: doc.url, title: doc.title, content: excerpts.join(' […] '), fetchedAt: doc.fetchedAt, pinned: true });
     }
-    if (!passages.length) return { passages: [], semResposta: en
-      ? `I could not confirm this in the collected agreements${cargo.length ? ' (I could not tie it to a category or job title)' : ''}. See [Collective documents](${SITE}/convencoes-coletivas) or contact the SINDEPRESTEM legal sector: (11) 3215-8250.`
-      : `Não consegui confirmar isso nas convenções coletadas${cargo.length ? ' (não identifiquei a categoria ou o cargo)' : ''}. Veja [Documentos coletivos](${SITE}/convencoes-coletivas) ou fale com o Setor Jurídico do SINDEPRESTEM: (11) 3215-8250.` };
+    if (!passages.length) return { passages: [], semResposta: `Não consegui confirmar isso nas convenções coletadas${cargo.length ? ' (não identifiquei a categoria ou o cargo)' : ''}. Veja [Documentos coletivos](${SITE}/convencoes-coletivas) ou fale com o Setor Jurídico do SINDEPRESTEM: (11) 3215-8250.` };
     return { passages };
   } catch { return { passages: [] }; } finally { db.close(); }
 }

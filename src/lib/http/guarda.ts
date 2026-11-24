@@ -11,6 +11,9 @@ import { limitarPorMinuto } from '@/lib/infra/limite-por-minuto';
 export const erroJson = (mensagem: string, status: number, extra: Record<string, unknown> = {}, cabecalhos: Record<string, string> = {}) =>
   Response.json({ error: mensagem, ...extra }, { status, headers: { 'Cache-Control': 'no-store', ...cabecalhos } });
 
+/** Resposta JSON de sucesso que nunca vai para cache (o que a rota devolve é do momento). */
+export const jsonSemCache = (corpo: unknown, status?: number) => Response.json(corpo, { status, headers: { 'Cache-Control': 'no-store' } });
+
 /** A origem do navegador tem de ser a do próprio servidor ou a origem pública configurada (SINDI_PUBLIC_ORIGIN, atrás de um repasse). */
 export function origemPermitida(request: Request) {
   const host = request.headers.get('host') || new URL(request.url).host;

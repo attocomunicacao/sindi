@@ -18,7 +18,7 @@ export type Resultado = { text: string; truncada: boolean; usage: Uso; provedor?
  * - `bloqueio`: o conteúdo foi recusado pela política do provedor — o provedor não fica de castigo (a recusa é do pedido, não dele); a cascata tenta o
  *   próximo, que tem outra política, e, se todos recusarem, pede para reformular a pergunta.
  */
-export type TipoDeFalha = 'limite' | 'configuracao' | 'indisponivel' | 'bloqueio';
+type TipoDeFalha = 'limite' | 'configuracao' | 'indisponivel' | 'bloqueio';
 export class LlmError extends Error {
   constructor(message: string, public status = 503, public tipo: TipoDeFalha = 'indisponivel', public esperaSegundos?: number) { super(message); }
 }
@@ -35,6 +35,10 @@ export type Provedor = {
 };
 
 export const inteiro = (valor: string | undefined, padrao: number, minimo: number, maximo: number) => { const n = Number(valor); return valor && Number.isInteger(n) && n >= minimo && n <= maximo ? n : padrao; };
+/** Variável de ambiente sem espaços nas pontas; vazia vale como ausente. Lida a cada chamada, não na importação. */
+export const env = (nome: string) => process.env[nome]?.trim() || undefined;
+/** Tempo limite de uma chamada ao provedor (`SINDI_TIMEOUT_MS`, 45 s por padrão). */
+export const tempoLimiteMs = () => inteiro(process.env.SINDI_TIMEOUT_MS, 45000, 1, 240000);
 export const contagem = (valor: unknown) => typeof valor === 'number' && Number.isSafeInteger(valor) && valor >= 0 ? valor : undefined;
 /** Nomes de modelo aceitos (letras, números, `.`, `_`, `-`, `/`, `:` e `@`, como `@cf/meta/llama-3.1-8b-instruct` ou `qwen2.5:3b`). */
 export const NOME_DE_MODELO = /^[a-z0-9@][a-z0-9@._:/-]{0,120}$/i;

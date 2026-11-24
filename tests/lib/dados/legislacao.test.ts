@@ -77,13 +77,13 @@ test('law and CAGED answers quote the collected official text', () => {
     upsertDocument(db, { source: 'regimentos', url: 'https://www2.camara.leg.br/ricd.pdf#93', title: 'Regimento Interno da Câmara dos Deputados — Art. 93', content: 'Art. 93. Para iniciar-se a sessão secreta, o Presidente fará sair do recinto as pessoas estranhas.', meta: { regiment: 'ricd' } });
     setIndicator(db, { id: 'caged.saldo', source: 'caged', group: 'Emprego formal', label: 'Saldo de emprego formal — Brasil', value: 165827, unit: 'vagas no mês', period: '08/2026', previous: 58568, url: 'https://www.gov.br/trabalho-e-emprego/pt-br/noticias-e-conteudo' });
     db.close();
-    assert.match(trechosDeLei('O que diz o art. 9º da Constituição?', [], 'pt', file).passages[0]?.content ?? '', /direito de greve/);
-    assert.match(trechosDeLei('art. 93 do regimento da Câmara', [], 'pt', file).passages[0]?.content ?? '', /sessão secreta/);
-    assert.match(trechosDeLei('O que a Constituição diz sobre greve?', ['greve'], 'pt', file).passages[0]?.content ?? '', /Art\. 9º/);
-    assert.match(trechosDeLei('art. 500 da Constituição', [], 'pt', file).semResposta ?? '', /Não encontrei/);
-    assert.deepEqual(trechosDeLei('Redija um texto sobre a Constituição', ['texto'], 'pt', file).passages, []);
-    assert.deepEqual(trechosDeLei('O que é terceirização?', ['terceirizacao'], 'pt', file).passages, []);
-    assert.match(trechosDeIndicadores('Qual o saldo do CAGED?', 'pt', file)[0]?.content ?? '', /165\.827 vagas/);
+    assert.match(trechosDeLei('O que diz o art. 9º da Constituição?', [], file).passages[0]?.content ?? '', /direito de greve/);
+    assert.match(trechosDeLei('art. 93 do regimento da Câmara', [], file).passages[0]?.content ?? '', /sessão secreta/);
+    assert.match(trechosDeLei('O que a Constituição diz sobre greve?', ['greve'], file).passages[0]?.content ?? '', /Art\. 9º/);
+    assert.match(trechosDeLei('art. 500 da Constituição', [], file).semResposta ?? '', /Não encontrei/);
+    assert.deepEqual(trechosDeLei('Redija um texto sobre a Constituição', ['texto'], file).passages, []);
+    assert.deepEqual(trechosDeLei('O que é terceirização?', ['terceirizacao'], file).passages, []);
+    assert.match(trechosDeIndicadores('Qual o saldo do CAGED?', file)[0]?.content ?? '', /165\.827 vagas/);
   } finally { rmSync(directory, { recursive: true, force: true }); }
 });
 
@@ -98,9 +98,9 @@ test('Regulatory norms are quoted from the Ministry portal and never described f
     upsertDocument(db, { source: 'mte', url: 'https://www.gov.br/trabalho-e-emprego/pt-br/x/normas-regulamentadoras-vigentes/nr-1', title: 'Norma Regulamentadora No. 1 (NR-1)', content: 'A NR-1 estabelece disposições gerais sobre segurança e saúde no trabalho.' });
     upsertDocument(db, { source: 'mte', url: 'https://www.gov.br/trabalho-e-emprego/pt-br/x/perguntas-e-respostas-capitulo-1-5-da-nr-1', title: 'Perguntas e respostas', content: 'Texto muito mais longo sobre o capítulo 1.5. '.repeat(50) });
     db.close();
-    assert.match(trechosDeNR('O que é a NR-1?', 'pt', file).passages[0]?.content ?? '', /disposições gerais/);
-    assert.match(trechosDeNR('O que diz a NR-17?', 'pt', file).semResposta ?? '', /não vou descrevê-la de memória/);
-    assert.deepEqual(trechosDeNR('O que é terceirização?', 'pt', file), { passages: [] });
+    assert.match(trechosDeNR('O que é a NR-1?', file).passages[0]?.content ?? '', /disposições gerais/);
+    assert.match(trechosDeNR('O que diz a NR-17?', file).semResposta ?? '', /não vou descrevê-la de memória/);
+    assert.deepEqual(trechosDeNR('O que é terceirização?', file), { passages: [] });
   } finally { rmSync(directory, { recursive: true, force: true }); }
 });
 

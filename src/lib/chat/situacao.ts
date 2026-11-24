@@ -6,16 +6,16 @@ import { evidenciaSuficiente } from '@/lib/recuperacao/contexto';
 import type { Passagem } from '@/lib/base/tipos';
 import { recuperarConhecimento } from '@/lib/recuperacao/recuperar';
 import { escolherConector, type Conector } from '@/lib/cerebro/conectores';
-import { MAXIMO_DE_FONTES, WRITING } from '@/lib/chat/prompt';
+import { maximoDeFontes, WRITING } from '@/lib/chat/prompt';
 
 // Decide, por regras, o que fazer com a pergunta: dados sensíveis, caso jurídico, saudação, fora do escopo ou busca de fontes. Nenhuma resposta é escrita aqui.
 
 type Conhecimento = Awaited<ReturnType<typeof recuperarConhecimento>>;
-async function referenceWithinBudget(question: string, language: string, conector: Conector | undefined): Promise<Pick<Conhecimento, 'passages' | 'semResposta' | 'lista' | 'relatorio'>> {
+async function referenceWithinBudget(question: string, conector: Conector | undefined): Promise<Pick<Conhecimento, 'passages' | 'semResposta' | 'lista' | 'relatorio'>> {
   let timer: ReturnType<typeof setTimeout> | undefined;
   try {
     return await Promise.race([
-      recuperarConhecimento(question, language, conector),
+      recuperarConhecimento(question, conector),
       new Promise<{ passages: Passagem[]; semResposta: undefined; lista: false; relatorio: false }>(resolve => { timer = setTimeout(() => resolve({ passages: [], semResposta: undefined, lista: false, relatorio: false }), 6500); }),
     ]);
   } finally { if (timer) clearTimeout(timer); }
@@ -23,7 +23,7 @@ async function referenceWithinBudget(question: string, language: string, conecto
 const GREETING = /^(olá|ola|oi|hello|hi|bom dia|boa tarde|boa noite)(?:[,!?.\s]+(?:sindi|tudo bem))*[!.?\s]*$/i;
 
 /** A situação (se a pergunta é tratada por regra), as fontes escolhidas e o conector da área. O modelo só escreve depois disto. */
-export async function decidirSituacao({ mensagens, language }: { mensagens: { role: string; content: string }[]; language: string }) {
+export async function decidirSituacao({ mensagens }: { mensagens: { role: string; content: string }[] }) {
   const question = mensagens.at(-1)!.content;
   const writing = WRITING.test(question);
   let situacao: Situacao | undefined; let choices: Passagem[] = []; let lista = false; let relatorio = false;
@@ -43,10 +43,10 @@ export async function decidirSituacao({ mensagens, language }: { mensagens: { ro
     // A busca por significado manda a consulta ao provedor de embeddings: a pergunta atual também sai redigida, sem depender só do detector acima.
     const atual = redigirDadosSensiveis(question);
     const consulta = anteriores.length && atual.trim().split(/\s+/).length <= 6 ? `${anteriores.at(-1)} ${atual}` : atual;
-    const knowledge = await referenceWithinBudget(consulta, language, conector);
+    const knowledge = await referenceWithinBudget(consulta, conector);
     lista = knowledge.lista === true; relatorio = knowledge.relatorio === true;
     // A ordem de relevância vem da busca; aqui só se limpa o texto das fontes escolhidas.
-    const candidates = relatorio ? knowledge.passages : escolherFontes(knowledge.passages.slice(0, lista ? 8 : MAXIMO_DE_FONTES), consulta, 8);
+    const candidates = relatorio ? knowledge.passages : escolherFontes(knowledge.passages.slice(0, lista ? 8 : maximoDeFontes()), consulta, 8);
     // Official pinned pages answer the question on their own; extra news excerpts only add noise.
     choices = evidenciaSuficiente(candidates, consulta) ? (candidates.some(p => p.pinned) ? candidates.filter(p => p.pinned) : candidates) : [];
     // NR, artigo ou cláusula pedidos que não constam dos textos coletados; fato que a base sabidamente não tem (CNPJ, salário de dirigentes); pergunta sem nenhuma fonte

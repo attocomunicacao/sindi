@@ -1,5 +1,6 @@
 // Lógica do grafo sem DOM: tipos, conjuntos visíveis, busca e a simulação de forças (d3-force). O desenho fica em desenho-do-grafo.ts.
 import { forceLink, forceManyBody, forceSimulation, forceX, forceY, type Simulation, type SimulationLinkDatum, type SimulationNodeDatum } from 'd3-force';
+import { dataBR } from '@/lib/base/formato';
 import { LEGENDA, type Aresta, type No, type TipoDeAresta, type TipoDeNo } from '@/lib/grafo/tipos';
 
 export type Modo = 'rede' | 'arquitetura';
@@ -24,7 +25,7 @@ const NOS_DE_GRAFO_GRANDE = 1500;
 export const raioBase = (n: No) => (n.tipo === 'nucleo' ? 14 : Math.min(18, 2.2 + Math.sqrt(n.grau) * (n.tipo === 'documento' ? 0.6 : 1.1)));
 /** Nós centrais (núcleo, conectores, estantes): rótulos mais fortes e sempre à frente na animação. */
 export const ehCentral = (n: No) => n.tipo === 'nucleo' || n.tipo === 'conector' || n.tipo === 'estante';
-export const dataDoGrafo = (iso?: string) => (iso ? new Date(iso).toLocaleDateString('pt-BR', { timeZone: 'America/Sao_Paulo' }) : '');
+export const dataDoGrafo = (iso?: string) => (iso ? dataBR(iso) : '');
 const semAcento = (s: string) => s.toLowerCase().normalize('NFD').replace(/\p{Diacritic}/gu, '');
 
 /** Quem se liga a quem, nos dois sentidos. */

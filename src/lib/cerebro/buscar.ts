@@ -1,15 +1,10 @@
-import { SITE } from '@/lib/base/constantes';
-import type { Passagem } from '@/lib/base/tipos';
 import { normalizar, termosDaConsulta } from '@/lib/base/texto';
 import { trechosDoCerebro, type TrechoDoCerebro } from '@/lib/cerebro/carregar';
+import { buscarSemantico } from '@/lib/cerebro/embeddings';
 
 export type Resultado = { trecho: TrechoDoCerebro; pontos: number };
 const sinal = (texto: string) => normalizar(texto);
 
-/**
- * Busca lexical no cérebro: termos da pergunta no título da seção (peso 4), nos gatilhos do arquivo (3) e no texto (1),
- * multiplicados pela prioridade do arquivo. Só devolve trechos que cobrem boa parte dos termos, para não poluir a resposta.
- */
 /** Palavras normalizadas de um texto, e seus prefixos de 6 letras (casa singular e plural: "contribuicao" e "contribuicoes"). */
 const palavrasDe = (texto: string) => { const palavras = new Set(sinal(texto).match(/[a-z0-9]+/g) ?? []); return { palavras, prefixos: new Set([...palavras].filter(w => w.length >= 6).map(w => w.slice(0, 6))) }; };
 const casa = (indice: ReturnType<typeof palavrasDe>, termo: string) => indice.palavras.has(termo) || (termo.length >= 6 && indice.prefixos.has(termo.slice(0, 6)));
@@ -19,6 +14,10 @@ function indicesDe(trecho: TrechoDoCerebro) {
   if (!i) { i = { titulo: palavrasDe(`${trecho.titulo} ${trecho.secao}`), gatilhos: palavrasDe(trecho.gatilhos.join(' ')), texto: palavrasDe(trecho.texto) }; cacheIndices.set(trecho, i); }
   return i;
 }
+/**
+ * Busca lexical no cérebro: termos da pergunta no título da seção (peso 4), nos gatilhos do arquivo (3) e no texto (1),
+ * multiplicados pela prioridade do arquivo. Só devolve trechos que cobrem boa parte dos termos, para não poluir a resposta.
+ */
 export function buscarNoCerebro(pergunta: string, limite = 2, trechos: TrechoDoCerebro[] = trechosDoCerebro()): Resultado[] {
   const termos = termosDaConsulta(pergunta); if (!termos.length) return [];
   const pontuados: Resultado[] = trechos.map(trecho => {
@@ -32,12 +31,6 @@ export function buscarNoCerebro(pergunta: string, limite = 2, trechos: TrechoDoC
     return { trecho, pontos: cobertura >= 0.5 ? pontos * trecho.prioridade * (0.5 + cobertura / 2) : 0 };
   }).filter(r => r.pontos >= 4);
   return pontuados.sort((a, b) => b.pontos - a.pontos).slice(0, limite);
-}
-/** Trechos no formato de evidência do chat; o link de referência é a fonte oficial do arquivo (ou o site do sindicato). */
-export function passagensDoCerebro(pergunta: string, limite = 2): Passagem[] {
-  return buscarNoCerebro(pergunta, limite).map(({ trecho }) => ({
-    url: trecho.fonte ?? SITE, title: `${trecho.titulo} — ${trecho.secao}`, content: trecho.texto, fetchedAt: trecho.atualizado ?? '', pinned: true,
-  }));
 }
 
 // Para casar perguntas do FAQ, palavras como "sindicato", "empresa" e "ajudar" contam (a busca geral as descarta).
@@ -64,27 +57,19 @@ export function respostaDireta(pergunta: string, trechos: TrechoDoCerebro[] = tr
   return melhor && { texto: melhor.texto, titulo: melhor.trecho.secao, pontos: melhor.pontos };
 }
 
-import { buscarSemantico } from '@/lib/cerebro/embeddings';
 /** O significado pesa mais que as palavras: a busca por palavras erra quando a pergunta usa vocabulário diferente do texto. */
-export const PESO_LEXICAL = Number(process.env.SINDI_PESO_LEXICAL || 1); export const PESO_SEMANTICO = Number(process.env.SINDI_PESO_SEMANTICO || 1);
-export const LIMIAR_SEMANTICO = Number(process.env.SINDI_LIMIAR_SEMANTICO || 0.55);
+// Lidos a cada busca (e não na importação), para que o ambiente definido depois de carregar o módulo valha.
+const pesoLexical = () => Number(process.env.SINDI_PESO_LEXICAL || 1); const pesoSemantico = () => Number(process.env.SINDI_PESO_SEMANTICO || 1);
+const limiarSemantico = () => Number(process.env.SINDI_LIMIAR_SEMANTICO || 0.55);
 /**
  * Busca híbrida: combina a lista por palavras e a lista por significado com "fusão por posição" (RRF), que dispensa comparar pontuações
  * de naturezas diferentes. Só entram pela via semântica trechos com similaridade mínima; sem embeddings, o resultado é o da busca por palavras.
  */
-export async function buscarHibrido(pergunta: string, limite = 2, trechos: TrechoDoCerebro[] = trechosDoCerebro(), limiar = LIMIAR_SEMANTICO): Promise<Resultado[]> {
+export async function buscarHibrido(pergunta: string, limite = 2, trechos: TrechoDoCerebro[] = trechosDoCerebro(), limiar = limiarSemantico()): Promise<Resultado[]> {
   const lexical = buscarNoCerebro(pergunta, 8, trechos);
   const semantico = (await buscarSemantico(pergunta, 8, trechos)).filter(s => s.similaridade >= limiar);
   const pontos = new Map<TrechoDoCerebro, number>(); const K = 60;
-  lexical.forEach((r, i) => pontos.set(r.trecho, (pontos.get(r.trecho) ?? 0) + PESO_LEXICAL / (K + i)));
-  semantico.forEach((s, i) => pontos.set(s.trecho, (pontos.get(s.trecho) ?? 0) + PESO_SEMANTICO / (K + i)));
+  lexical.forEach((r, i) => pontos.set(r.trecho, (pontos.get(r.trecho) ?? 0) + pesoLexical() / (K + i)));
+  semantico.forEach((s, i) => pontos.set(s.trecho, (pontos.get(s.trecho) ?? 0) + pesoSemantico() / (K + i)));
   return [...pontos].map(([trecho, p]) => ({ trecho, pontos: p })).sort((a, b) => b.pontos - a.pontos).slice(0, limite);
-}
-
-/** Versão assíncrona usada pelo chat: busca híbrida com queda para palavras quando o provedor de embeddings não responde a tempo. */
-export async function passagensHibridas(pergunta: string, limite = 2): Promise<Passagem[]> {
-  // A linha "Variações:" serve à busca; para o modelo é só leitura a mais.
-  return (await buscarHibrido(pergunta, limite)).map(({ trecho }) => ({
-    url: trecho.fonte ?? SITE, title: `${trecho.titulo} — ${trecho.secao}`, content: trecho.texto.replace(VARIACOES, '').trim(), fetchedAt: trecho.atualizado ?? '', pinned: true,
-  }));
 }

@@ -7,7 +7,7 @@ import { createHash } from 'node:crypto';
  * `SINDI_CACHE_RESPOSTAS=0` desliga.
  */
 // 24 horas por padrão: as respostas das perguntas frequentes são preparadas a cada publicação (aquecimento) e valem enquanto as fontes não mudarem.
-const horas = Number(process.env.SINDI_CACHE_HORAS); const VALIDADE_MS = (horas > 0 && horas <= 168 ? horas : 24) * 60 * 60 * 1000; const MAXIMO = 500;
+const validadeMs = () => { const horas = Number(process.env.SINDI_CACHE_HORAS); return (horas > 0 && horas <= 168 ? horas : 24) * 60 * 60 * 1000; }; const MAXIMO = 500;
 const respostas = new Map<string, { texto: string; ate: number }>();
 export const cacheLigado = () => process.env.SINDI_CACHE_RESPOSTAS !== '0';
 export const chaveDaResposta = (...partes: string[]) => createHash('sha256').update(partes.join('\u0000')).digest('hex');
@@ -18,7 +18,7 @@ export function respostaGuardada(chave: string, agora = Date.now()): string | un
   respostas.delete(chave); respostas.set(chave, achada); return achada.texto;
 }
 export function guardarResposta(chave: string, texto: string, agora = Date.now()) {
-  respostas.delete(chave); respostas.set(chave, { texto, ate: agora + VALIDADE_MS });
+  respostas.delete(chave); respostas.set(chave, { texto, ate: agora + validadeMs() });
   while (respostas.size > MAXIMO) respostas.delete(respostas.keys().next().value!);
 }
 export function limparRespostasGuardadas() { respostas.clear(); emAndamento.clear(); }

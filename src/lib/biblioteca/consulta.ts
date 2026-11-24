@@ -1,7 +1,8 @@
 import { createHash } from 'node:crypto';
 import { DatabaseSync } from 'node:sqlite';
 import { existsSync } from 'node:fs';
-import { dbPath } from '@/lib/dados/db';
+import { RODAPE_INSTITUCIONAL } from '@/lib/base/constantes';
+import { consultaPorPrefixos, dbPath } from '@/lib/dados/db';
 import { lerPainelEmCache, type PainelIndicator } from '@/lib/dados/painel';
 import { carregarArquivos } from '@/lib/cerebro/carregar';
 import { buscarNoCerebro } from '@/lib/cerebro/buscar';
@@ -10,11 +11,11 @@ import { ESTANTES, estanteDoDocumento, estantePorId, type Estante } from '@/lib/
 export const POR_PAGINA = 24;
 const abrir = () => { try { return existsSync(dbPath()) ? new DatabaseSync(dbPath(), { readOnly: true }) : undefined; } catch { return undefined; } };
 /** Texto de leitura: sem o rodapé do site e com espaços normalizados. */
-export const limpar = (texto: string) => texto.replace(/Rodapé institucional[\s\S]*$/, '').replace(/\s+/g, ' ').trim();
+export const limpar = (texto: string) => texto.replace(RODAPE_INSTITUCIONAL, '').replace(/\s+/g, ' ').trim();
 /** Consulta FTS5 segura: só palavras (sem operadores nem aspas vindos do usuário), por prefixo. */
 export function consultaFts(q: string, operador: 'AND' | 'OR' = 'AND') {
   const termos = (q.normalize('NFD').replace(/\p{Diacritic}/gu, '').toLowerCase().match(/[a-z0-9]{2,}/g) ?? []).slice(0, 8);
-  return termos.length ? termos.map(t => `"${t}"*`).join(` ${operador} `) : undefined;
+  return termos.length ? consultaPorPrefixos(termos, operador) : undefined;
 }
 /** Registra só o tipo do erro (nunca o texto da busca nem o conteúdo): uma falha do banco não pode parecer "nada encontrado" sem deixar rastro. */
 const registrar = (onde: string, erro: unknown) => console.warn(`SINDI biblioteca: falha em ${onde}`, { tipo: erro instanceof Error ? erro.name : 'desconhecido' });
@@ -106,7 +107,7 @@ export function lerDocumento(id: number, ref?: string): Documento | undefined {
     const linha = db.prepare(`SELECT ${COLUNAS}, d.content AS lead FROM documents d WHERE d.rowid = ?`).get(id) as (Linha & { lead: string }) | undefined;
     if (!linha || (ref && ref !== refDoDocumento(linha.url))) return undefined;
     const item = paraItem({ ...linha, lead: linha.lead.slice(0, 700) });
-    return { ...item, texto: linha.lead.replace(/Rodapé institucional[\s\S]*$/, '').replace(/\r/g, '').replace(/[ \t]+/g, ' ').replace(/\n{3,}/g, '\n\n').trim(), tamanho: linha.lead.length, fonteOriginal: linha.url.split('#')[0] };
+    return { ...item, texto: linha.lead.replace(RODAPE_INSTITUCIONAL, '').replace(/\r/g, '').replace(/[ \t]+/g, ' ').replace(/\n{3,}/g, '\n\n').trim(), tamanho: linha.lead.length, fonteOriginal: linha.url.split('#')[0] };
   } catch (erro) { registrar('ler documento', erro); return undefined; } finally { db.close(); }
 }
 

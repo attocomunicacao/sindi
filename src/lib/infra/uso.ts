@@ -1,6 +1,7 @@
 import { mkdir, readFile, writeFile, rename } from 'node:fs/promises';
 import path from 'node:path';
 import { redis, redisConfigurado as shared } from '@/lib/infra/redis';
+import { diaDaCota } from '@/lib/infra/cota';
 
 /** Por provedor da cascata: quantas respostas cada um escreveu e quantos tokens gastou (só agregados, sem conteúdo). */
 export type UsoDoProvedor = { requests: number; successes: number; tokens: number };
@@ -12,7 +13,6 @@ const idDoProvedor = (id?: string) => (id && /^[a-z0-9-]{1,20}$/.test(id) ? id :
 const folder = path.join(process.cwd(), '.data');
 const file = path.join(folder, 'usage.json');
 let queue: Promise<unknown> = Promise.resolve();
-function today() { return new Intl.DateTimeFormat('en-CA', { timeZone: 'America/Sao_Paulo', year: 'numeric', month: '2-digit', day: '2-digit' }).format(new Date()); }
 function empty(date: string): DiaDeUso { return { date, requests: 0, successes: 0, errors: 0, inputTokens: 0, outputTokens: 0, totalTokens: 0, measured: 0, durationMs: 0 }; }
 async function localDays(): Promise<DiaDeUso[]> {
   try { return JSON.parse(await readFile(file, 'utf8')); }
@@ -20,7 +20,7 @@ async function localDays(): Promise<DiaDeUso[]> {
 }
 const script = `for i=1,#ARGV,2 do redis.call('HINCRBY',KEYS[1],ARGV[i],ARGV[i+1]) end; redis.call('EXPIRE',KEYS[1],86400*35); return 1`;
 export async function registrarUso(event: Event): Promise<boolean> {
-  const day = empty(today());
+  const day = empty(diaDaCota());
   day.requests = 1; day.successes = Number(event.success); day.errors = Number(!event.success);
   day.durationMs = Math.round(event.durationMs);
   day.inputTokens = event.usage?.inputTokens ?? 0; day.outputTokens = event.usage?.outputTokens ?? 0;
@@ -65,7 +65,7 @@ export async function obterUso() {
 }
 export function esquecerLeituraDeUso() { leitura = undefined; }
 async function lerUso() {
-  const dates = Array.from({ length: 30 }, (_, i) => { const d = new Date(); d.setUTCDate(d.getUTCDate() - (29 - i)); return new Intl.DateTimeFormat('en-CA', { timeZone: 'America/Sao_Paulo', year: 'numeric', month: '2-digit', day: '2-digit' }).format(d); });
+  const dates = Array.from({ length: 30 }, (_, i) => { const d = new Date(); d.setUTCDate(d.getUTCDate() - (29 - i)); return diaDaCota(d); });
   if (shared()) {
     const result = await Promise.all(dates.map(async date => {
       const raw = await redis(['HGETALL', `sindi:usage:${date}`]);

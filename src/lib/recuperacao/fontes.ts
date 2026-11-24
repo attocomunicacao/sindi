@@ -1,3 +1,4 @@
+import { URL_CONTATO } from '@/lib/base/constantes';
 import type { Passagem } from '@/lib/base/tipos';
 import { normalizar, termosDaConsulta } from '@/lib/base/texto';
 export function limparTrecho(content: string): string {
@@ -12,14 +13,14 @@ export function escolherFontes(passages: Passagem[], question: string, maximo = 
   return passages.map(p => ({ ...p, content: limparTrecho(p.content) })).filter(p => p.content.length > 50)
     .sort((a,b) => Number(Boolean(b.pinned)) - Number(Boolean(a.pinned)) || terms.filter(t => normalizar(b.content).includes(t)).length - terms.filter(t => normalizar(a.content).includes(t)).length).slice(0, maximo);
 }
-export function referenciasDasFontes(choices: Passagem[], language: string): string {
+export function referenciasDasFontes(choices: Passagem[]): string {
   const unique = [...new Map(choices.map(p => [p.url, p])).values()];
   if (!unique.length) return '';
-  return '\n\n' + (language === 'en' ? 'References: ' : 'Referências: ') + unique.map(p => {
-    const title = /\.pdf$/i.test(p.title) ? (language === 'en' ? 'SINDEPRESTEM publication' : 'Publicação do SINDEPRESTEM') : p.title;
+  return '\n\n' + 'Referências: ' + unique.map(p => {
+    const title = /\.pdf$/i.test(p.title) ? 'Publicação do SINDEPRESTEM' : p.title;
     return `[${title.replace(/[\[\]\\]/g, '')}](${p.url})`;
   }).join(' · ');
 }
 /** Contato oficial como fonte (dado, não resposta): o modelo o usa ao encaminhar o usuário, e a referência aponta para a página de contato. */
-export const trechoDeContato = (): Passagem => ({ url: 'https://www.sindeprestem.com.br/contato', title: 'Contato do SINDEPRESTEM', fetchedAt: new Date().toISOString(), pinned: true,
+export const trechoDeContato = (): Passagem => ({ url: URL_CONTATO, title: 'Contato do SINDEPRESTEM', fetchedAt: new Date().toISOString(), pinned: true,
   content: 'Contatos do SINDEPRESTEM: telefone (11) 3215-8250; e-mail sindeprestem@sindeprestem.com.br; Setor Jurídico e Gerência: (11) 3215-8250, juridico@sindeprestem.com.br; comunicação (WhatsApp): (11) 99205-3371. Atendimento de segunda a sexta, das 08:30 às 17:30. Endereço: Av. São Luís, 258, 18º andar, Centro Histórico de São Paulo.' });

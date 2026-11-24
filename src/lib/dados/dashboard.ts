@@ -17,7 +17,7 @@ const KPIS = ['bcb.selic-meta', 'ibge.ipca-12m', 'ibge.desocupacao', 'caged.sald
 const KPI_ROTULOS: Record<string, string> = { 'caged.saldo': 'Saldo de emprego formal' };
 
 const pct = (v: number) => `${numeroComCasas(v, 2)}%`;
-const inteiro = (v: number) => v.toLocaleString('pt-BR', { maximumFractionDigits: 0 });
+const inteiro = (v: number) => numeroComCasas(v, 0);
 const formatar = (i: PainelIndicator, v: number) => ehPercentual(i.unit) ? pct(v) : inteiro(v);
 const sinal = (v: number, texto: string) => `${v > 0 ? '+' : v < 0 ? '−' : ''}${texto}`;
 

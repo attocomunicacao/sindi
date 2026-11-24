@@ -6,6 +6,10 @@ import { dataDir, due, openDb, setState } from '../../src/lib/dados/db';
 import { publicarCerebro } from '../../src/lib/cerebro/publicar';
 import { embeddings, indexarCerebro } from '../../src/lib/cerebro/embeddings';
 import { syncAll } from '../../src/lib/dados/sync';
+import { renameSync, writeFileSync } from 'node:fs';
+import { construirGrafo } from '../../src/lib/grafo/construir';
+import { exportarObsidian } from '../../src/lib/grafo/obsidian';
+import { arquivoDoGrafo } from '../../src/lib/grafo/consulta';
 
 const args = process.argv.slice(2);
 const watch = args.includes('--watch'); const full = args.includes('--full');
@@ -39,6 +43,9 @@ try {
     // Busca por significado: indexa o que mudou no cérebro e mantém o modelo de embeddings carregado (a primeira consulta fria é lenta).
     try { await indexarCerebro(undefined, log); await embeddings(['aquecimento'], 'consulta', 20000); }
     catch (cause) { log(`Cérebro: busca por significado indisponível (${cause instanceof Error ? cause.message : 'desconhecido'}); o chat usa a busca por palavras`); }
+    // Grafo do cérebro (página /cerebro, cofre do Obsidian e expansão da busca do chat): refeito depois de cada coleta, com os documentos novos.
+    try { const g = construirGrafo(); writeFileSync(`${arquivoDoGrafo()}.tmp`, JSON.stringify(g)); renameSync(`${arquivoDoGrafo()}.tmp`, arquivoDoGrafo()); exportarObsidian(g, path.resolve('.data/obsidian/SINDI')); log(`Grafo: ${g.nos.length} nós e ${g.arestas.length} ligações`); }
+    catch (cause) { log(`Grafo: não foi possível gerar (${cause instanceof Error ? cause.message : 'desconhecido'}); o anterior foi mantido`); }
     if (watch && !stopping) await delay(intervalMinutes * 60 * 1000);
   } while (watch && !stopping);
 } finally { await release(); }

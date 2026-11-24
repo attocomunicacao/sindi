@@ -24,6 +24,25 @@ export function premissasDoCalculo(r: Resultado) {
   ];
 }
 const RODAPE = 'Estimativa gerada pela SINDI (SINDEPRESTEM). Não substitui proposta comercial nem a convenção coletiva vigente.';
+/** Bloco "Tributação" dos PDFs quando o orçamento usa a Reforma Tributária ou o Simples Nacional: valores, memória de cálculo e avisos. */
+function blocoTributacao(doc: Documento, r: Resultado, detalhado: boolean) {
+  const t = r.tributacao; if (!t) return;
+  doc.titulo2(`Tributação: ${t.rotulo}`);
+  if (t.nota) {
+    const n = t.nota;
+    doc.tabela([{ titulo: 'Valor mensal', largura: 311 }, { titulo: 'Valor', largura: 200, alinhar: 'direita' }], [
+      ['Valor do serviço (preço por dentro)', moeda(n.valorServico)], [`CBS${n.informativo ? ' (informativa, sem custo)' : ''}`, moeda(n.cbs)], [`IBS${n.informativo ? ' (informativo, sem custo)' : ''}`, moeda(n.ibs)],
+      ['Total da nota', moeda(n.totalNota)]], { negrito: new Set([3]), destaque: new Set([3]) });
+  }
+  if (t.das) {
+    const d = t.das; const linhas = d.partilha.filter(p => p.percentualDoDas > 0);
+    doc.tabela([{ titulo: `DAS, Anexo ${d.anexoAplicado}, ${d.faixa}ª faixa`, largura: 211 }, { titulo: '% do DAS', largura: 100, alinhar: 'direita' }, { titulo: 'Valor mensal', largura: 200, alinhar: 'direita' }],
+      [...linhas.map(p => [p.tributo, percentual(p.percentualDoDas / 100), moeda(p.valor ?? 0)]), [`Total (alíquota efetiva ${percentual(d.aliquotaEfetiva / 100, 4)})`, '100,00%', moeda(d.valorDas ?? 0)]],
+      { negrito: new Set([linhas.length]) });
+  }
+  if (detalhado) { doc.texto('Memória de cálculo', { negrito: true, tamanho: 9, espaco: 2 }); doc.marcadores(t.memoria, 8.5); }
+  doc.marcadores(t.avisos, 8.5);
+}
 const REFERENCIA_CLIENTE = 'tabela de referência de custos de terceirização';
 
 /** Orçamento para o contratante: postos, preço mensal e anual, composição e premissas. */
@@ -52,13 +71,14 @@ export async function gerarOrcamentoPdf(entrada: OrcamentoEntrada, r: Resultado,
     mostrar('Salários e adicionais', r.folha.subtotal), mostrar('Encargos sociais e trabalhistas', r.encargosValor), mostrar('Benefícios (VR, VT, cesta, seguro)', r.beneficios.subtotal),
     mostrar('PCMSO e PPR', r.outros.subtotal), mostrar('Uniformes, EPIs e insumos', r.materiais.subtotal), mostrar('Tributos, BDI e lucro', r.valorContrato - r.custoTotal),
   ]);
+  blocoTributacao(doc, r, false);
   doc.titulo2('O que está incluído');
   doc.marcadores([
     `Salários conforme a tabela de referência, com os adicionais da função e do turno (adicional noturno de ${percentual(tabela.parametros.adicionalNoturno, 0)} com descanso semanal remunerado, quando noturno).`,
     `Encargos sociais e trabalhistas (${percentual(r.taxaEncargos)} sobre a folha): contribuições, férias, 13º salário, ausências, aviso prévio e FGTS.`,
     'Benefícios: vale-refeição, vale-transporte (líquido do desconto do empregado), cesta básica, assistência social familiar e seguro de vida.',
     'PCMSO/PPR, uniformes e equipamentos de proteção individual (EPIs) das funções.',
-    `Tributos sobre o faturamento (ISS ${percentual(r.tributos.taxas.ISS, 2)}, PIS, COFINS, contribuição social e IRPJ), BDI de ${percentual(tabela.parametros.bdi, 0)} e lucro de ${percentual(tabela.parametros.lucro, 0)}.`,
+    r.tributacao ? `Tributos conforme a tributação escolhida (${r.tributacao.rotulo}), BDI de ${percentual(tabela.parametros.bdi, 0)} e lucro de ${percentual(tabela.parametros.lucro, 0)}.` : `Tributos sobre o faturamento (ISS ${percentual(r.tributos.taxas.ISS, 2)}, PIS, COFINS, contribuição social e IRPJ), BDI de ${percentual(tabela.parametros.bdi, 0)} e lucro de ${percentual(tabela.parametros.lucro, 0)}.`,
   ]);
   doc.titulo2('Premissas e avisos');
   const noturnos = r.postos.filter(p => p.entrada.turno === 'noturno');
@@ -130,6 +150,7 @@ export async function gerarRelatorioCustoPdf(entrada: OrcamentoEntrada, r: Resul
   }
   doc.texto(`Total de encargos: ${percentual(r.encargos.total, 4)} sobre a folha de pagamento. Dias úteis trabalhados por ano: ${numero(r.encargos.dias.uteisAno, 2)}.`, { negrito: true, tamanho: 9 });
 
+  if (r.tributacao) blocoTributacao(doc, r, true);
   const p = tabela.parametros;
   doc.titulo2(`${r.insumos.length ? 6 : 5}. Parâmetros utilizados`);
   doc.tabela([{ titulo: 'Parâmetro', largura: 311 }, { titulo: 'Valor', largura: 200, alinhar: 'direita' }], [
@@ -137,7 +158,7 @@ export async function gerarRelatorioCustoPdf(entrada: OrcamentoEntrada, r: Resul
     ['Vale-transporte (unitário × viagens × dias)', `${moeda(p.valeTransporteUnitario)} × ${p.viagensPorDia} × ${p.diasValeTransporte}`], ['Desconto do empregado no vale-transporte', percentual(p.descontoValeTransporte, 0)],
     ['Assistência social familiar (mensal)', moeda(p.assistenciaSocialFamiliar)], ['Seguro de vida (mensal)', moeda(p.seguroVida)], ['PCMSO (mensal)', moeda(p.pcmso)], ['PPR (mensal)', moeda(p.ppr)],
     ['Adicional noturno', percentual(p.adicionalNoturno, 0)], ['DSR sobre adicionais', `${p.dsr.diasDescanso}/${p.dsr.diasUteis}`], ['BDI / lucro', `${percentual(p.bdi, 0)} / ${percentual(p.lucro, 0)}`],
-    ['ISS / PIS / COFINS / CSLL / IRPJ', `${percentual(r.tributos.taxas.ISS)} / ${percentual(p.impostos.pis)} / ${percentual(p.impostos.cofins)} / ${percentual(p.impostos.contribuicaoSocial)} / ${percentual(p.impostos.irpj)}`],
+    r.tributacao ? ['Tributação do preço', r.tributacao.rotulo] : ['ISS / PIS / COFINS / CSLL / IRPJ', `${percentual(r.tributos.taxas.ISS)} / ${percentual(p.impostos.pis)} / ${percentual(p.impostos.cofins)} / ${percentual(p.impostos.contribuicaoSocial)} / ${percentual(p.impostos.irpj)}`],
   ]);
   doc.titulo2('Observações sobre a tabela de referência');
   doc.marcadores([`Fonte: ${tabela.meta.origem}. ${tabela.meta.observacao}`, ...premissasDoCalculo(r), ...AJUSTES_TABELA, 'O salário mínimo da planilha é usado apenas na insalubridade; as funções de limpeza seguem a convenção coletiva da categoria de asseio e conservação, que não é a do SINDEPRESTEM.'], 8.5);

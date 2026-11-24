@@ -69,6 +69,17 @@ export async function labelDocuments(db: Db) {
  * O site do SINDEPRESTEM já é lido pelo coletor de conhecimento (knowledge:sync, a cada 15 min, com robots.txt e limites próprios).
  * Aqui os documentos ativos são copiados para o mesmo arquivo de dados, classificados por seção, e os PDFs recebem o título oficial.
  */
+/**
+ * Ligações entre páginas do próprio site (o espelho já as coleta): viram arestas "documento → documento" no grafo do cérebro (src/lib/grafo).
+ * Só endereços https do domínio do sindicato, sem consulta nem âncora, até 120 por página.
+ */
+export function linksDoSite(links: unknown): { links?: string[] } {
+  if (!Array.isArray(links)) return {};
+  const limpos = [...new Set(links.flatMap(l => {
+    try { const u = new URL(String(l)); return u.protocol === 'https:' && /(^|\.)sindeprestem\.com\.br$/.test(u.hostname) ? [`${u.origin}${u.pathname.replace(/\/+$/, '') || '/'}`] : []; } catch { return []; }
+  }))].slice(0, 120);
+  return limpos.length ? { links: limpos } : {};
+}
 export const sindeprestem: Collector = {
   source: 'sindeprestem', label: 'SINDEPRESTEM',
   async run({ db, full }) {
@@ -82,7 +93,7 @@ export const sindeprestem: Collector = {
         const content = d.kind === 'pdf' ? cleanPdfText(d.content) : d.content;
         const section = d.kind === 'pdf' ? 'outro' : sectionFor(d.url, d.title, content);
         const listing = /\/noticias(\/|$)/.test(new URL(d.url).pathname);
-        if (upsertDocument(db, { source: 'sindeprestem', url: d.url, title: d.title, content, publishedAt: d.publishedAt, meta: { kind: d.kind, section, ...(listing ? { listing: true } : {}) } }, d.fetchedAt)) changed++;
+        if (upsertDocument(db, { source: 'sindeprestem', url: d.url, title: d.title, content, publishedAt: d.publishedAt, meta: { kind: d.kind, section, ...(listing ? { listing: true } : {}), ...linksDoSite(d.links) } }, d.fetchedAt)) changed++;
       }
       db.exec('COMMIT');
     } catch (cause) { db.exec('ROLLBACK'); throw cause; }

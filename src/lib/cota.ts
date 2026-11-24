@@ -4,11 +4,10 @@
  *
  * - `SINDI_COTA_IP_DIA` (padrão 20) e `SINDI_COTA_GLOBAL_DIA` (padrão 300): mensagens por dia. `0` desliga o limite correspondente.
  * - Com Redis (Upstash) a contagem é compartilhada entre processos e sobrevive a reinícios; sem ele, fica na memória deste processo.
- * - `SINDI_IP_HEADER`: cabeçalho que traz o IP do visitante. Padrão: o primeiro que existir entre x-vercel-forwarded-for, x-real-ip e cf-connecting-ip.
- *   Atrás de mais de um repasse (Vercel → túnel), confirme qual deles chega com o IP do visitante e não o do repasse.
+ * - IP do visitante: ver `ipDoPedido` (repasse assinado da Vercel, `SINDI_IP_HEADER` ou `cf-connecting-ip`).
  * - O dia vira à meia-noite de São Paulo, o mesmo dia das métricas de uso.
  */
-import { createHash } from 'node:crypto';
+import { createHash, timingSafeEqual } from 'node:crypto';
 import { redis, redisConfigurado } from './redis';
 
 const FUSO = 'America/Sao_Paulo';
@@ -24,9 +23,21 @@ export function segundosAteOReinicio(agora = new Date()) {
   return Math.max(1, 86400 - (partes.hour * 3600 + partes.minute * 60 + partes.second));
 }
 
-/** IP do visitante a partir do cabeçalho configurado; sem ele, todos caem em um mesmo grupo, que só o teto geral limita. */
+/** O pedido veio pelo repasse da Vercel (deployment/vercel-proxy), que assina com `SINDI_REPASSE_SEGREDO`: só então o IP que ele informa é confiável. */
+function repasseConfiavel(request: Request) {
+  const esperado = process.env.SINDI_REPASSE_SEGREDO ?? ''; const recebido = request.headers.get('x-sindi-repasse') ?? '';
+  return esperado.length >= 32 && recebido.length === esperado.length && timingSafeEqual(Buffer.from(recebido), Buffer.from(esperado));
+}
+/**
+ * IP do visitante. Ordem de confiança:
+ * 1. repasse assinado da Vercel (`x-sindi-ip`, com o segredo certo);
+ * 2. `SINDI_IP_HEADER`, se configurado (só esse cabeçalho);
+ * 3. `cf-connecting-ip` primeiro, porque o túnel da Cloudflare o escreve e quem chama o túnel direto não consegue forjá-lo; depois os da Vercel.
+ * Sem nenhum, todos caem em um mesmo grupo, que só o teto geral limita.
+ */
 export function ipDoPedido(request: Request) {
-  const nomes = process.env.SINDI_IP_HEADER ? [process.env.SINDI_IP_HEADER] : ['x-vercel-forwarded-for', 'x-real-ip', 'cf-connecting-ip'];
+  if (repasseConfiavel(request)) { const ip = request.headers.get('x-sindi-ip')?.split(',')[0]?.trim(); if (ip && ip.length <= 64) return ip; }
+  const nomes = process.env.SINDI_IP_HEADER ? [process.env.SINDI_IP_HEADER] : ['cf-connecting-ip', 'x-vercel-forwarded-for', 'x-real-ip'];
   for (const nome of nomes) {
     const valor = request.headers.get(nome)?.split(',')[0]?.trim();
     if (valor && valor.length <= 64) return valor;
@@ -50,6 +61,24 @@ async function contar(chave: string, dia: string): Promise<number> {
     try { return Number(await redis(['EVAL', SCRIPT, 1, chave, 172800])); } catch { /* Redis fora do ar: a contagem local ainda protege este processo. */ }
   }
   return contarNaMemoria(chave, dia);
+}
+
+async function lerContagem(chave: string, dia: string): Promise<number> {
+  if (redisConfigurado()) {
+    try { return Number(await redis(['GET', chave])) || 0; } catch { /* Redis fora do ar: vale a contagem local. */ }
+  }
+  return diaDaMemoria === dia ? memoria.get(chave) ?? 0 : 0;
+}
+/**
+ * Consulta, sem consumir, se ainda há cota para o visitante e no teto geral. Chamada antes da busca: quem já esgotou a cota não gasta
+ * embeddings nem leituras da biblioteca. O consumo de verdade continua em `consumirCota`, depois que se sabe que o provedor será usado.
+ */
+export async function cotaDisponivel(request: Request, agora = new Date()): Promise<ResultadoCota> {
+  const dia = diaDaCota(agora); const reiniciaEmSegundos = segundosAteOReinicio(agora);
+  const porIp = limiteIpDia(); const geral = limiteGlobalDia();
+  if (porIp > 0 && await lerContagem(chaveDe('ip', dia, ipDoPedido(request)), dia) >= porIp) return { ok: false, restantes: 0, limite: porIp, reiniciaEmSegundos, motivo: 'ip' };
+  if (geral > 0 && await lerContagem(chaveDe('global', dia), dia) >= geral) return { ok: false, restantes: 0, limite: porIp || undefined, reiniciaEmSegundos, motivo: 'global' };
+  return { ok: true, limite: porIp || undefined, reiniciaEmSegundos };
 }
 
 /** Consome uma mensagem da cota do visitante e do teto geral. Chamar só quando o provedor de IA for realmente usado. */

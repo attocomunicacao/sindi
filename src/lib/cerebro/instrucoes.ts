@@ -25,9 +25,20 @@ export function textoDasFontes(fontes: Passage[], orcamento = 1900): string {
     return `[${i + 1}] ${p.title}\n${trecho}`;
   }).join('\n\n');
 }
+/**
+ * Texto que vem de fora (pergunta do usuário, páginas coletadas) não pode imitar a estrutura do pedido: os delimitadores das fontes são neutralizados
+ * e um "FONTES:"/"ORIENTAÇÃO:" digitado no começo de uma linha deixa de parecer um rótulo do servidor. Defesa contra injeção de prompt direta e indireta.
+ */
+export function neutralizarMarcadores(texto: string) {
+  // NFKC transforma variantes (＜＜＜ de largura total) nos sinais comuns antes de neutralizar; «« e ‹‹ repetidos também saem.
+  return texto.normalize('NFKC').replace(/[<«‹]{3,}|[>»›]{3,}/g, '‹›').replace(/^(\s*)(fontes|orienta[çc][ãa]o|pergunta|sistema|system)(\s*):/gim, '$1$2$3 —');
+}
+/** As fontes vão entre marcadores fixos: o que está dentro é dado, nunca ordem (regra 8 de identidade-e-regras.md). */
+export const blocoDeFontes = (texto: string) => `FONTES:\n<<<INÍCIO DAS FONTES>>>\n${texto}\n<<<FIM DAS FONTES>>>`;
 /** Mensagem do usuário que o modelo recebe: orientação da área, situação (se houver), fontes e, por último, a pergunta. */
 export function mensagemDoPedido({ orientacao, palavras, nota, fontes, pergunta, orcamento }: Pedido): string {
-  return [`ORIENTAÇÃO: ${orientacao} Responda em até ${palavras} palavras.`, nota?.trim(), fontes.length ? `FONTES:\n${textoDasFontes(fontes, orcamento)}` : 'FONTES: nenhuma.', `PERGUNTA: ${pergunta}`].filter(Boolean).join('\n\n');
+  const limpas = fontes.map(p => ({ ...p, title: neutralizarMarcadores(p.title), content: neutralizarMarcadores(p.content) }));
+  return [`ORIENTAÇÃO: ${orientacao} Responda em até ${palavras} palavras.`, nota?.trim(), fontes.length ? blocoDeFontes(textoDasFontes(limpas, orcamento)) : 'FONTES: nenhuma.', `PERGUNTA: ${neutralizarMarcadores(pergunta)}`].filter(Boolean).join('\n\n');
 }
 
 export type Exemplo = { orientacao: string; palavras: number; fontes: string; pergunta: string; resposta: string };
@@ -50,7 +61,7 @@ export function exemplos(pasta = pastaCerebro()): Mensagem[] {
     const mtime = statSync(arquivo).mtimeMs;
     if (cache && cache.mtime === mtime) { cache.verificadoEm = Date.now(); return cache.mensagens; }
     const mensagens = lerExemplos(readFileSync(arquivo, 'utf8')).slice(0, 4).flatMap((e): Mensagem[] => [
-      { role: 'user', content: [`ORIENTAÇÃO: ${e.orientacao} Responda em até ${e.palavras} palavras.`, e.fontes ? `FONTES:\n${e.fontes}` : 'FONTES: nenhuma.', `PERGUNTA: ${e.pergunta}`].join('\n\n') },
+      { role: 'user', content: [`ORIENTAÇÃO: ${e.orientacao} Responda em até ${e.palavras} palavras.`, e.fontes ? blocoDeFontes(e.fontes) : 'FONTES: nenhuma.', `PERGUNTA: ${e.pergunta}`].join('\n\n') },
       { role: 'assistant', content: e.resposta },
     ]);
     cache = { mtime, mensagens, verificadoEm: Date.now() }; return mensagens;

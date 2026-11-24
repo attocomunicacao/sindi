@@ -53,6 +53,30 @@ const GLIFOS: Record<Pagina, React.ReactNode[]> = {
     <rect key="c" x="26" y="6" width="10" height="26" fill={GOLD} />,
     <rect key="d" x="39.7" y="2.7" width="8.6" height="28.6" transform="rotate(14 40 32)" {...contorno} />,
   ],
+  cerebro: [
+    <g key="a" stroke={TRILHA} strokeWidth="1.6"><line x1="8" y1="24" x2="26" y2="8" /><line x1="26" y1="8" x2="46" y2="20" /><line x1="8" y1="24" x2="46" y2="20" /></g>,
+    <circle key="b" cx="26" cy="8" r="7" fill={RED} />,
+    <circle key="c" cx="8" cy="24" r="6" fill={GOLD} />,
+    <circle key="d" cx="46" cy="20" r="6.6" {...contorno} />,
+  ],
+  tributos: [
+    <rect key="a" x="0" y="4" width="22" height="28" rx="2" fill={INK} />,
+    <g key="b" fill={GOLD}><rect x="4" y="9" width="14" height="4" /><rect x="4" y="17" width="4" height="4" /><rect x="11" y="17" width="4" height="4" /></g>,
+    <text key="c" x="28" y="26" fontSize="22" fontWeight="700" fill={RED}>%</text>,
+    <circle key="d" cx="50" cy="12" r="5.3" {...contorno} />,
+  ],
+  danfse: [
+    <rect key="a" x="0" y="0" width="26" height="32" rx="2" fill={INK} />,
+    <rect key="b" x="4" y="6" width="18" height="3" fill={GOLD} />,
+    <rect key="c" x="32" y="8" width="16" height="16" fill={RED} />,
+    <rect key="d" x="35.7" y="11.7" width="8.6" height="8.6" {...contorno} />,
+  ],
+  custos: [
+    <circle key="a" cx="10" cy="22" r="10" fill={GOLD} />,
+    <circle key="b" cx="22" cy="12" r="10" fill={RED} />,
+    <rect key="c" x="36" y="4" width="18" height="26" rx="2" fill={INK} />,
+    <rect key="d" x="39.7" y="7.7" width="10.6" height="6.6" {...contorno} />,
+  ],
   uso: [
     <path key="a" d="M3 32A25 25 0 0 1 53 32" fill="none" stroke={TRILHA} strokeWidth="6" />,
     <path key="b" d="M3 32A25 25 0 0 1 42.7 11.8" fill="none" stroke={GOLD} strokeWidth="6" />,

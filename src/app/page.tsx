@@ -114,7 +114,7 @@ export default function Home() {
             ? <Button type="button" size="icon" variant="outline" aria-label="Parar resposta" title="Parar resposta (Esc)" onClick={parar}><Square size={14} fill="currentColor" /></Button>
             : <Button type="submit" size="icon" aria-label="Enviar" disabled={!input.trim()}><ArrowUp size={17} /></Button>}
         </form>
-        <p className="mt-2.5 text-center text-xs text-slate-500 baixo:mt-1.5">A IA pode errar. Não envie dados pessoais nem confidenciais: as perguntas passam por um serviço de IA externo gratuito.{restantes !== null && ` Restam ${restantes} ${restantes === 1 ? 'mensagem' : 'mensagens'} hoje.`}</p>
+        <p className="mt-2.5 text-center text-xs text-slate-500 baixo:mt-1.5">A IA pode errar. Não envie dados pessoais nem confidenciais: as perguntas passam por serviços de IA externos gratuitos, que podem usá-las para melhorar seus produtos.{restantes !== null && ` Restam ${restantes} ${restantes === 1 ? 'mensagem' : 'mensagens'} hoje.`}</p>
       </div>
     </div></main>
   </div>;

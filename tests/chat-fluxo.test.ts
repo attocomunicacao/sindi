@@ -16,7 +16,7 @@ async function lerEventos(resposta: Response) {
 }
 async function comAmbiente(vars: Record<string, string | undefined>, fn: () => Promise<void>) {
   const salvo = { ...process.env }; const fetchOriginal = globalThis.fetch;
-  Object.assign(process.env, { GEMINI_API_KEY: 'chave-de-teste', SINDI_COTA_IP_DIA: '0', SINDI_COTA_GLOBAL_DIA: '0', SINDI_CACHE_RESPOSTAS: '1' });
+  Object.assign(process.env, { GEMINI_API_KEY: 'chave-de-teste', SINDI_COTA_IP_DIA: '0', SINDI_COTA_GLOBAL_DIA: '0', SINDI_CACHE_RESPOSTAS: '1', SINDI_CHAT_POR_MINUTO: '0' });
   delete process.env.UPSTASH_REDIS_REST_URL; delete process.env.UPSTASH_REDIS_REST_TOKEN; delete process.env.VERCEL;
   for (const [k, v] of Object.entries(vars)) { if (v === undefined) delete process.env[k]; else process.env[k] = v; }
   limparRespostasGuardadas(); reiniciarCotaNaMemoria();
@@ -78,7 +78,7 @@ test('se a geração que os outros esperam falha, quem esperou gera a própria r
     let chamadas = 0;
     globalThis.fetch = async () => { chamadas++; const vez = chamadas; await new Promise(r => setTimeout(r, 50)); return vez === 1 ? new Response('{}', { status: 500 }) : respostaJson('Olá de novo!'); };
     const [primeira, segunda] = await Promise.all([POST(pergunta('Oi', 'application/json')), POST(pergunta('Oi', 'application/json'))]);
-    assert.equal(primeira.status, 502);
+    assert.equal(primeira.status, 503, 'o único provedor falhou: mensagem neutra, sem detalhe do provedor');
     assert.equal(segunda.status, 200); assert.equal((await segunda.json() as { text: string }).text, 'Olá de novo!'); assert.equal(chamadas, 2);
   });
 });

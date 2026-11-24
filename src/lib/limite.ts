@@ -8,7 +8,8 @@ const MAXIMO_DE_CHAVES = 20_000;
 export function limitarPorMinuto(request: Request, nome: string, maximo: number, agora = Date.now()): { ok: boolean; reiniciaEmSegundos: number } {
   const chave = `${nome}|${ipDoPedido(request)}`;
   if (janelas.size >= MAXIMO_DE_CHAVES) for (const [k, j] of janelas) if (agora - j.inicio >= 60_000) janelas.delete(k);
-  if (janelas.size >= MAXIMO_DE_CHAVES) janelas.clear();
+  // Ainda cheio (muitos IPs na mesma janela): descarta só as janelas mais antigas. Limpar tudo zerava o limite de todo mundo, e um ataque com IPs variados fazia isso de propósito.
+  if (janelas.size >= MAXIMO_DE_CHAVES) { let excesso = Math.ceil(MAXIMO_DE_CHAVES / 10); for (const k of janelas.keys()) { if (excesso-- <= 0) break; janelas.delete(k); } }
   const atual = janelas.get(chave);
   const janela = atual && agora - atual.inicio < 60_000 ? atual : { inicio: agora, usados: 0 };
   janela.usados++; janelas.set(chave, janela);

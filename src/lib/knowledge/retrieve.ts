@@ -11,6 +11,8 @@ import { escolherConector, pedeRelatorio, type Conector } from '../cerebro/conec
 import { cobertura, materialDoRelatorio, pesosDosTermos, pesquisarNaBiblioteca, termosDaPesquisa } from '../biblioteca/pesquisa';
 import { dbPath } from '../dados/db';
 import { existsSync } from 'node:fs';
+import { documentosPeloGrafo } from '../grafo/consulta';
+import { estantesDaOrquestra, montarOrquestra } from '../agentes/orquestrador';
 try { process.loadEnvFile('.env.knowledge'); } catch { /* Optional outside the local installation. */ }
 
 const noisePage = (url: string) => /\/noticias\/(page\/|categories\/)/.test(url);
@@ -53,19 +55,24 @@ export async function retrieveKnowledge(question: string, language = 'pt', conec
     passagem: { url: trecho.fonte ?? SITE, title: `${trecho.titulo} — ${trecho.secao}`, content: trecho.texto.replace(/^Varia[cç][oõ]es:.*$/im, '').trim(), fetchedAt: trecho.atualizado ?? new Date().toISOString(), pinned: true } as Passage }));
   // Pedidos de redação e de método ("redija…", "como organizar…") se resolvem com o conhecimento escrito pela equipe; notícias antigas só desviariam a resposta.
   // Conector sem estantes (perguntas sobre a própria SINDI) também não pesquisa a biblioteca.
-  const estantes = conector ? conector.estantes : ESTANTES_PADRAO;
-  const biblioteca = pedidoDeAjuda(question) || !estantes.length ? [] : pesquisarNaBiblioteca(question, estantes, { limite: 2, antigos: !cerebro.some(c => c.curado && c.relevancia >= 0.6) });
+  // Orquestra: o especialista da área e, se a pergunta cair entre duas áreas, um de apoio (src/lib/agentes/orquestrador.ts).
+  const estantes = conector ? (conector.estantes.length ? estantesDaOrquestra(montarOrquestra(question, conector)) : []) : ESTANTES_PADRAO;
+  const ajuda = pedidoDeAjuda(question);
+  const biblioteca = ajuda || !estantes.length ? [] : pesquisarNaBiblioteca(question, estantes, { limite: 2, antigos: !cerebro.some(c => c.curado && c.relevancia >= 0.6) });
+  // Grafo: documentos ligados à lei, NR ou projeto que a pergunta cita pelo número; entram como candidatos e disputam pela cobertura, como os demais.
+  const doGrafo = ajuda || !estantes.length ? [] : documentosPeloGrafo(question, 3)
+    .filter(p => !biblioteca.some(b => b.url === p.url) && cobertura(termos, `${p.title} ${p.content}`, pesos) >= 0.5);
   // Fontes externas coletadas (Câmara, Senado, TST, WEC, IBGE) entram quando a pergunta as menciona.
   const external = EXTERNAL_INTENT.test(question) ? searchExternal(queryTerms(question), 2).map(p => ({ ...p, pinned: true })) : [];
   let passages: Passage[];
-  if (biblioteca.length || external.length) {
+  if (biblioteca.length || external.length || doGrafo.length) {
     // Com um documento da biblioteca que cobre a pergunta, um acerto fraco do cérebro só atrapalha: ficam os trechos do cérebro que também cobrem os termos.
     // O conhecimento escrito e revisado pela equipe leva vantagem sobre notícia quando os dois cobrem a pergunta.
     // As listas de títulos de notícias e artigos (cerebro/auto) cobrem quase qualquer termo sem responder nada; o texto das publicações vem da biblioteca.
     const semListas = cerebro.filter(c => !/ — (Notícias mais recentes|Artigos assinados)/.test(c.passagem.title));
     const fortes = semListas.filter(c => c.relevancia >= 0.6).slice(0, 2);
     const doCerebro = fortes.length ? fortes : semListas.slice(0, 1).filter(c => c.relevancia >= 0.3);
-    passages = [...doCerebro.map(c => ({ p: c.passagem, r: c.relevancia + (c.curado ? 0.2 : 0) })), ...[...biblioteca, ...external].map(p => ({ p, r: cobertura(termos, `${p.title} ${p.content}`, pesos) }))]
+    passages = [...doCerebro.map(c => ({ p: c.passagem, r: c.relevancia + (c.curado ? 0.2 : 0) })), ...[...biblioteca, ...doGrafo, ...external].map(p => ({ p, r: cobertura(termos, `${p.title} ${p.content}`, pesos) }))]
       .map((x, i) => ({ ...x, i })).sort((a, b) => b.r - a.r || a.i - b.i).map(x => x.p).slice(0, 3);
   } else if (cerebro.length || existsSync(dbPath())) passages = cerebro.map(c => c.passagem);
   // Sem a coleta local (por exemplo, numa hospedagem sem o banco), vale o espelho do site.

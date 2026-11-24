@@ -42,7 +42,7 @@ export async function registrarViolacoesDeCsp(page: Page) {
   await page.addInitScript(() => { (window as unknown as { __csp: string[] }).__csp = []; document.addEventListener('securitypolicyviolation', e => (window as unknown as { __csp: string[] }).__csp.push(`${e.violatedDirective}: ${e.blockedURI}`)); });
 }
 
-export const PAGINAS = ['/', '/orcamento', '/painel', '/base', '/uso'] as const;
+export const PAGINAS = ['/', '/orcamento', '/painel', '/base', '/uso', '/custos', '/cerebro', '/danfse', '/tributos'] as const;
 
 /** Alertas da página, sem o anunciador de rota do Next (`#__next-route-announcer__`, que também tem role=alert e fica sempre no documento). */
 export const alerta = (page: Page) => page.locator('[role="alert"]:not(#__next-route-announcer__)');

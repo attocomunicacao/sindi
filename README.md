@@ -1,7 +1,7 @@
 # SINDI
 
 Assistente virtual do SINDEPRESTEM para empresas de terceirização, trabalho temporário e prestação de serviços. Next.js, TypeScript, Tailwind, shadcn/ui e Lucide,
-com modelo de linguagem pela **API gratuita do Gemini**. Sem login e sem histórico de conversas; há uma cota de mensagens por pessoa e por dia. No nível gratuito o Google pode usar as perguntas para melhorar seus produtos, por isso a SINDI remove dados pessoais antes de enviar.
+com o modelo de linguagem numa **cascata de APIs gratuitas** (Gemini, Groq, OpenRouter, Mistral, Cloudflare) e um **modelo local de emergência** (Ollama): quando um provedor esgota o limite gratuito, o próximo responde, sem aviso ao usuário. Sem login e sem histórico de conversas; há uma cota de mensagens por pessoa e por dia. Nos níveis gratuitos os provedores podem usar as perguntas para melhorar seus produtos, por isso a SINDI remove dados pessoais antes de enviar.
 
 A SINDI não é um modelo treinado com fatos do sindicato: ela consulta uma biblioteca (documentos coletados + conhecimento escrito pela equipe), entrega ao modelo
 só os trechos que respondem à pergunta e confere a resposta antes de mostrar. O fluxo, o modelo e as medições estão em
@@ -10,7 +10,7 @@ só os trechos que respondem à pergunta e confere a resposta antes de mostrar. 
 ## Estrutura
 
 ```
-cerebro/        o que ensina a SINDI (Markdown; relido em até 5 s)
+cerebro/        o que ensina a SINDI (Markdown; relido em até 5 s); o grafo dele aparece em /cerebro e no Obsidian (.data/obsidian/SINDI)
   instrucoes/   regras-base e exemplos enviados em toda conversa
   conectores/   uma área por arquivo: gatilhos, estantes da biblioteca e como responder
   conhecimento/ fatos e orientações escritos pela equipe
@@ -39,7 +39,8 @@ tests/          node:test via tsx
 
 ## Executar no computador
 
-1. Crie uma chave gratuita do Gemini em https://aistudio.google.com/apikey.
+1. Crie ao menos uma chave gratuita: Gemini (https://aistudio.google.com/apikey), Groq (https://console.groq.com/keys), OpenRouter, Mistral ou Cloudflare Workers AI (instruções em `env.example`). Quanto mais provedores, mais respostas por dia.
+   Opcional: `winget install Ollama.Ollama` e `ollama pull qwen2.5:3b` para o modelo local de emergência.
 2. Copie `env.example` para `.env.local` (privado, nunca versionado) e preencha `GEMINI_API_KEY`.
 3. Instale, indexe a busca por significado e rode:
    ```
@@ -59,7 +60,7 @@ Sem `GEMINI_API_KEY` o chat responde que o serviço de IA não está configurado
 | Saudação, recusas e encaminhamentos (opcional) | `GEMINI_MODEL_RAPIDO` | vazio (usa o principal) |
 | Busca por significado no cérebro | `GEMINI_EMBED_MODEL` | `gemini-embedding-001` |
 
-O nível gratuito do Gemini tem limites por minuto e por dia (por modelo; veja os seus no AI Studio). Para não esgotá-los, a SINDI aplica uma **cota de mensagens**:
+Cada provedor gratuito tem limites por minuto e por dia; a cascata (`SINDI_CASCATA`) pula quem esgotou e o painel `/uso` mostra quem respondeu. A estimativa com uma API paga (Claude Haiku) para funcionários e associados está na página oculta `/custos`. Para não esgotar os limites, a SINDI aplica também uma **cota de mensagens**:
 `SINDI_COTA_IP_DIA` (padrão 20) por pessoa e `SINDI_COTA_GLOBAL_DIA` (padrão 300) no total, por dia, no horário de São Paulo; `0` desliga. Resposta vinda da memória não
 gasta cota. Sem Redis (Upstash) a contagem fica na memória do processo. Outros ajustes: `SINDI_MAX_FONTES`, `SINDI_CONCORRENCIA`, `SINDI_FILA_MAX` (todos em `env.example`).
 
@@ -80,6 +81,7 @@ Depois: `npm run cerebro:indexar` e `npm run avaliar:treino`. O mapa das áreas 
 | `npm run test:e2e` | Testes de ponta a ponta e de acessibilidade (Playwright + axe), em desktop e celular; a primeira vez pede `npx playwright install chromium` |
 | `npm run verificar:funcional` | Percorre páginas, rotas, PDFs e ferramentas no servidor em execução (`-- --chat` inclui uma pergunta real) |
 | `npm run avaliar:treino` | Responde as perguntas de `cerebro/avaliacao/treino-v1.md` no chat em execução: tempo, área, resposta |
+| `npm run grafo:gerar` | Grafo do cérebro (página /cerebro, expansão da busca) e cofre do Obsidian em `.data/obsidian/SINDI` |
 | `npm run cerebro:gerar` / `indexar` / `avaliar` / `comparar` | Resumos automáticos, vetores (usa `GEMINI_API_KEY`), perguntas de ouro, comparação da busca |
 | `npm run dados:sync` / `dados:watch` | Coleta de dados públicos (uma vez / contínua) |
 | `npm run knowledge:sync` / `knowledge:watch` | Espelho do site (base antiga) |
@@ -92,7 +94,7 @@ Cota de mensagens por pessoa e por dia (ver acima). Perguntas de até 1.500 cara
 ao mesmo tempo por processo e uma fila curta; acima disso o pedido é recusado. O texto aparece conforme o modelo escreve (NDJSON); o botão **Parar** (ou Esc) cancela a leitura no
 navegador e a geração no servidor. Se a verificação de fatos reprova a resposta, o modelo reescreve (a tela apaga a tentativa anterior).
 
-O painel público `/uso` mostra 7 ou 30 dias de requisições, respostas, erros, duração média e tokens informados pelo Gemini. Só números agregados: sem mensagens,
+O painel público `/uso` mostra 7 ou 30 dias de requisições, respostas, erros, duração média e tokens informados pelos provedores, e quantas respostas cada provedor da cascata escreveu. Só números agregados: sem mensagens,
 IPs ou credenciais. Localmente os agregados ficam em `.data/usage.json`; na Vercel, em Upstash Redis, se configurado. Respostas vindas da memória de respostas
 contam como requisição, sem tokens.
 

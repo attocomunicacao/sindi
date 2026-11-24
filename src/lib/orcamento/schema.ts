@@ -1,6 +1,7 @@
 import { z } from 'zod';
 import { CATEGORIAS_INSUMO, funcaoPorId } from './catalogo';
 import { ISS_PERMITIDO } from './calculo';
+import { tributacaoSchema } from '../tributos/schema';
 
 // Texto livre do solicitante: sem caracteres de controle e com tamanho limitado (vai para o PDF, nunca é gravado).
 const texto = (max: number) => z.string().trim().max(max).transform(v => v.replace(/[\u0000-\u001f\u007f]/g, ' ').replace(/\s+/g, ' ').trim()).optional();
@@ -28,6 +29,8 @@ export const orcamentoSchema = z.object({
   iss: z.number().refine(v => ISS_PERMITIDO.some(p => Math.abs(p - v) < 1e-9), 'ISS fora da faixa de 2% a 5%').optional(),
   metrosQuadrados: z.number().min(1).max(10_000_000).optional(),
   insumos: z.array(z.object({ categoria: z.enum(CATEGORIAS_INSUMO.map(c => c.id) as [string, ...string[]]), id: z.string().max(100), quantidade: z.number().min(0).max(100_000) })).max(80).optional(),
+  /** Regime tributário (regras atuais, Reforma Tributária ou Simples Nacional); ausente = regras atuais. */
+  tributacao: tributacaoSchema.optional(),
   cliente: clienteSchema.optional(),
 });
 export type OrcamentoRequisicao = z.infer<typeof orcamentoSchema>;

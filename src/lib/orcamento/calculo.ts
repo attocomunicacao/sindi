@@ -1,6 +1,7 @@
 import tabela from './tabela.json';
 import { CATEGORIAS_INSUMO, FUNCOES, funcaoPorId, itensDaCategoria, type Funcao } from './catalogo';
 import { calcularEncargos, type Encargos } from './encargos';
+import { planejarTributacao, type ResultadoTributacao, type TributacaoEntrada } from './tributacao';
 
 export type Turno = 'diurno' | 'noturno';
 export type PostoEntrada = {
@@ -13,7 +14,11 @@ export type PostoEntrada = {
   horasNoturnas?: number; horasExtras?: { h50?: number; h100?: number; h150?: number };
 };
 export type InsumoEntrada = { categoria: string; id: string; quantidade: number };
-export type OrcamentoEntrada = { postos: PostoEntrada[]; iss?: number; metrosQuadrados?: number; insumos?: InsumoEntrada[] };
+export type OrcamentoEntrada = {
+  postos: PostoEntrada[]; iss?: number; metrosQuadrados?: number; insumos?: InsumoEntrada[];
+  /** Regime tributário do preço; ausente ou `atual` mantém as regras atuais (ISS, PIS, COFINS, CSLL, IRPJ), com o resultado de sempre. */
+  tributacao?: TributacaoEntrada;
+};
 
 export const HORAS_NOTURNAS_PADRAO = 180;
 export const ISS_PERMITIDO = [0.02, 0.025, 0.03, 0.035, 0.04, 0.045, 0.05];
@@ -40,6 +45,8 @@ export type Resultado = {
   custoTotal: number;
   tributos: { bdi: number; lucro: number; iss: number; pis: number; cofins: number; contribuicaoSocial: number; irpj: number; taxas: Record<string, number>; somaTaxas: number; totalBdi: number; totalImpostos: number };
   valorContrato: number; valorAnual: number; precoMedioFuncionario: number; precoPorMetro: number | null;
+  /** Presente só quando a tributação escolhida é a Reforma ou o Simples: memória de cálculo, nota e avisos. */
+  tributacao?: ResultadoTributacao;
 };
 
 const soma = (...valores: number[]) => valores.reduce((a, b) => a + b, 0);
@@ -98,7 +105,10 @@ export function calcularInsumos(entrada: InsumoEntrada[] = []): InsumoCalculado[
 }
 
 export function calcularOrcamento(entrada: OrcamentoEntrada): Resultado {
-  const encargos = calcularEncargos(); const taxaEncargos = encargos.total;
+  const imp = tabela.parametros.impostos; const iss = entrada.iss ?? imp.iss;
+  const plano = planejarTributacao(entrada.tributacao, { iss, pis: imp.pis, cofins: imp.cofins, contribuicaoSocial: imp.contribuicaoSocial, irpj: imp.irpj });
+  // No Simples, as contribuições que o DAS substitui saem dos encargos (ver tributacao.ts).
+  const encargos = calcularEncargos(undefined, { excluirLinhas: plano.excluirEncargos }); const taxaEncargos = encargos.total;
   const postos: PostoCalculado[] = []; const agrupados: Parcelas[] = [];
   for (const e of entrada.postos) {
     const funcao = funcaoPorId(e.funcaoId); if (!funcao || !(e.quantidade > 0)) continue;
@@ -117,14 +127,14 @@ export function calcularOrcamento(entrada: OrcamentoEntrada): Resultado {
   const outros = { pcmsoPpr: t.pcmso + t.ppr, seac: t.seac, contribuicaoPatronal: t.contribuicaoPatronal, subtotal: soma(t.pcmso, t.ppr, t.seac, t.contribuicaoPatronal) };
   const materiais = { uniformes: t.uniformes, epis: t.epis, insumos: totalInsumos, subtotal: soma(t.uniformes, t.epis, totalInsumos) };
   const custoTotal = folha.subtotal + t.encargos + beneficios.subtotal + outros.subtotal + materiais.subtotal;
-  const imp = tabela.parametros.impostos; const iss = entrada.iss ?? imp.iss;
-  const taxas = { BDI: tabela.parametros.bdi, Lucro: tabela.parametros.lucro, ISS: iss, PIS: imp.pis, COFINS: imp.cofins, 'Contribuição social': imp.contribuicaoSocial, IRPJ: imp.irpj };
+  const taxas: Record<string, number> = { BDI: tabela.parametros.bdi, Lucro: tabela.parametros.lucro, ...plano.taxas };
   const somaTaxas = soma(...Object.values(taxas));
   // O preço é o custo "por dentro": tributos e margem incidem sobre o valor faturado (custo ÷ (1 − soma das taxas)), como no Resumo da planilha.
   const valorContrato = custoTotal > 0 ? custoTotal / (1 - somaTaxas) : 0;
   const valor = (taxa: number) => valorContrato * taxa;
-  const tributos = { bdi: valor(taxas.BDI), lucro: valor(taxas.Lucro), iss: valor(iss), pis: valor(imp.pis), cofins: valor(imp.cofins), contribuicaoSocial: valor(imp.contribuicaoSocial), irpj: valor(imp.irpj), taxas, somaTaxas,
-    totalBdi: valor(taxas.BDI + taxas.Lucro), totalImpostos: valor(iss + imp.pis + imp.cofins + imp.contribuicaoSocial + imp.irpj) };
+  const c = plano.componentes;
+  const tributos = { bdi: valor(taxas.BDI), lucro: valor(taxas.Lucro), iss: valor(c.iss), pis: valor(c.pis), cofins: valor(c.cofins), contribuicaoSocial: valor(c.contribuicaoSocial), irpj: valor(c.irpj), taxas, somaTaxas,
+    totalBdi: valor(taxas.BDI + taxas.Lucro), totalImpostos: valor(soma(...Object.values(plano.taxas))) };
   // O custo dos insumos é rateado entre os postos pelo custo direto de cada um.
   const custoPostos = soma(...postos.map(p => p.custoDireto));
   for (const p of postos) {
@@ -133,7 +143,8 @@ export function calcularOrcamento(entrada: OrcamentoEntrada): Resultado {
     p.valorPorFuncionario = p.valorMensal / p.quantidade;
   }
   const metros = entrada.metrosQuadrados && entrada.metrosQuadrados > 0 ? entrada.metrosQuadrados : null;
+  const tributacao = entrada.tributacao && entrada.tributacao.modo !== 'atual' && valorContrato > 0 ? plano.finalizar(valorContrato, { issMunicipal: iss }) : undefined;
   return { postos, insumos, encargos, taxaEncargos, encargosValor: t.encargos, funcionarios, folha, beneficios, outros, materiais, custoTotal, tributos, valorContrato, valorAnual: valorContrato * 12,
-    precoMedioFuncionario: funcionarios > 0 ? valorContrato / funcionarios : 0, precoPorMetro: metros ? valorContrato / metros : null };
+    precoMedioFuncionario: funcionarios > 0 ? valorContrato / funcionarios : 0, precoPorMetro: metros ? valorContrato / metros : null, ...(tributacao ? { tributacao } : {}) };
 }
 export { FUNCOES };

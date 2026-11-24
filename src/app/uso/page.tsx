@@ -2,7 +2,8 @@
 import { useEffect, useState } from 'react';
 import { RefreshCw, BarChart3 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import type { UsageDay } from '@/lib/usage';
+import type { UsageDay, UsoDoProvedor } from '@/lib/usage';
+const NOMES: Record<string, string> = { gemini: 'Gemini (Google)', groq: 'Groq', openrouter: 'OpenRouter', mistral: 'Mistral', cloudflare: 'Cloudflare Workers AI', anthropic: 'Claude (Anthropic)', ollama: 'Modelo local (Ollama)' };
 type Payload = { days: UsageDay[]; storage: string; available: boolean };
 const number = (n: number) => n.toLocaleString('pt-BR');
 const compacto = (n: number) => n.toLocaleString('pt-BR', { notation: 'compact', maximumFractionDigits: n < 10000 ? 1 : 0 });
@@ -54,6 +55,11 @@ export default function UsagePage() {
     return () => controller.abort();
   }, []);
   const days = data?.days.slice(-period) || [];
+  // Soma por provedor no período: mostra quanto cada degrau da cascata está segurando (só agregados).
+  const porProvedor = Object.entries(days.reduce<Record<string, UsoDoProvedor>>((soma, d) => {
+    for (const [id, u] of Object.entries(d.provedores ?? {})) { const t = soma[id] ??= { requests: 0, successes: 0, tokens: 0 }; t.requests += u.requests; t.successes += u.successes; t.tokens += u.tokens; }
+    return soma;
+  }, {})).sort((a, b) => b[1].successes - a[1].successes);
   const totals = days.reduce((sum, d) => ({ requests: sum.requests + d.requests, successes: sum.successes + d.successes, errors: sum.errors + d.errors, inputTokens: sum.inputTokens + d.inputTokens, outputTokens: sum.outputTokens + d.outputTokens, totalTokens: sum.totalTokens + d.totalTokens, measured: sum.measured + d.measured, durationMs: sum.durationMs + d.durationMs }), { requests: 0, successes: 0, errors: 0, inputTokens: 0, outputTokens: 0, totalTokens: 0, measured: 0, durationMs: 0 });
   return <><main className="anim-rise mx-auto max-w-6xl gutter py-10">
     <div className="flex flex-wrap items-center justify-between gap-4"><div><h1 className="text-2xl font-semibold text-slate-900">Uso da IA</h1></div><Button variant="ghost" onClick={() => void load()} disabled={loading}><RefreshCw size={16} className={loading ? 'animate-spin' : ''} />Atualizar</Button></div>
@@ -67,8 +73,13 @@ export default function UsagePage() {
       {data?.available && totals.requests === 0 && <p className="mt-4 text-sm text-slate-500">Nenhuma chamada registrada no período. A coleta começa a partir desta atualização.</p>}
     </section>
     <div className="my-5 flex flex-wrap gap-x-6 gap-y-2 text-sm text-slate-600"><span>Respostas: {number(totals.successes)}</span><span>Erros: {number(totals.errors)}</span><span>Tempo médio: {totals.requests ? (totals.durationMs / totals.requests / 1000).toFixed(1) : '0'} s</span><span>Chamadas com tokens informados: {number(totals.measured)}</span></div>
+    {porProvedor.length > 0 && <section className="mb-5 rounded-2xl border border-slate-200 bg-surface p-5" aria-label="Respostas por provedor de IA">
+      <h2 className="mb-3 text-sm font-medium">Quem respondeu (cascata de provedores)</h2>
+      <div className="overflow-x-auto"><table className="w-full text-left text-xs"><thead><tr>{['Provedor', 'Respostas escritas', 'Tentativas registradas', 'Tokens'].map(h => <th key={h} className="p-2">{h}</th>)}</tr></thead>
+        <tbody>{porProvedor.map(([id, u]) => <tr key={id} className="border-t border-slate-100"><td className="p-2 font-medium">{NOMES[id] ?? id}</td><td className="p-2 tabular-nums">{number(u.successes)}</td><td className="p-2 tabular-nums">{number(u.requests)}</td><td className="p-2 tabular-nums">{number(u.tokens)}</td></tr>)}</tbody></table></div>
+    </section>}
     <details className="rounded-xl border border-slate-200 bg-surface p-4"><summary className="cursor-pointer text-sm">Ver dados diários</summary><div className="mt-4 overflow-x-auto"><table className="w-full text-left text-xs"><thead><tr>{['Data', 'Chamadas', 'Entrada', 'Saída', 'Total', 'Erros'].map(h => <th key={h} className="p-2">{h}</th>)}</tr></thead><tbody>{days.map(d => <tr key={d.date} className="border-t border-slate-100"><td className="p-2">{d.date.split('-').reverse().join('/')}</td>{[d.requests, d.inputTokens, d.outputTokens, d.totalTokens, d.errors].map((n, i) => <td key={i} className="p-2">{number(n)}</td>)}</tr>)}</tbody></table></div></details>
-    <div className="mt-7 space-y-3 text-xs leading-6 text-slate-500"><p>Entrada inclui sua pergunta, as instruções da SINDI e o contexto da conversa. Saída é a geração do modelo; o total pode incluir tokens de raciocínio, conforme informado pelo modelo. Falhas sem dados de consumo não entram nos totais de tokens.</p><p>A SINDI limita as mensagens por pessoa e por dia, para não esgotar o limite gratuito do serviço de IA (Gemini). Este painel mostra apenas chamadas feitas pela SINDI desde o início da coleta; não mostra uso de outras aplicações, saldo de cota nem faturamento. O histórico preserva chamadas anteriores à migração para o modelo local e de volta à API.</p><p>{data?.storage === 'local' ? 'Histórico salvo neste computador. ' : data?.storage === 'shared' ? 'Histórico compartilhado da aplicação. ' : ''}Datas no horário de São Paulo. Somente números agregados são armazenados; nenhuma conversa, IP ou chave aparece neste painel.</p></div>
+    <div className="mt-7 space-y-3 text-xs leading-6 text-slate-500"><p>Entrada inclui sua pergunta, as instruções da SINDI e o contexto da conversa. Saída é a geração do modelo; o total pode incluir tokens de raciocínio, conforme informado pelo modelo. Falhas sem dados de consumo não entram nos totais de tokens.</p><p>A SINDI responde por uma cascata de serviços de IA gratuitos (Gemini, Groq, OpenRouter, Mistral, Cloudflare) e, em último caso, por um modelo local; ela limita as mensagens por pessoa e por dia para não esgotar esses limites. Este painel mostra apenas chamadas feitas pela SINDI desde o início da coleta; não mostra uso de outras aplicações, saldo de cota nem faturamento.</p><p>{data?.storage === 'local' ? 'Histórico salvo neste computador. ' : data?.storage === 'shared' ? 'Histórico compartilhado da aplicação. ' : ''}Datas no horário de São Paulo. Somente números agregados são armazenados; nenhuma conversa, IP ou chave aparece neste painel.</p></div>
   </main></>;
 }
 

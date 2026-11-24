@@ -7,7 +7,7 @@ para ensinar a SINDI, [`../../cerebro/README.md`](../../cerebro/README.md).
 ## 1. O que é
 
 A SINDI é a assistente virtual do SINDEPRESTEM. Não é um modelo treinado com fatos do sindicato: o servidor decide por regras o que fazer com a pergunta, busca as fontes
-(cérebro em Markdown, biblioteca coletada em SQLite, resultado de uma ferramenta), entrega só isso ao modelo (API do Gemini, nível gratuito) e **verifica** a resposta
+(cérebro em Markdown, biblioteca coletada em SQLite, resultado de uma ferramenta), entrega só isso ao modelo (cascata de APIs gratuitas, `src/lib/ia/`, com o Ollama local por último) e **verifica** a resposta
 antes de mostrá-la (e-mail, site, telefone, valor, número e lei precisam constar nas fontes). Há cota de mensagens por pessoa e por dia, sem histórico de conversas.
 
 ## 2. Mapa do código
@@ -21,7 +21,9 @@ antes de mostrá-la (e-mail, site, telefone, valor, número e lei precisam const
 | `src/lib/ferramentas/` | Contrato `Ferramenta` e registro. O orçamento (`src/lib/orcamento/ferramenta.ts`) é o exemplo |
 | `src/lib/http/guarda.ts` | Proteções de rota: origem, tipo, limite por minuto, tamanho do corpo, erro JSON, PDF |
 | `src/lib/paginas.ts` | Registro das páginas (menu, marca, `robots.txt`, 404) |
-| `src/lib/gemini.ts`, `cota.ts`, `limite.ts`, `redis.ts` | Provedor de IA, cota de mensagens, limite por minuto, Redis (Upstash) |
+| `src/lib/ia/` | Cascata de provedores de IA: tipos, adaptadores (OpenAI-compatível, Anthropic), disjuntor e limites conhecidos, fila |
+| `src/lib/gemini.ts`, `cota.ts`, `limite.ts`, `redis.ts` | Provedor Gemini, cota de mensagens, limite por minuto, Redis (Upstash) |
+| `src/lib/grafo/`, `src/lib/agentes/` | Grafo do cérebro (construção, entidades, Obsidian, consulta do chat) e orquestra de especialistas |
 | `src/lib/cerebro/`, `knowledge/` | Conectores, busca (palavras + significado), verificação de fatos, trechos |
 | `src/lib/dados/`, `biblioteca/` | Coleta de dados públicos (SQLite), painel, biblioteca |
 | `src/lib/orcamento/` | Cálculo, encargos, tabela de referência, PDFs |
@@ -101,6 +103,7 @@ Siga esta ordem; o teste `tests/ferramentas.test.ts` confere os itens 2, 3, 5 e 
 - **Um servidor `next dev` por pasta.** Para trocar a configuração, reinicie: `.env.local` só é lido na partida.
 - **Leitor de PDF (`pdf-parse`) toma posse do buffer**: depois da leitura o `Uint8Array` fica inutilizável; passe uma cópia se precisar reaproveitá-lo.
 - **Limites por IP dependem do cabeçalho do IP** (`SINDI_IP_HEADER`). Atrás de Vercel + túnel, confirme qual cabeçalho traz o visitante; sem ele todos caem no mesmo grupo.
-- **Avaliação gasta o limite gratuito do Gemini**; indexação também (100 textos por minuto).
+- **Avaliação gasta os limites gratuitos dos provedores**; indexação gasta o do Gemini (100 textos por minuto).
+- **Novo provedor de IA**: se for compatível com a API da OpenAI, basta uma entrada em `src/lib/ia/provedores.ts` (base, chave, modelos) e as variáveis em `env.example`; limites conhecidos em `PADROES` de `src/lib/ia/saude.ts`; teste em `tests/ia-cascata.test.ts`.
 - **`.env.local` é privado**: não leia, não imprima, não versione.
 - **TypeScript**: `noUncheckedIndexedAccess` não está ligado (217 pontos a corrigir hoje); as demais verificações estritas estão.

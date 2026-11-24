@@ -13,7 +13,8 @@ export type Cabecalho = { titulo?: string; fonte?: string; atualizado?: string; 
 
 export const pastaCerebro = () => path.resolve(/*turbopackIgnore: true*/ process.env.SINDI_CEREBRO_DIR || 'cerebro');
 /** Arquivos que explicam o cérebro, guardam a avaliação, instruem o modelo (instrucoes/) ou roteiam a pergunta (conectores/) não viram conhecimento. */
-const IGNORADOS = /(^|\/)(README\.md|avaliacao\/|instrucoes\/|conectores\/)/i;
+// `auto.anterior/` é a cópia de segurança que a publicação guarda (publicar.ts): lida como conhecimento, duplicava cada resumo automático na busca e nos vetores.
+const IGNORADOS = /(^|\/)(README\.md|avaliacao\/|instrucoes\/|conectores\/|auto\.anterior\/)/i;
 const TAMANHO_MAXIMO = 1700;
 
 /** Cabeçalho simples (subconjunto de YAML): `chave: valor`, com `gatilhos:` separados por vírgula. */

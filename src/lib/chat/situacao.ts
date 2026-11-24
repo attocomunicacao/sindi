@@ -37,7 +37,9 @@ export async function decidirSituacao({ mensagens, language }: { mensagens: { ro
   else if (!naArea && foraDoEscopo([...anteriores, question].join(' '))) situacao = 'fora-do-escopo';
   else {
     // Continuação curta ("e para empresa filiada?"): a busca usa também a pergunta anterior, que carrega o assunto.
-    const consulta = anteriores.length && question.trim().split(/\s+/).length <= 6 ? `${anteriores.at(-1)} ${question}` : question;
+    // A busca por significado manda a consulta ao provedor de embeddings: a pergunta atual também sai redigida, sem depender só do detector acima.
+    const atual = redigirDadosSensiveis(question);
+    const consulta = anteriores.length && atual.trim().split(/\s+/).length <= 6 ? `${anteriores.at(-1)} ${atual}` : atual;
     const knowledge = await referenceWithinBudget(consulta, language, conector);
     lista = knowledge.lista === true; relatorio = knowledge.relatorio === true;
     // A ordem de relevância vem da busca; aqui só se limpa o texto das fontes escolhidas.

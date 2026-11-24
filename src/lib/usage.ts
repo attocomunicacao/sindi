@@ -2,8 +2,13 @@ import { mkdir, readFile, writeFile, rename } from 'node:fs/promises';
 import path from 'node:path';
 import { redis, redisConfigurado as shared } from './redis';
 
-export type UsageDay = { date: string; requests: number; successes: number; errors: number; inputTokens: number; outputTokens: number; totalTokens: number; measured: number; durationMs: number };
-type Event = { success: boolean; durationMs: number; usage?: { inputTokens?: number; outputTokens?: number; totalTokens?: number } };
+/** Por provedor da cascata: quantas respostas cada um escreveu e quantos tokens gastou (só agregados, sem conteúdo). */
+export type UsoDoProvedor = { requests: number; successes: number; tokens: number };
+export type UsageDay = { date: string; requests: number; successes: number; errors: number; inputTokens: number; outputTokens: number; totalTokens: number; measured: number; durationMs: number; provedores?: Record<string, UsoDoProvedor> };
+type Event = { success: boolean; durationMs: number; usage?: { inputTokens?: number; outputTokens?: number; totalTokens?: number }; provedor?: string };
+type Escalar = Exclude<keyof UsageDay, 'date' | 'provedores'>;
+const ESCALARES: Escalar[] = ['requests', 'successes', 'errors', 'inputTokens', 'outputTokens', 'totalTokens', 'measured', 'durationMs'];
+const idDoProvedor = (id?: string) => (id && /^[a-z0-9-]{1,20}$/.test(id) ? id : undefined);
 const folder = path.join(process.cwd(), '.data');
 const file = path.join(folder, 'usage.json');
 let queue: Promise<unknown> = Promise.resolve();
@@ -21,17 +26,25 @@ export async function recordUsage(event: Event): Promise<boolean> {
   day.inputTokens = event.usage?.inputTokens ?? 0; day.outputTokens = event.usage?.outputTokens ?? 0;
   day.totalTokens = event.usage?.totalTokens ?? day.inputTokens + day.outputTokens;
   day.measured = Number(event.usage?.totalTokens !== undefined || event.usage?.inputTokens !== undefined);
+  const provedor = idDoProvedor(event.provedor);
+  if (provedor) day.provedores = { [provedor]: { requests: 1, successes: day.successes, tokens: day.totalTokens } };
   try {
     if (shared()) {
-      const pairs = Object.entries(day).filter(([key]) => key !== 'date').flatMap(([key, value]) => [key, value as number]);
+      const pairs: (string | number)[] = ESCALARES.flatMap(key => [key, day[key]]);
+      if (provedor) pairs.push(`prov:${provedor}:requests`, 1, `prov:${provedor}:successes`, day.successes, `prov:${provedor}:tokens`, day.totalTokens);
       await redis(['EVAL', script, 1, `sindi:usage:${day.date}`, ...pairs]);
     } else {
       if (process.env.VERCEL) return false;
       const update = queue.then(async () => {
         const days = await localDays();
         const existing = days.find(d => d.date === day.date);
-        if (existing) for (const key of Object.keys(day) as (keyof UsageDay)[]) { if (key !== 'date') existing[key] += day[key]; }
-        else days.push(day);
+        if (existing) {
+          for (const key of ESCALARES) existing[key] += day[key];
+          for (const [id, uso] of Object.entries(day.provedores ?? {})) {
+            const atual = (existing.provedores ??= {})[id] ??= { requests: 0, successes: 0, tokens: 0 };
+            atual.requests += uso.requests; atual.successes += uso.successes; atual.tokens += uso.tokens;
+          }
+        } else days.push(day);
         await mkdir(folder, { recursive: true });
         await writeFile(`${file}.tmp`, JSON.stringify(days.sort((a, b) => a.date.localeCompare(b.date)).slice(-30)));
         await rename(`${file}.tmp`, file);
@@ -58,7 +71,12 @@ async function lerUso() {
       const raw = await redis(['HGETALL', `sindi:usage:${date}`]);
       const day = empty(date);
       if (!Array.isArray(raw)) throw new Error('Invalid metrics');
-      for (let i = 0; i < raw.length; i += 2) { const key = raw[i] as keyof UsageDay; if (key !== 'date' && key in day) day[key] = Number(raw[i + 1]) || 0; }
+      for (let i = 0; i < raw.length; i += 2) {
+        const key = String(raw[i]); const valor = Number(raw[i + 1]) || 0;
+        const prov = key.match(/^prov:([a-z0-9-]{1,20}):(requests|successes|tokens)$/);
+        if (prov) { ((day.provedores ??= {})[prov[1]] ??= { requests: 0, successes: 0, tokens: 0 })[prov[2] as keyof UsoDoProvedor] = valor; }
+        else if ((ESCALARES as string[]).includes(key)) day[key as Escalar] = valor;
+      }
       return day;
     }));
     return { days: result, storage: 'shared', available: true };

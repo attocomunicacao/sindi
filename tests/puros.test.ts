@@ -9,7 +9,7 @@ test('sugestões: sorteia a quantidade pedida, sem repetir entre si nem as anter
   const sorteadas = sortearSugestoes(anteriores, 3, () => 0.5);
   assert.equal(sorteadas.length, 3);
   assert.equal(new Set(sorteadas).size, 3);
-  for (const s of sorteadas) assert.ok(!anteriores.includes(s));
+  for (const s of sorteadas) assert.ok(!(anteriores as readonly string[]).includes(s));
 });
 
 test('sugestões: se não há perguntas novas suficientes, ainda devolve a quantidade pedida', () => {

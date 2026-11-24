@@ -82,11 +82,26 @@ export async function indexarCerebro(trechos: Trecho[] = trechosDoCerebro(), log
   return { total: vigentes.size, novos: pendentes.length };
 }
 export type Semantico = { trecho: Trecho; similaridade: number };
+/**
+ * Vetores de consultas já feitas (só em memória, até 500, por 6 h): a mesma pergunta frequente não gasta outra chamada de embeddings do limite gratuito.
+ * A chave é um hash do texto normalizado — a pergunta em si não fica guardada. Não guarda falhas.
+ */
+const vetores = new Map<string, { em: number; vetor: number[] }>();
+async function vetorDaConsulta(pergunta: string, tempoMs: number) {
+  const chave = createHash('sha256').update(`${MODELO_EMBEDDING}|${pergunta.normalize('NFC').trim().toLowerCase().replace(/\s+/g, ' ')}`).digest('hex');
+  const guardado = vetores.get(chave);
+  if (guardado && Date.now() - guardado.em < 6 * 3600_000) { vetores.delete(chave); vetores.set(chave, guardado); return guardado.vetor; }
+  const [vetor] = await embeddings([pergunta], 'consulta', tempoMs);
+  vetores.set(chave, { em: Date.now(), vetor });
+  if (vetores.size > 500) vetores.delete(vetores.keys().next().value!);
+  return vetor;
+}
+export function esquecerVetoresDeConsulta() { vetores.clear(); }
 /** Trechos mais parecidos em significado com a pergunta. Sem índice ou sem resposta do provedor, devolve vazio (a busca por palavras continua valendo). */
 export async function buscarSemantico(pergunta: string, limite = 5, trechos: Trecho[] = trechosDoCerebro(), tempoMs = 2500): Promise<Semantico[]> {
   const indice = indiceEmMemoria(); if (!Object.keys(indice.vetores).length) return [];
   try {
-    const [consulta] = await embeddings([pergunta], 'consulta', tempoMs);
+    const consulta = await vetorDaConsulta(pergunta, tempoMs);
     const resultados: Semantico[] = [];
     for (const trecho of trechos) { if (!trecho.semantica) continue; const { id, hash } = chavesDe(trecho); const v = indice.vetores[id]; if (v && v.hash === hash) resultados.push({ trecho, similaridade: cosseno(consulta, v.vetor) }); }
     return resultados.sort((a, b) => b.similaridade - a.similaridade).slice(0, limite);

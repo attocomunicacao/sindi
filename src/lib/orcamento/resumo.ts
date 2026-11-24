@@ -10,6 +10,7 @@ export function resumoDoOrcamento(r: Resultado) {
       adicional: p.adicional as TipoAdicional | null, adicionalDescartado: p.adicionalDescartado as TipoAdicional | null,
     })),
     insumos: r.insumos.map(i => ({ nome: i.nome, titulo: i.titulo, quantidade: i.quantidade, custoMensal: i.custoMensal })),
+    ...(r.tributacao ? { tributacao: r.tributacao } : {}),
     composicao: { folha: r.folha.subtotal, encargos: r.encargosValor, beneficios: r.beneficios.subtotal, outros: r.outros.subtotal, materiais: r.materiais.subtotal, tributosMargem: r.valorContrato - r.custoTotal },
   };
 }

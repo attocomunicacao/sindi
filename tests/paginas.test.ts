@@ -2,7 +2,7 @@ import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { existsSync, readFileSync } from 'node:fs';
 import path from 'node:path';
-import { PAGINAS, paginaDe, rotaDe, rotasSemPrevia } from '../src/lib/paginas';
+import { PAGINAS, paginaDe, paginasDoMenu, rotaDe, rotasSemPrevia } from '../src/lib/paginas';
 import robots from '../src/app/robots';
 
 test('registro de páginas: ids e rotas únicos, e toda rota tem uma página em src/app', () => {
@@ -13,11 +13,13 @@ test('registro de páginas: ids e rotas únicos, e toda rota tem uma página em 
   }
 });
 
-test('toda página registrada tem glifo na marca e está no menu do cabeçalho', () => {
+test('toda página registrada tem glifo na marca; o cabeçalho monta o menu pelo registro e deixa de fora as páginas com menu: false', () => {
   const marca = readFileSync(path.join(process.cwd(), 'src', 'components', 'sindi-mark.tsx'), 'utf8');
   const cabecalho = readFileSync(path.join(process.cwd(), 'src', 'components', 'site-header.tsx'), 'utf8');
   for (const p of PAGINAS) assert.match(marca, new RegExp(`^\\s{2}${p.id}: \\[`, 'm'), `glifo de ${p.id}`);
-  assert.match(cabecalho, /PAGINAS\.map/); assert.doesNotMatch(cabecalho, /\['\/painel'/, 'links escritos à mão voltaram ao cabeçalho');
+  assert.match(cabecalho, /paginasDoMenu\(\)\.map/); assert.doesNotMatch(cabecalho, /\['\/painel'/, 'links escritos à mão voltaram ao cabeçalho');
+  assert.ok(!paginasDoMenu().some(p => (p.id as string) === 'custos'), 'a página de custos é só pelo endereço');
+  assert.ok(rotasSemPrevia().includes('/custos'));
 });
 
 test('paginaDe reconhece subcaminhos e cai em início para o resto; rotaDe devolve a rota', () => {

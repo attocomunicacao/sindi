@@ -1,4 +1,5 @@
-import { gerarTexto, LlmError, modeloPrincipal } from '@/lib/gemini';
+import { gerarTexto } from '@/lib/ia/cascata';
+import type { Nivel } from '@/lib/ia/tipos';
 import type { Mensagem } from '@/lib/cerebro/instrucoes';
 import type { Passage } from '@/lib/knowledge/core';
 import { notaDaSituacao, trechoDeContato, verificarFatos, type Situacao } from '@/lib/knowledge/grounded';
@@ -23,7 +24,8 @@ export type OpcoesDaEscrita = {
   pedido: (nota: string, fontes: Passage[]) => { texto: string; palavras: number };
   /** O pedido da primeira tentativa, já montado (a chave da memória de respostas depende dele). */
   primeira: { texto: string; palavras: number };
-  modelo: string; signal: AbortSignal; onDelta?: (texto: string) => void; onReset?: () => void;
+  /** Nível pedido à cascata: `rapido` só para o que o servidor já decidiu dizer (saudação, recusa, encaminhamento). */
+  nivel: Nivel; signal: AbortSignal; onDelta?: (texto: string) => void; onReset?: () => void;
   /** O usuário pediu um texto para preencher (modelo, rascunho): só aí os campos entre colchetes ficam na resposta. */
   manterColchetes: boolean;
   /** Perguntas do usuário na conversa, para a verificação aceitar números que ele mesmo citou. */
@@ -32,20 +34,20 @@ export type OpcoesDaEscrita = {
 
 /** Escreve a resposta com o modelo e a verifica contra as fontes; reescreve até três vezes. `confiavel` é falso se nenhuma tentativa passou. */
 export async function escreverComVerificacao(o: OpcoesDaEscrita) {
-  let modelo = o.modelo; let uso: Uso | undefined; let texto = ''; let fontesUsadas = o.tentativas[0].fontes; let confiavel = false;
+  let nivel = o.nivel; let uso: Uso | undefined; let texto = ''; let fontesUsadas = o.tentativas[0].fontes; let confiavel = false; let provedor: string | undefined;
   for (const [indice, tentativa] of o.tentativas.entries()) {
     if (indice > 0) o.onReset?.();
     const { texto: conteudo, palavras } = indice === 0 ? o.primeira : o.pedido(tentativa.nota, tentativa.fontes);
     // Teto de tokens com folga sobre o limite de palavras: impede que uma resposta descontrolada gaste o limite gratuito do provedor.
-    const gerar = (qual: string) => gerarTexto([...o.base, { role: 'user', content: conteudo }], o.signal, o.onDelta, { maxTokens: Math.round(palavras * 2.2) + 40 }, qual);
-    // Se o modelo rápido configurado não existir, o principal responde.
-    const { text, usage, truncada } = await gerar(modelo).catch(falha => { if (falha instanceof LlmError && falha.status === 404 && modelo !== modeloPrincipal()) { modelo = modeloPrincipal(); return gerar(modelo); } throw falha; });
+    // A cascata troca de provedor sozinha (limite, erro, modelo inexistente); se ela trocar no meio do texto, `onReset` limpa a tela.
+    const r = await gerarTexto([...o.base, { role: 'user', content: conteudo }], o.signal, o.onDelta, { maxTokens: Math.round(palavras * 2.2) + 40 }, nivel, o.onReset);
+    const { text, usage, truncada } = r; provedor = r.provedor;
     // Resposta cortada pelo teto: fica até a última frase completa (o evento final substitui na tela o texto parcial já mostrado).
     uso = somar(uso, usage); texto = limparResposta(truncada ? ateAUltimaFrase(text) : text, o.manterColchetes); fontesUsadas = tentativa.fontes;
-    // A reescrita depois de uma reprovação é sempre do modelo principal.
-    modelo = modeloPrincipal();
+    // A reescrita depois de uma reprovação é sempre do nível principal.
+    nivel = 'principal';
     confiavel = !texto.trim() || verificarFatos(texto, fatosDas(tentativa.fontes), o.perguntas).ok;
     if (confiavel) break;
   }
-  return { texto, uso, fontesUsadas, confiavel };
+  return { texto, uso, fontesUsadas, confiavel, provedor };
 }

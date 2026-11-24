@@ -5,8 +5,8 @@
   "outputDirectory": "public",
   "rewrites": [
     {
-      "source": "/(.*)",
-      "destination": "https://adds-elephant-hudson-prerequisite.trycloudflare.com/$1"
+      "source": "/:caminho*",
+      "destination": "/api/repasse?caminho=:caminho*"
     }
   ],
   "headers": [
@@ -16,4 +16,3 @@
     }
   ]
 }
-

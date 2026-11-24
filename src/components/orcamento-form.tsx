@@ -5,6 +5,10 @@ import { Button } from '@/components/ui/button';
 import { calcularOrcamento, type OrcamentoEntrada } from '@/lib/orcamento/calculo';
 import { catalogoPublico, type CatalogoPublico } from '@/lib/orcamento/catalogo-publico';
 import { resumoDoOrcamento } from '@/lib/orcamento/resumo';
+import type { TributacaoEntrada } from '@/lib/orcamento/tributacao';
+import { ALIQUOTAS_ESTIMADAS, ANOS, ROTULO_ESTIMATIVA } from '@/lib/tributos/regime-regular';
+import type { Anexo } from '@/lib/tributos/das';
+import { lerNumero } from '@/lib/tributos/formato';
 
 type FuncaoCat = CatalogoPublico['funcoes'][number];
 type Posto = { chave: number; funcaoId: string; quantidade: number; turno: 'diurno' | 'noturno'; periculosidade: boolean; insalubridade: 0 | 0.1 | 0.2 | 0.4; horasNoturnas: string };
@@ -17,6 +21,9 @@ const numeroDaSecao = 'text-sm font-normal tabular-nums text-slate-500';
 const opcional = 'text-sm font-normal text-slate-500';
 // O catálogo e o cálculo vêm das mesmas bibliotecas do servidor: o resultado aparece na hora, sem ida à rede, e o PDF (gerado no servidor) usa a mesma conta.
 const CATALOGO = catalogoPublico();
+const pct = (v: number, casas = 2) => `${v.toLocaleString('pt-BR', { minimumFractionDigits: casas, maximumFractionDigits: casas })}%`;
+type ModoTributacao = 'atual' | 'reforma' | 'simples';
+const textoAliquotas = (ano: number) => { const a = ALIQUOTAS_ESTIMADAS[ano] ?? { cbs: 0.9, ibsUf: 0.1, ibsMun: 0 }; return { cbs: String(a.cbs).replace('.', ','), ibsUf: String(a.ibsUf).replace('.', ','), ibsMun: String(a.ibsMun).replace('.', ',') }; };
 let proximaChave = 1;
 /** Um posto novo já traz os adicionais da função (o que está na tela é o que entra no cálculo). */
 const novoPosto = (funcaoId: string, quantidade = 1, turno: Posto['turno'] = 'diurno'): Posto => {
@@ -40,6 +47,10 @@ export function OrcamentoForm() {
   const [cliente, setCliente] = useState({ empresa: '', contato: '', local: '', observacoes: '' });
   const [metros, setMetros] = useState('');
   const [iss, setIss] = useState<number>(CATALOGO.issPadrao);
+  const [modo, setModo] = useState<ModoTributacao>('atual');
+  const [anoReforma, setAnoReforma] = useState(2026);
+  const [aliquotas, setAliquotas] = useState(textoAliquotas(2027));
+  const [simples, setSimples] = useState({ anexo: 'IV' as Anexo, rbt12: '', folha12: '', ano: 2026, pCBS: '', pIBS: '' });
   const [erro, setErro] = useState('');
   const [baixando, setBaixando] = useState<'' | 'orcamento' | 'custo'>('');
   const [categoriaInsumo, setCategoriaInsumo] = useState('');
@@ -64,10 +75,34 @@ export function OrcamentoForm() {
     };
   }, [postos, insumos, metros, iss]);
 
+  // Tributação escolhida; `pendente` explica por que ainda não vale (ex.: RBT12 em branco). Nesse caso a tela segue nas regras atuais.
+  const { tributacao, pendente } = useMemo((): { tributacao?: TributacaoEntrada; pendente?: string } => {
+    if (modo === 'reforma') {
+      if (anoReforma < 2027) return { tributacao: { modo: 'reforma', ano: anoReforma } };
+      const a = { cbs: lerNumero(aliquotas.cbs), ibsUf: lerNumero(aliquotas.ibsUf), ibsMun: lerNumero(aliquotas.ibsMun) };
+      if (a.cbs === undefined || a.ibsUf === undefined || a.ibsMun === undefined || Math.max(a.cbs, a.ibsUf, a.ibsMun) > 100) return { pendente: 'Informe as três alíquotas (CBS, IBS UF e IBS município) entre 0 e 100.' };
+      const padrao = ALIQUOTAS_ESTIMADAS[anoReforma];
+      const igual = padrao && padrao.cbs === a.cbs && padrao.ibsUf === a.ibsUf && padrao.ibsMun === a.ibsMun;
+      return { tributacao: { modo: 'reforma', ano: anoReforma, ...(igual ? {} : { aliquotas: { cbs: a.cbs, ibsUf: a.ibsUf, ibsMun: a.ibsMun } }) } };
+    }
+    if (modo === 'simples') {
+      const rbt12 = lerNumero(simples.rbt12); const folha12 = lerNumero(simples.folha12); const pCBSSN = lerNumero(simples.pCBS); const pIBSSN = lerNumero(simples.pIBS);
+      if (!rbt12 || rbt12 > 4_800_000) return { pendente: 'Informe a receita bruta dos últimos 12 meses (RBT12), de R$ 0,01 até R$ 4.800.000,00.' };
+      if ((simples.pCBS && (pCBSSN === undefined || pCBSSN > 100)) || (simples.pIBS && (pIBSSN === undefined || pIBSSN > 100))) return { pendente: 'Alíquotas de CBS e IBS do Simples devem estar entre 0 e 100.' };
+      return { tributacao: { modo: 'simples', anexo: simples.anexo, rbt12, ano: simples.ano, ...(folha12 !== undefined ? { folha12 } : {}), ...(pCBSSN !== undefined ? { pCBSSN } : {}), ...(pIBSSN !== undefined ? { pIBSSN } : {}) } };
+    }
+    return {};
+  }, [modo, anoReforma, aliquotas, simples]);
+
   const calculo = useMemo(() => {
     if (!corpo.postos.length) return null;
-    try { const r = calcularOrcamento(corpo as OrcamentoEntrada); return r.postos.length ? r : null; } catch { return null; }
-  }, [corpo]);
+    try { const r = calcularOrcamento({ ...corpo, ...(tributacao ? { tributacao } : {}) } as OrcamentoEntrada); return r.postos.length ? r : null; } catch { return null; }
+  }, [corpo, tributacao]);
+  // Para comparar, o mesmo orçamento nas regras atuais.
+  const comparacao = useMemo(() => {
+    if (!calculo?.tributacao) return null;
+    try { return calcularOrcamento(corpo as OrcamentoEntrada); } catch { return null; }
+  }, [calculo, corpo]);
   const resultado = useMemo(() => (calculo ? resumoDoOrcamento(calculo) : null), [calculo]);
   // Dois postos idênticos são recusados pelo servidor ao gerar o PDF: avisar antes, na tela.
   const repetido = useMemo(() => { const vistos = new Set<string>(); return postos.some(p => { const k = JSON.stringify([p.funcaoId, p.turno, p.periculosidade, p.insalubridade, p.horasNoturnas]); if (vistos.has(k)) return true; vistos.add(k); return false; }); }, [postos]);
@@ -77,13 +112,13 @@ export function OrcamentoForm() {
     if (repetido) return;
     setBaixando(tipo); setErro('');
     try {
-      const resposta = await fetch(`/api/orcamento/pdf?tipo=${tipo}`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ ...corpo, cliente }) });
+      const resposta = await fetch(`/api/orcamento/pdf?tipo=${tipo}`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ ...corpo, ...(tributacao ? { tributacao } : {}), cliente }) });
       if (!resposta.ok) throw new Error((await resposta.json()).error || 'Não foi possível gerar o PDF.');
       const url = URL.createObjectURL(await resposta.blob());
       const link = document.createElement('a'); link.href = url; link.download = tipo === 'orcamento' ? 'orcamento-terceirizacao.pdf' : 'relatorio-de-custo.pdf'; link.click();
       setTimeout(() => URL.revokeObjectURL(url), 10000);
     } catch (causa) { setErro(causa instanceof Error ? causa.message : 'Não foi possível gerar o PDF.'); } finally { setBaixando(''); }
-  }, [corpo, cliente, repetido]);
+  }, [corpo, tributacao, cliente, repetido]);
 
   if (!postos.length) return <p className="text-sm text-slate-500" role="status">Carregando…</p>;
   const categoria = catalogo.categorias.find(c => c.id === categoriaInsumo);
@@ -142,9 +177,40 @@ export function OrcamentoForm() {
       </section>
 
       <section aria-labelledby="tributos" className="space-y-4"><h2 id="tributos" className={titulo}><span className={numeroDaSecao}>04</span>Tributos</h2>
-        <div className="max-w-xs"><label htmlFor="iss" className={rotulo}>ISS do município da prestação</label>
-          <select id="iss" className={campo} value={iss ?? ''} onChange={e => setIss(Number(e.target.value))}>{catalogo.iss.map(v => <option key={v} value={v}>{(v * 100).toLocaleString('pt-BR', { maximumFractionDigits: 2 })}%</option>)}</select></div>
-        <p className="text-xs text-slate-500">PIS, COFINS, contribuição social, IRPJ, BDI e lucro seguem a tabela de referência.</p>
+        <div className="grid gap-3 sm:grid-cols-2">
+          <div><label htmlFor="modo-tributacao" className={rotulo}>Tributação</label>
+            <select id="modo-tributacao" className={campo} value={modo} onChange={e => setModo(e.target.value as ModoTributacao)}>
+              <option value="atual">Regras atuais (ISS, PIS, COFINS)</option><option value="reforma">Reforma Tributária (CBS/IBS)</option><option value="simples">Simples Nacional (DAS)</option></select></div>
+          {modo !== 'simples' && <div><label htmlFor="iss" className={rotulo}>ISS do município da prestação</label>
+            <select id="iss" className={campo} value={iss ?? ''} onChange={e => setIss(Number(e.target.value))}>{catalogo.iss.map(v => <option key={v} value={v}>{(v * 100).toLocaleString('pt-BR', { maximumFractionDigits: 2 })}%</option>)}</select></div>}
+        </div>
+        {modo === 'atual' && <p className="text-xs text-slate-500">PIS, COFINS, contribuição social, IRPJ, BDI e lucro seguem a tabela de referência.</p>}
+        {modo === 'reforma' && <div className="space-y-3">
+          <div className="max-w-xs"><label htmlFor="ano-reforma" className={rotulo}>Ano da prestação</label>
+            <select id="ano-reforma" className={campo} value={anoReforma} onChange={e => { const ano = Number(e.target.value); setAnoReforma(ano); if (ano >= 2027) setAliquotas(textoAliquotas(ano)); }}>{ANOS.map(a => <option key={a} value={a}>{a}</option>)}</select></div>
+          {anoReforma >= 2027 ? <fieldset className="space-y-2"><legend className="text-xs font-medium text-slate-600">Alíquotas de {anoReforma} (pontos percentuais; editáveis)</legend>
+            <div className="grid gap-3 sm:grid-cols-3">
+              <div><label htmlFor="a-cbs" className={rotulo}>CBS (%)</label><input id="a-cbs" className={campo} inputMode="decimal" value={aliquotas.cbs} onChange={e => setAliquotas({ ...aliquotas, cbs: e.target.value })} /></div>
+              <div><label htmlFor="a-uf" className={rotulo}>IBS estadual (%)</label><input id="a-uf" className={campo} inputMode="decimal" value={aliquotas.ibsUf} onChange={e => setAliquotas({ ...aliquotas, ibsUf: e.target.value })} /></div>
+              <div><label htmlFor="a-mun" className={rotulo}>IBS municipal (%)</label><input id="a-mun" className={campo} inputMode="decimal" value={aliquotas.ibsMun} onChange={e => setAliquotas({ ...aliquotas, ibsMun: e.target.value })} /></div>
+            </div>
+            <p className="text-xs text-slate-600">Cálculo simulado: valores padrão são {ROTULO_ESTIMATIVA}.</p></fieldset>
+            : <p className="text-xs text-slate-600">2026 é ano de teste: CBS 0,90% e IBS 0,10% (banco oficial da Receita), destacados na nota sem custo.</p>}
+        </div>}
+        {modo === 'simples' && <div className="space-y-3">
+          <div className="grid gap-3 sm:grid-cols-4">
+            <div><label htmlFor="s-anexo" className={rotulo}>Anexo</label><select id="s-anexo" className={campo} value={simples.anexo} onChange={e => setSimples({ ...simples, anexo: e.target.value as Anexo })}><option value="III">III</option><option value="IV">IV (vigilância, limpeza)</option><option value="V">V (Fator R)</option></select></div>
+            <div><label htmlFor="s-rbt12" className={rotulo}>RBT12 (R$)</label><input id="s-rbt12" className={campo} inputMode="decimal" value={simples.rbt12} onChange={e => setSimples({ ...simples, rbt12: e.target.value })} placeholder="ex.: 500000" /></div>
+            <div><label htmlFor="s-folha" className={rotulo}>Folha 12 meses (R$)</label><input id="s-folha" className={campo} inputMode="decimal" value={simples.folha12} onChange={e => setSimples({ ...simples, folha12: e.target.value })} placeholder="opcional" /></div>
+            <div><label htmlFor="s-ano" className={rotulo}>Ano</label><select id="s-ano" className={campo} value={simples.ano} onChange={e => setSimples({ ...simples, ano: Number(e.target.value) })}>{ANOS.map(a => <option key={a} value={a}>{a}</option>)}</select></div>
+          </div>
+          <div className="grid gap-3 sm:grid-cols-2">
+            <div><label htmlFor="s-pcbs" className={rotulo}>CBS efetiva do PGDAS-D (%)</label><input id="s-pcbs" className={campo} inputMode="decimal" value={simples.pCBS} onChange={e => setSimples({ ...simples, pCBS: e.target.value })} placeholder="opcional" /></div>
+            <div><label htmlFor="s-pibs" className={rotulo}>IBS efetivo do PGDAS-D (%)</label><input id="s-pibs" className={campo} inputMode="decimal" value={simples.pIBS} onChange={e => setSimples({ ...simples, pIBS: e.target.value })} placeholder="opcional" /></div>
+          </div>
+          <p className="text-xs text-slate-600">A RBT12 e a folha são da empresa prestadora. No Anexo V, folha de 28% ou mais da RBT12 passa para o Anexo III (Fator R). A cessão de mão de obra só é permitida no Simples nas atividades do Anexo IV.</p>
+        </div>}
+        {pendente && <p role="status" className="border-l-2 border-amber-400 pl-3 text-xs text-slate-700">{pendente} Enquanto isso, o resultado usa as regras atuais.</p>}
       </section>
     </div>
 
@@ -160,6 +226,23 @@ export function OrcamentoForm() {
         <ul className="space-y-1 border-t border-slate-200 pt-3 text-xs text-slate-600">{resultado.postos.map((p, i) => <li key={i} className="flex justify-between gap-2"><span>{p.quantidade}× {p.funcao} ({p.turno})</span><span className="font-medium text-slate-800">{brl(p.valorMensal)}</span></li>)}</ul>
         <ul className="space-y-1 border-t border-slate-200 pt-3 text-xs text-slate-600">{([['Salários e adicionais', resultado.composicao.folha], ['Encargos sociais', resultado.composicao.encargos], ['Benefícios', resultado.composicao.beneficios], ['PCMSO e PPR', resultado.composicao.outros], ['Uniformes, EPIs e insumos', resultado.composicao.materiais], ['Tributos, BDI e lucro', resultado.composicao.tributosMargem]] as [string, number][]).map(([nome, valor]) =>
           <li key={nome} className="flex justify-between gap-2"><span>{nome}</span><span>{(valor / resultado.valorContrato * 100).toLocaleString('pt-BR', { maximumFractionDigits: 1 })}%</span></li>)}</ul></>}
+      {calculo?.tributacao && <div className="space-y-2 border-t border-slate-200 pt-3 text-xs text-slate-600" role="group" aria-label="Tributação escolhida">
+        <p className="font-semibold uppercase tracking-wider text-slate-500">{calculo.tributacao.rotulo}</p>
+        {calculo.tributacao.nota && <dl className="grid grid-cols-2 gap-x-3 gap-y-1"><dt>Valor do serviço</dt><dd className="text-right font-medium text-slate-800">{brl(calculo.tributacao.nota.valorServico)}</dd>
+          <dt>CBS{calculo.tributacao.nota.informativo ? ' (sem custo)' : ''}</dt><dd className="text-right font-medium text-slate-800">{brl(calculo.tributacao.nota.cbs)}</dd>
+          <dt>IBS{calculo.tributacao.nota.informativo ? ' (sem custo)' : ''}</dt><dd className="text-right font-medium text-slate-800">{brl(calculo.tributacao.nota.ibs)}</dd>
+          <dt className="font-semibold text-slate-800">Total da nota</dt><dd className="text-right font-semibold text-slate-900">{brl(calculo.tributacao.nota.totalNota)}</dd></dl>}
+        {calculo.tributacao.das && <dl className="grid grid-cols-2 gap-x-3 gap-y-1"><dt>Alíquota efetiva do DAS</dt><dd className="text-right font-medium text-slate-800">{pct(calculo.tributacao.das.aliquotaEfetiva, 4)}</dd>
+          <dt>DAS mensal</dt><dd className="text-right font-medium text-slate-800">{brl(calculo.tributacao.das.valorDas ?? 0)}</dd></dl>}
+        {comparacao && <table className="w-full text-left"><caption className="sr-only">Comparação entre as regras atuais e a tributação escolhida</caption>
+          <thead><tr><th scope="col" className="pb-1 font-medium text-slate-500">Valor mensal</th><th scope="col" className="pb-1 text-right font-medium text-slate-500">Valor</th></tr></thead>
+          <tbody><tr><th scope="row" className="font-normal">Regras atuais</th><td className="text-right">{brl(comparacao.valorContrato)}</td></tr>
+            <tr><th scope="row" className="font-normal">{calculo.tributacao.modo === 'reforma' ? 'Reforma (valor do serviço)' : 'Simples Nacional'}</th><td className="text-right">{brl(calculo.valorContrato)}</td></tr>
+            {calculo.tributacao.nota && <tr><th scope="row" className="font-normal">Reforma (total da nota)</th><td className="text-right">{brl(calculo.tributacao.nota.totalNota)}</td></tr>}
+            <tr><th scope="row" className="font-semibold text-slate-800">Diferença no serviço</th><td className="text-right font-semibold text-slate-800">{brl(calculo.valorContrato - comparacao.valorContrato)}</td></tr></tbody></table>}
+        <ul className="list-disc space-y-1 pl-4">{calculo.tributacao.avisos.slice(0, 3).map(a => <li key={a}>{a}</li>)}</ul>
+        <details><summary className="cursor-pointer font-medium text-slate-700">Memória de cálculo</summary><ul className="mt-1 list-disc space-y-1 pl-4">{calculo.tributacao.memoria.map((m, i) => <li key={i}>{m}</li>)}{calculo.tributacao.avisos.slice(3).map(a => <li key={a}>{a}</li>)}</ul></details>
+      </div>}
       {repetido && <p role="alert" className="border-l-2 border-amber-400 pl-3 text-xs text-slate-700">Há postos repetidos (mesma função, turno e adicionais). Some as quantidades em um só posto para gerar o PDF.</p>}
       {erro && <p role="alert" className="border-l-2 border-amber-400 pl-3 text-xs text-slate-700">{erro}</p>}
       <div className="flex flex-col gap-2">

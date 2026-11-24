@@ -60,7 +60,7 @@ test('API protects origins, sends institutional instructions to Gemini and recor
     assert.ok(chamadas >= 2);
     // Sem chave, o serviço informa que não está configurado, sem tentar a rede.
     delete process.env.GEMINI_API_KEY; const antes = chamadas;
-    const semChave = await POST(pedido()); assert.equal(semChave.status, 503); assert.match((await semChave.json()).error, /GEMINI_API_KEY/); assert.equal(chamadas, antes);
+    const semChave = await POST(pedido()); assert.equal(semChave.status, 503); assert.match((await semChave.json()).error, /não foi configurado/); assert.equal(chamadas, antes);
   } finally { globalThis.fetch = originalFetch; process.env = saved; }
 });
 test('message quota: per-person limit answers 429 with Retry-After, and the warm-up and cached answers do not spend it', async () => {

@@ -4,13 +4,13 @@ import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { Menu, RotateCcw, X } from 'lucide-react';
 import { SindiMark } from '@/components/sindi-mark';
-import { PAGINAS, paginaDe } from '@/lib/paginas';
+import { paginaDe, paginasDoMenu } from '@/lib/paginas';
 import { ThemeToggle } from '@/components/theme-toggle';
 import { Pendente } from '@/components/pendente';
 import { Configuracao } from '@/components/configuracao';
 
 // Links e página atual vêm do registro de páginas (src/lib/paginas.ts).
-const links = PAGINAS.map(p => [p.rota, p.id, p.rotulo] as const);
+const links = paginasDoMenu().map(p => [p.rota, p.id, p.rotulo] as const);
 /** Evento que a página inicial escuta para limpar a conversa. */
 export const NOVA_CONVERSA = 'sindi-nova-conversa';
 const icone = 'flex size-9 items-center justify-center rounded-lg text-slate-500 hover:bg-slate-100 hover:text-slate-900 focus-visible:outline-2 focus-visible:outline-amber-400 pointer-coarse:size-11';

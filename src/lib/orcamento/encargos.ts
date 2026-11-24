@@ -10,15 +10,20 @@ type Parametros = typeof tabela.encargos.parametros;
  * Encargos sociais e trabalhistas sobre a folha, reimplementando a aba "Encargos Sociais" da planilha (grupos A, B, C e D).
  * Os parâmetros (faltas, aviso prévio, rotatividade...) vêm de tabela.json; com os valores da planilha o total é 84,2359%.
  */
-export function calcularEncargos(parametros: Parametros = tabela.encargos.parametros): Encargos {
+export function calcularEncargos(parametros: Parametros = tabela.encargos.parametros, opcoes: { excluirLinhas?: readonly string[] } = {}): Encargos {
   const p = parametros;
   const base = tabela.encargos;
-  const grupoA = base.grupoA.map(l => ({ nome: l.nome, taxa: l.taxa ?? 0, baseLegal: l.baseLegal ?? undefined }));
+  const todasA = base.grupoA.map(l => ({ nome: l.nome, taxa: l.taxa ?? 0, baseLegal: l.baseLegal ?? undefined }));
+  // Simples Nacional: contribuições que o DAS substitui ou que não se pagam (terceiros/Sistema S; CPP e RAT nos Anexos III e V) saem do grupo A.
+  const grupoA = todasA.filter(l => !opcoes.excluirLinhas?.includes(l.nome));
   // Sem a linha de FGTS na tabela não há como calcular os encargos de rescisão: melhor falhar do que usar uma alíquota presumida.
   const fgts = grupoA.find(l => l.nome === 'FGTS')?.taxa;
   if (fgts === undefined) throw new Error('Tabela de encargos sem a linha de FGTS.');
   const contribuicaoSocial = grupoA.find(l => l.nome.startsWith('CONTRIBUIÇÃO SOCIAL'))?.taxa ?? 0;
   const totalA = grupoA.reduce((soma, l) => soma + l.taxa, 0);
+  // A linha "Grupo A sobre grupo B" é uma constante da planilha; ao tirar linhas do grupo A ela é reduzida na mesma proporção (aproximação documentada).
+  const totalATodas = todasA.reduce((soma, l) => soma + l.taxa, 0);
+  const escalaD = opcoes.excluirLinhas?.length && totalATodas > 0 ? totalA / totalATodas : 1;
 
   const domingos = p.domingosAno; const sabados = p.sabadosAno; const feriados = p.feriadosAno; const ano = p.diasAno;
   const feriasGozadas = 30 - (30 * domingos) / ano - (30 * sabados) / ano - (30 * feriados) / ano;
@@ -61,7 +66,7 @@ export function calcularEncargos(parametros: Parametros = tabela.encargos.parame
   const totalC = grupoC.reduce((soma, l) => soma + l.taxa, 0);
 
   const grupoD: LinhaEncargo[] = [
-    { nome: 'Grupo A sobre grupo B', taxa: base.grupoD.grupoAsobreB, baseLegal: 'Artigo 28 da Lei 8.212/91' },
+    { nome: 'Grupo A sobre grupo B', taxa: base.grupoD.grupoAsobreB * escalaD, baseLegal: 'Artigo 28 da Lei 8.212/91' },
     { nome: 'Incidências sobre o salário-maternidade', taxa: base.grupoD.incidenciasSalarioMaternidade, baseLegal: 'Artigo 28 da Lei 8.212/91' },
   ];
   const totalD = grupoD.reduce((soma, l) => soma + l.taxa, 0);

@@ -99,7 +99,7 @@ test('escrita com verificação: telefone inventado é reprovado e reescrito, o 
   const executar = async (respostas: string[], perguntas = 'Qual o telefone?') => {
     let i = 0; const eventos: string[] = [];
     globalThis.fetch = (async () => resposta(respostas[Math.min(i++, respostas.length - 1)])) as typeof fetch;
-    const r = await escreverComVerificacao({ base: [], tentativas: tentativasDeResposta(undefined, fontes), pedido: (nota) => pedido(nota), primeira: pedido(''), modelo: 'm', signal: AbortSignal.timeout(5000), onReset: () => eventos.push('reset'), manterColchetes: false, perguntas });
+    const r = await escreverComVerificacao({ base: [], tentativas: tentativasDeResposta(undefined, fontes), pedido: (nota) => pedido(nota), primeira: pedido(''), nivel: 'principal', signal: AbortSignal.timeout(5000), onReset: () => eventos.push('reset'), manterColchetes: false, perguntas });
     return { ...r, eventos, chamadas: i };
   };
   try {

@@ -1,5 +1,5 @@
 import { abrirGeracao, cacheLigado, chaveDaResposta, esperarIgual, respostaGuardada } from '@/lib/cache-respostas';
-import { consumirCota, mensagemDeCota, type ResultadoCota } from '@/lib/cota';
+import { consumirCota, cotaDisponivel, mensagemDeCota, type ResultadoCota } from '@/lib/cota';
 import type { Situacao } from '@/lib/knowledge/grounded';
 
 /** Chave da memória de respostas: só a primeira pergunta de uma conversa (não depende de histórico) e nunca a que traz dados sensíveis. */
@@ -31,5 +31,16 @@ export async function gastarCota(request: Request, aquecimento: boolean): Promis
   if (aquecimento) return {};
   const cota = await consumirCota(request);
   if (cota.ok) return { cota };
-  return { resposta: Response.json({ error: mensagemDeCota(cota), restantes: 0 }, { status: 429, headers: { 'Cache-Control': 'no-store', 'Retry-After': String(cota.reiniciaEmSegundos) } }) };
+  return { resposta: respostaDeCota(cota) };
+}
+const respostaDeCota = (cota: ResultadoCota) => Response.json({ error: mensagemDeCota(cota), restantes: 0 }, { status: 429, headers: { 'Cache-Control': 'no-store', 'Retry-After': String(cota.reiniciaEmSegundos) } });
+
+/**
+ * Antes da busca: quem já esgotou a cota recebe o aviso sem que a SINDI gaste embeddings ou leituras da biblioteca. Para saber se haveria uma resposta
+ * guardada seria preciso buscar as fontes (a chave da memória depende delas), então quem esgotou a cota recebe o aviso mesmo para uma pergunta frequente.
+ */
+export async function conferirCotaAntes(request: Request, aquecimento: boolean): Promise<Response | undefined> {
+  if (aquecimento) return undefined;
+  const cota = await cotaDisponivel(request);
+  return cota.ok ? undefined : respostaDeCota(cota);
 }

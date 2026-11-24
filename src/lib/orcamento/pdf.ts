@@ -8,6 +8,7 @@ import {
   type PostoCalculado,
   type Resultado,
 } from '@/lib/orcamento/calculo';
+import { AVISOS } from '@/lib/produtos/avisos';
 import { COR, Documento, moeda, numero, percentual } from '@/lib/pdf/base';
 
 export type Cliente = { empresa?: string; contato?: string; local?: string; observacoes?: string };
@@ -75,9 +76,15 @@ function blocoTributacao(doc: Documento, r: Resultado, detalhado: boolean) {
   }
   doc.marcadores(t.avisos, 8.5);
 }
+/** Sem BDI, lucro ou tributos informados o valor é o custo: o PDF não o chama de preço (parecer jurídico: custo, nunca preço). */
+const nomeDoValor = (r: Resultado) => (r.margemInformada ? 'Valor' : 'Custo');
+/** O que quem usa informou para a conta, só para o texto dos PDFs; nada é completado com valor de tabela. */
+function taxasInformadas(r: Resultado) {
+  return Object.entries(r.tributos.taxas).filter(([, taxa]) => taxa > 0);
+}
 const REFERENCIA_CLIENTE = 'tabela de referência de custos de terceirização';
 
-/** Orçamento para o contratante: postos, preço mensal e anual, composição e premissas. */
+/** Orçamento para o contratante: postos, custo (ou valor, se houver margem informada) mensal e anual, composição e premissas. */
 export async function gerarOrcamentoPdf(entrada: OrcamentoEntrada, r: Resultado, cliente: Cliente = {}) {
   const doc = await Documento.criar('Orçamento estimado de terceirização', RODAPE);
   doc.capa(
@@ -92,10 +99,10 @@ export async function gerarOrcamentoPdf(entrada: OrcamentoEntrada, r: Resultado,
     ['Área (m²)', entrada.metrosQuadrados ? numero(entrada.metrosQuadrados) : ''],
   ]);
   doc.destaques([
-    { rotulo: 'Valor mensal estimado', valor: moeda(r.valorContrato), principal: true },
-    { rotulo: 'Valor em 12 meses', valor: moeda(r.valorAnual) },
+    { rotulo: `${nomeDoValor(r)} mensal estimado`, valor: moeda(r.valorContrato), principal: true },
+    { rotulo: `${nomeDoValor(r)} em 12 meses`, valor: moeda(r.valorAnual) },
     { rotulo: 'Médio por funcionário', valor: moeda(r.precoMedioFuncionario) },
-    ...(r.precoPorMetro !== null ? [{ rotulo: 'Preço por m²', valor: moeda(r.precoPorMetro) }] : []),
+    ...(r.precoPorMetro !== null ? [{ rotulo: `${nomeDoValor(r)} por m²`, valor: moeda(r.precoPorMetro) }] : []),
   ]);
   doc.titulo2('Postos de trabalho');
   const linhas = r.postos.map((p) => [
@@ -128,7 +135,7 @@ export async function gerarOrcamentoPdf(entrada: OrcamentoEntrada, r: Resultado,
       r.insumos.map((i) => [`${i.nome} (${i.titulo})`, numero(i.quantidade), moeda(i.custoMensal)]),
     );
   }
-  doc.titulo2('Composição do preço mensal');
+  doc.titulo2(r.margemInformada ? 'Composição do valor mensal' : 'Composição do custo mensal');
   const valor = r.valorContrato || 1;
   const mostrar = (rotulo: string, v: number) => ({
     rotulo,
@@ -141,7 +148,7 @@ export async function gerarOrcamentoPdf(entrada: OrcamentoEntrada, r: Resultado,
     mostrar('Benefícios (VR, VT, cesta, seguro)', r.beneficios.subtotal),
     mostrar('PCMSO e PPR', r.outros.subtotal),
     mostrar('Uniformes, EPIs e insumos', r.materiais.subtotal),
-    mostrar('Tributos, BDI e lucro', r.valorContrato - r.custoTotal),
+    ...(r.margemInformada ? [mostrar('Tributos, BDI e lucro (informados)', r.valorContrato - r.custoTotal)] : []),
   ]);
   blocoTributacao(doc, r, false);
   doc.titulo2('O que está incluído');
@@ -150,9 +157,11 @@ export async function gerarOrcamentoPdf(entrada: OrcamentoEntrada, r: Resultado,
     `Encargos sociais e trabalhistas (${percentual(r.taxaEncargos)} sobre a folha): contribuições, férias, 13º salário, ausências, aviso prévio e FGTS.`,
     'Benefícios: vale-refeição, vale-transporte (líquido do desconto do empregado), cesta básica, assistência social familiar e seguro de vida.',
     'PCMSO/PPR, uniformes e equipamentos de proteção individual (EPIs) das funções.',
-    r.tributacao
-      ? `Tributos conforme a tributação escolhida (${r.tributacao.rotulo}), BDI de ${percentual(tabela.parametros.bdi, 0)} e lucro de ${percentual(tabela.parametros.lucro, 0)}.`
-      : `Tributos sobre o faturamento (ISS ${percentual(r.tributos.taxas.ISS, 2)}, PIS, COFINS, contribuição social e IRPJ), BDI de ${percentual(tabela.parametros.bdi, 0)} e lucro de ${percentual(tabela.parametros.lucro, 0)}.`,
+    r.margemInformada
+      ? `Tributos, BDI e lucro informados pelo usuário: ${taxasInformadas(r)
+          .map(([nome, taxa]) => `${nome} ${percentual(taxa, 2)}`)
+          .join(', ')}${r.tributacao ? ` (tributação: ${r.tributacao.rotulo})` : ''}.`
+      : 'Tributos, BDI e lucro não foram informados e não estão incluídos: o valor é o custo.',
   ]);
   doc.titulo2('Premissas e avisos');
   const noturnos = r.postos.filter((p) => p.entrada.turno === 'noturno');
@@ -167,6 +176,8 @@ export async function gerarOrcamentoPdf(entrada: OrcamentoEntrada, r: Resultado,
       ...premissasDoCalculo(r),
       'Valores mensais, sem reajuste. Dissídio, mudanças na convenção coletiva da categoria, alíquota de ISS do município e escopo efetivo podem alterar o preço.',
       'Esta é uma estimativa para planejamento e comparação de propostas. Não é proposta comercial, contrato nem parecer jurídico ou contábil.',
+      AVISOS.custoNaoPreco,
+      AVISOS.naoEConsultoria,
       ...(cliente.observacoes ? [`Observações do solicitante: ${cliente.observacoes}`] : []),
     ],
     8.5,
@@ -194,7 +205,7 @@ function cabecalhoDoRelatorioDeCusto(doc: Documento, entrada: OrcamentoEntrada, 
   ]);
   doc.destaques([
     { rotulo: 'Custo total (sem tributos e margem)', valor: moeda(r.custoTotal) },
-    { rotulo: 'Valor mensal do contrato', valor: moeda(r.valorContrato), principal: true },
+    { rotulo: `${nomeDoValor(r)} mensal do contrato`, valor: moeda(r.valorContrato), principal: true },
     { rotulo: 'Funcionários', valor: numero(r.funcionarios) },
   ]);
 }
@@ -216,7 +227,11 @@ function secaoResumoDosPostos(doc: Documento, r: Resultado) {
       { titulo: 'Qtde', largura: 34, alinhar: 'direita' },
       { titulo: 'Salário base', largura: 80, alinhar: 'direita' },
       { titulo: 'Custo direto por func.', largura: 95, alinhar: 'direita' },
-      { titulo: 'Preço mensal do posto', largura: 92, alinhar: 'direita' },
+      {
+        titulo: r.margemInformada ? 'Valor mensal do posto' : 'Custo mensal do posto',
+        largura: 92,
+        alinhar: 'direita',
+      },
     ],
     linhas,
   );
@@ -330,15 +345,18 @@ function secaoEstruturaConsolidada(doc: Documento, r: Resultado) {
   rows.push(parc('CUSTO TOTAL DOS SERVIÇOS', r.custoTotal, t));
   negrito.add(rows.length - 1);
   destaque.add(rows.length - 1);
-  rows.push(['TRIBUTOS, BDI E LUCRO (sobre o faturamento)', '', '']);
-  negrito.add(rows.length - 1);
-  for (const [nome, taxa] of Object.entries(r.tributos.taxas))
-    rows.push([`${nome} (${percentual(taxa)})`, moeda(t * taxa), percentual(taxa)]);
-  rows.push(parc('Total de tributos, BDI e lucro', t - r.custoTotal, t));
-  negrito.add(rows.length - 1);
-  rows.push(parc('VALOR TOTAL DO CONTRATO', t, t));
-  negrito.add(rows.length - 1);
-  destaque.add(rows.length - 1);
+  // Só entram as taxas que o usuário informou (ou o DAS do Simples, que é cálculo legal); sem elas a tabela termina no custo.
+  if (r.margemInformada) {
+    rows.push(['TRIBUTOS, BDI E LUCRO INFORMADOS (sobre o faturamento)', '', '']);
+    negrito.add(rows.length - 1);
+    for (const [nome, taxa] of taxasInformadas(r))
+      rows.push([`${nome} (${percentual(taxa)})`, moeda(t * taxa), percentual(taxa)]);
+    rows.push(parc('Total de tributos, BDI e lucro', t - r.custoTotal, t));
+    negrito.add(rows.length - 1);
+    rows.push(parc('VALOR TOTAL DO CONTRATO', t, t));
+    negrito.add(rows.length - 1);
+    destaque.add(rows.length - 1);
+  }
   doc.tabela(
     [
       { titulo: 'Descrição', largura: 311 },
@@ -349,7 +367,9 @@ function secaoEstruturaConsolidada(doc: Documento, r: Resultado) {
     { negrito, destaque, zebra: false },
   );
   doc.texto(
-    `Preço = custo total ÷ (1 − ${percentual(r.tributos.somaTaxas)}): os tributos, o BDI e o lucro incidem sobre o valor faturado, como na planilha de referência.`,
+    r.margemInformada
+      ? `Valor = custo total ÷ (1 − ${percentual(r.tributos.somaTaxas)}): os tributos, o BDI e o lucro informados incidem sobre o valor faturado, como na planilha de referência.`
+      : AVISOS.custoNaoPreco,
     { tamanho: 8, cor: COR.suave },
   );
 }
@@ -419,12 +439,27 @@ function secaoParametros(doc: Documento, r: Resultado) {
       ['PPR (mensal)', moeda(p.ppr)],
       ['Adicional noturno', percentual(p.adicionalNoturno, 0)],
       ['DSR sobre adicionais', `${p.dsr.diasDescanso}/${p.dsr.diasUteis}`],
-      ['BDI / lucro', `${percentual(p.bdi, 0)} / ${percentual(p.lucro, 0)}`],
+      [
+        'BDI / lucro (informados pelo usuário)',
+        r.tributos.bdi > 0 || r.tributos.lucro > 0
+          ? `${percentual(r.tributos.taxas.BDI, 2)} / ${percentual(r.tributos.taxas.Lucro, 2)}`
+          : 'não informados',
+      ],
       r.tributacao
-        ? ['Tributação do preço', r.tributacao.rotulo]
+        ? ['Tributação do valor', r.tributacao.rotulo]
         : [
-            'ISS / PIS / COFINS / CSLL / IRPJ',
-            `${percentual(r.tributos.taxas.ISS)} / ${percentual(p.impostos.pis)} / ${percentual(p.impostos.cofins)} / ${percentual(p.impostos.contribuicaoSocial)} / ${percentual(p.impostos.irpj)}`,
+            'ISS / PIS / COFINS / CSLL / IRPJ (informados pelo usuário)',
+            r.tributos.totalImpostos > 0
+              ? [
+                  r.tributos.taxas.ISS,
+                  r.tributos.taxas.PIS,
+                  r.tributos.taxas.COFINS,
+                  r.tributos.taxas['Contribuição social'],
+                  r.tributos.taxas.IRPJ,
+                ]
+                  .map((x) => percentual(x, 2))
+                  .join(' / ')
+              : 'não informados',
           ],
     ],
   );
@@ -438,6 +473,8 @@ function secaoObservacoesDaTabela(doc: Documento, r: Resultado) {
       ...premissasDoCalculo(r),
       ...AJUSTES_TABELA,
       'O salário mínimo da planilha é usado apenas na insalubridade; as funções de limpeza seguem a convenção coletiva da categoria de asseio e conservação, que não é a do SINDEPRESTEM.',
+      AVISOS.custoNaoPreco,
+      AVISOS.naoEConsultoria,
     ],
     8.5,
   );

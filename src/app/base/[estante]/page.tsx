@@ -15,6 +15,7 @@ import { numeroBR } from '@/lib/base/formato';
 import { estantePorId } from '@/lib/biblioteca/estantes';
 import { cerebroPorArquivo, indicadores, listarEstante } from '@/lib/biblioteca/consulta';
 import { Pendente } from '@/componentes/layout/pendente';
+import { SaibaMais } from '@/componentes/ui/saiba-mais';
 
 type Consulta = Record<string, string | string[] | undefined>;
 const um = (v?: string | string[]) => (Array.isArray(v) ? v[0] : v)?.trim().slice(0, 120) || undefined;
@@ -45,12 +46,12 @@ export default async function EstantePage({
   const rotuloUnidade =
     estante.especial === 'cerebro' ? 'volumes' : estante.especial === 'indicadores' ? 'indicadores' : 'documentos';
   return (
-    <Principal className="max-w-6xl py-10">
+    <Principal className="max-w-[120rem] py-10">
       <Migalhas itens={[{ rotulo: 'Biblioteca', href: '/base' }, { rotulo: estante.nome }]} />
       <header className="mt-6">
         <BarraDeDestaque />
         <h1 className="mt-5 text-2xl font-semibold tracking-tight text-slate-900 sm:text-3xl">{estante.nome}</h1>
-        <p className="mt-2 max-w-2xl text-base leading-7 text-slate-600">{estante.descricao}</p>
+        <p className="mt-2 max-w-3xl text-base leading-7 text-slate-600">{estante.descricao}</p>
       </header>
       {estante.especial === 'cerebro' ? (
         <Cerebro q={q} />
@@ -153,7 +154,7 @@ function Indicadores() {
   const formatar = (valor: number, unidade: string) =>
     valor.toLocaleString('pt-BR', { maximumFractionDigits: /%/.test(unidade) ? 2 : 0 });
   return lista.length ? (
-    <ul className="mt-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+    <ul className="mt-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-3 2xl:grid-cols-4">
       {lista.map((i) => (
         <Cartao como="li" key={i.id}>
           <p className="text-xs text-slate-500">{i.group}</p>
@@ -213,11 +214,13 @@ function Cerebro({ q }: { q?: string }) {
           tamanho="compacto"
         />
       </div>
-      <p className="mt-4 max-w-2xl text-sm leading-relaxed text-slate-500">
-        Cada volume é um arquivo da pasta <code>cerebro/</code>; cada seção é um capítulo que a SINDI pode consultar. Os
-        volumes “gerados” são resumos recriados a partir dos documentos coletados. As instruções internas da assistente
-        não são exibidas.
-      </p>
+      <SaibaMais titulo="Sobre os volumes" className="mt-4">
+        <p>
+          Cada volume é um arquivo da pasta <code>cerebro/</code>; cada seção é um capítulo que a SINDI pode consultar.
+          Os volumes “gerados” são resumos recriados a partir dos documentos coletados. As instruções internas da
+          assistente não são exibidas.
+        </p>
+      </SaibaMais>
       {volumes.length ? (
         <div className="mt-6 divide-y divide-slate-200 border-y-2 border-slate-800">
           {volumes.map((v) => (

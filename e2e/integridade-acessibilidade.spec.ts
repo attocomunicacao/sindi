@@ -140,7 +140,8 @@ test('teclado: dá para percorrer o cabeçalho e chegar à caixa do chat só com
   test.skip(isMobile, 'a navegação por Tab vale para o desktop');
   await page.goto('/');
   const focados: string[] = [];
-  for (let i = 0; i < 14; i++) {
+  // O menu cresce a cada página nova (Jornada 42, Diagnóstico…): o limite acompanha, para o teste medir o caminho até a caixa do chat e não o tamanho do menu.
+  for (let i = 0; i < 24; i++) {
     await page.keyboard.press('Tab');
     focados.push(
       await page.evaluate(() => {

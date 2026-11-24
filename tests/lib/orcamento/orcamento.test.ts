@@ -9,6 +9,7 @@ import tabela from '@/lib/orcamento/tabela.json';
 import { interpretarPostos, linkFerramenta, orcamentoAnswer } from '@/lib/orcamento/interpretar';
 import { gerarOrcamentoPdf, gerarRelatorioCustoPdf, referencia } from '@/lib/orcamento/pdf';
 import { seguro } from '@/lib/pdf/base';
+import { AVISOS } from '@/lib/produtos/avisos';
 
 const perto = (a: number, b: number, tolerancia = 1e-6) => assert.ok(Math.abs(a - b) < tolerancia, `${a} !== ${b}`);
 
@@ -31,7 +32,12 @@ test('the spreadsheet example (10 + 1 + 1 cleaning staff, 1,000 m²) matches pay
       { funcaoId: 'operador-de-maquina', quantidade: 1, turno: 'diurno' },
     ],
     metrosQuadrados: 1000,
+    // Na planilha, BDI e lucro de 3%, ISS de 5%, PIS 1,65%, COFINS 7,6%, CSLL e IRPJ de 1%: agora são informados por quem usa, não vêm da tabela.
+    bdi: 0.03,
+    lucro: 0.03,
+    impostos: { iss: 0.05, pis: 0.0165, cofins: 0.076, contribuicaoSocial: 0.01, irpj: 0.01 },
   });
+  assert.equal(r.margemInformada, true);
   // Valores da aba Resumo da planilha de referência.
   perto(r.folha.salarios, 17274.65);
   perto(r.folha.periculosidade, 415.395);
@@ -51,6 +57,43 @@ test('the spreadsheet example (10 + 1 + 1 cleaning staff, 1,000 m²) matches pay
   perto(r.valorContrato, r.custoTotal / (1 - 0.2225), 1e-6);
   perto(r.tributos.totalBdi + r.tributos.totalImpostos + r.custoTotal, r.valorContrato, 1e-6);
   perto(r.precoPorMetro!, r.valorContrato / 1000, 1e-9);
+});
+test('sem BDI, lucro e tributos informados o valor é o custo (nada vem da tabela)', () => {
+  const r = calcularOrcamento({
+    postos: [{ funcaoId: 'auxiliar-de-limpeza', quantidade: 3, turno: 'diurno' }],
+    metrosQuadrados: 100,
+  });
+  assert.equal(r.margemInformada, false);
+  assert.equal(r.tributos.somaTaxas, 0);
+  assert.equal(r.valorContrato, r.custoTotal);
+  assert.equal(r.tributos.totalBdi + r.tributos.totalImpostos, 0);
+  perto(r.postos[0].valorMensal, r.postos[0].custoDireto, 1e-9);
+  perto(r.valorAnual, r.custoTotal * 12, 1e-9);
+  perto(r.precoPorMetro!, r.custoTotal / 100, 1e-9);
+});
+test('BDI, lucro e tributos informados entram "por dentro"; o ISS de cima vale sobre o de impostos', () => {
+  const postos = [{ funcaoId: 'auxiliar-de-limpeza', quantidade: 3, turno: 'diurno' as const }];
+  const base = calcularOrcamento({ postos });
+  const r = calcularOrcamento({ postos, bdi: 0.04, lucro: 0.06, iss: 0.03, impostos: { iss: 0.05, pis: 0.0165 } });
+  assert.equal(r.margemInformada, true);
+  perto(r.tributos.somaTaxas, 0.04 + 0.06 + 0.03 + 0.0165, 1e-12);
+  perto(r.valorContrato, base.custoTotal / (1 - 0.1465), 1e-6);
+  perto(r.tributos.bdi, r.valorContrato * 0.04, 1e-6);
+  perto(r.tributos.totalBdi + r.tributos.totalImpostos + r.custoTotal, r.valorContrato, 1e-6);
+});
+test('valores informados fora da faixa, não numéricos ou que somam 100% ou mais são recusados', () => {
+  const postos = [{ funcaoId: 'auxiliar-de-limpeza', quantidade: 1, turno: 'diurno' as const }];
+  for (const ruim of [
+    { bdi: -0.01 },
+    { lucro: 0.51 },
+    { bdi: Number.NaN },
+    { bdi: '3' as unknown as number },
+    { impostos: { pis: -1 } },
+    { impostos: { irpj: 0.6 } },
+    { bdi: 0.5, lucro: 0.5 },
+    { bdi: 0.5, impostos: { iss: 0.3, pis: 0.2 } },
+  ])
+    assert.throws(() => calcularOrcamento({ postos, ...ruim }), RangeError, JSON.stringify(ruim));
 });
 test('night shift adds 20% of the hourly wage over the night hours plus weekly rest, and the shifts are priced separately', () => {
   const r = calcularOrcamento({
@@ -248,7 +291,10 @@ test('the chat understands staffing requests, inherits the role for "3 noturno" 
   assert.equal(interpretarPostos('O que é terceirização?'), undefined);
   assert.equal(interpretarPostos('convenção coletiva da portaria 2025')?.postos[0].quantidade === 202, false);
   const resposta = orcamentoAnswer('Preciso de um orçamento para 3 auxiliares de limpeza diurno e 3 noturno') || '';
-  assert.match(resposta, /R\$\s?30\.756,86/);
+  // Só o custo: sem BDI, lucro e tributos informados, não há divisão por (1 − taxas) nem percentual sugerido.
+  assert.match(resposta, /Custo mensal estimado.*R\$\s?23\.913,46/);
+  assert.match(resposta, /Tributos, BDI e lucro não estão incluídos/);
+  assert.ok(resposta.includes(AVISOS.custoNaoPreco) && resposta.includes(AVISOS.naoEConsultoria));
   assert.match(resposta, /\/orcamento\?postos=auxiliar-de-limpeza%3A3%3Adiurno/);
   assert.equal(orcamentoAnswer('Quais são as 10 convenções de portaria?'), undefined);
   assert.equal(orcamentoAnswer('Qual o valor da mensalidade de associação?'), undefined);

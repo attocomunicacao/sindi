@@ -25,7 +25,6 @@ export function catalogoPublico() {
       itens: itensDaCategoria(c.id).map((i) => ({ id: i.id, nome: i.nome, valor: i.valor })),
     })),
     iss: ISS_PERMITIDO,
-    issPadrao: tabela.parametros.impostos.iss,
     horasNoturnasPadrao: HORAS_NOTURNAS_PADRAO,
     salarioMinimo: tabela.parametros.salarioMinimo,
     encargos: calcularEncargos().total,

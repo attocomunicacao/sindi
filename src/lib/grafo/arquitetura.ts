@@ -9,7 +9,7 @@ type Item = [id: string, rotulo: string, x: number, y: number, tipo?: No['tipo']
 const ITENS: Item[] = [
   ['arq:pergunta', 'Pergunta', -980, 0, 'sistema'],
   ['arq:guarda', 'Guarda (origem, cota, dados pessoais)', -760, 60, 'sistema'],
-  ['arq:orquestrador', 'Orquestrador', -520, 0, 'nucleo'],
+  ['arq:orquestrador', 'SINDI (orquestradora)', -520, 0, 'nucleo'],
   ['arq:esp-sobre', 'Sobre a SINDI e limites', -230, -330, 'conector'],
   ['arq:esp-legislacao', 'Legislação e segurança jurídica', -230, -220, 'conector'],
   ['arq:esp-setor', 'Inteligência setorial e relatórios', -230, -110, 'conector'],
@@ -22,13 +22,10 @@ const ITENS: Item[] = [
   ['arq:grafo', 'Grafo (leis, NRs, projetos)', 90, 80, 'lei', '/cerebro'],
   ['arq:ferramentas', 'Ferramentas (orçamento)', 90, 240, 'documento', '/orcamento'],
   ['arq:redacao', 'Redação em cascata', 360, -60, 'sistema'],
-  ['arq:gemini', 'Gemini (gratuito)', 610, -300, 'sistema'],
-  ['arq:groq', 'Groq (gratuito)', 610, -200, 'sistema'],
-  ['arq:openrouter', 'OpenRouter :free', 610, -100, 'sistema'],
-  ['arq:mistral', 'Mistral (gratuito)', 610, 0, 'sistema'],
-  ['arq:cloudflare', 'Cloudflare Workers AI', 610, 100, 'sistema'],
-  ['arq:anthropic', 'Claude Haiku (pago, desligado)', 610, 200, 'sistema', '/custos'],
-  ['arq:ollama', 'Ollama local (emergência)', 610, 300, 'sistema'],
+  ['arq:gemini', 'Gemini (gratuito)', 610, -150, 'sistema'],
+  ['arq:groq', 'Groq (gratuito)', 610, -50, 'sistema'],
+  ['arq:mistral', 'Mistral (gratuito)', 610, 50, 'sistema'],
+  ['arq:ollama', 'Ollama local (emergência)', 610, 150, 'sistema'],
   ['arq:verificador', 'Verificador de fatos', 860, 60, 'nr'],
   ['arq:resposta', 'Resposta com referências', 1080, 0, 'sistema'],
 ];
@@ -48,7 +45,7 @@ const LIGACOES: [string, string][] = [
   ),
   ['arq:biblioteca', 'arq:grafo'],
   ...['cerebro', 'biblioteca', 'grafo', 'ferramentas'].map((f) => [`arq:${f}`, 'arq:redacao'] as [string, string]),
-  ...['gemini', 'groq', 'openrouter', 'mistral', 'cloudflare', 'anthropic', 'ollama'].flatMap(
+  ...['gemini', 'groq', 'mistral', 'ollama'].flatMap(
     (p) =>
       [
         ['arq:redacao', `arq:${p}`],

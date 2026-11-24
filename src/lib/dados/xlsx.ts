@@ -22,6 +22,8 @@ export const ABAS_POR_FONTE: Record<string, string> = {
   mte: 'MTE',
   caged: 'CAGED',
   constituicao: 'Constituição',
+  legislacao: 'Legislação',
+  nrs: 'NRs',
   regimentos: 'Regimentos',
 };
 /** Uma célula do Excel aceita no máximo 32.767 caracteres; o texto integral continua no SQLite. */

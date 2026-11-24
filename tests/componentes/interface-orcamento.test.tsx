@@ -21,9 +21,9 @@ test('orçamento: o formulário aparece depois da montagem, já com o resultado 
   await aguardarFormulario();
   const resultado = screen.getByLabelText('Resultado do orçamento');
   assert.match(
-    within(resultado).getByText('Valor mensal estimado').nextElementSibling!.textContent ?? '',
+    within(resultado).getByText('Custo mensal estimado').nextElementSibling!.textContent ?? '',
     dinheiro,
-    'o valor mensal já está calculado, sem ida à rede',
+    'o custo mensal já está calculado, sem ida à rede',
   );
   const nota = within(resultado).getByRole('note');
   assert.match(nota.textContent ?? '', /13\/10\/2026/);

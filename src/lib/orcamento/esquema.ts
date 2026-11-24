@@ -1,6 +1,12 @@
 import { z } from 'zod';
 import { CATEGORIAS_INSUMO, funcaoPorId } from '@/lib/orcamento/catalogo';
-import { ISS_PERMITIDO } from '@/lib/orcamento/calculo';
+import {
+  ISS_PERMITIDO,
+  LIMITE_DE_FRACAO,
+  LIMITE_DE_HORAS_NOTURNAS,
+  LIMITE_DE_METROS_QUADRADOS,
+  LIMITE_DE_QUANTIDADE,
+} from '@/lib/orcamento/calculo';
 import { tributacaoSchema } from '@/lib/tributos/esquema';
 
 // Texto livre do solicitante: sem caracteres de controle e com tamanho limitado (vai para o PDF, nunca é gravado).
@@ -17,14 +23,16 @@ const texto = (max: number) =>
     )
     .optional();
 
+const fracaoSchema = z.number().min(0).max(LIMITE_DE_FRACAO);
+
 export const postoSchema = z
   .object({
     funcaoId: z.string().max(60),
-    quantidade: z.number().int().min(1).max(500),
+    quantidade: z.number().int().min(1).max(LIMITE_DE_QUANTIDADE),
     turno: z.enum(['diurno', 'noturno']),
     periculosidade: z.boolean().optional(),
     insalubridade: z.union([z.literal(0), z.literal(0.1), z.literal(0.2), z.literal(0.4)]).optional(),
-    horasNoturnas: z.number().min(0).max(220).optional(),
+    horasNoturnas: z.number().min(0).max(LIMITE_DE_HORAS_NOTURNAS).optional(),
     horasExtras: z
       .object({
         h50: z.number().min(0).max(100).optional(),
@@ -77,7 +85,20 @@ export const orcamentoSchema = z.object({
     .number()
     .refine((v) => ISS_PERMITIDO.some((p) => Math.abs(p - v) < 1e-9), 'ISS fora da faixa de 2% a 5%')
     .optional(),
-  metrosQuadrados: z.number().min(1).max(10_000_000).optional(),
+  // BDI, lucro e tributos do preço: informados por quem usa, frações de 0 a 0,5; ausentes valem zero (a soma com o ISS e o DAS tem de ficar abaixo de 100%, conferido pela conta).
+  bdi: fracaoSchema.optional(),
+  lucro: fracaoSchema.optional(),
+  impostos: z
+    .object({
+      iss: fracaoSchema.optional(),
+      pis: fracaoSchema.optional(),
+      cofins: fracaoSchema.optional(),
+      contribuicaoSocial: fracaoSchema.optional(),
+      irpj: fracaoSchema.optional(),
+    })
+    .strict()
+    .optional(),
+  metrosQuadrados: z.number().min(1).max(LIMITE_DE_METROS_QUADRADOS).optional(),
   insumos: z
     .array(
       z.object({

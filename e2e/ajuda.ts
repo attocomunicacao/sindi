@@ -98,6 +98,9 @@ export const PAGINAS = [
   '/cerebro',
   '/danfse',
   '/tributos',
+  '/jornada-42',
+  '/diagnostico',
+  '/privacidade',
 ] as const;
 
 /** Alertas da página, sem o anunciador de rota do Next (`#__next-route-announcer__`, que também tem role=alert e fica sempre no documento). */

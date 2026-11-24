@@ -1,7 +1,7 @@
 import { existsSync, readFileSync } from 'node:fs';
 import { DatabaseSync } from 'node:sqlite';
 import {
-  forceCenter,
+  forceCollide,
   forceLink,
   forceManyBody,
   forceSimulation,
@@ -17,6 +17,7 @@ import { conectores } from '@/lib/cerebro/conectores';
 import { arquivoDeVetores, cosseno, idDoTrecho } from '@/lib/cerebro/embeddings';
 import { normalizar } from '@/lib/base/texto';
 import { caminhoDoBanco } from '@/lib/dados/db';
+import { CENTRO, dentroDoCerebro, REGIAO_GERAL, regiaoDoConector, type Regiao } from '@/lib/grafo/cerebro-forma';
 import { extrairEntidades } from '@/lib/grafo/entidades';
 import type { Aresta, Grafo, No, TipoDeAresta, TipoDeNo } from '@/lib/grafo/tipos';
 
@@ -263,6 +264,7 @@ export function construirGrafo(opcoes: { banco?: string; iteracoes?: number } = 
   ligarEntidades(m, citacoes);
   ligarLinksDoSite(m, linksDoSite, porUrl);
   ligarResumosAosDocumentos(m, porArquivo, porUrl);
+  classificar(m, lista);
   return dispor([...m.nos.values()], m.arestas, opcoes.iteracoes ?? 260);
 }
 
@@ -275,83 +277,217 @@ export function grafoSoDoCerebro(): Grafo {
   return grafo;
 }
 
-/** Posições por simulação de forças: núcleo no centro, especialistas e estantes em volta, documentos agrupados em torno das estantes. */
+/** O id do conector sem o prefixo do nó: é a chave da região dele no cérebro. */
+const idDaArea = (idDoNo: string) => idDoNo.replace(/^conector:/, '');
+/** Estante que nenhuma área consulta mora na área mais parecida com a ala dela (leis → legislação, setor → inteligência setorial, e assim por diante). */
+const AREA_DA_ALA: Record<string, string> = {
+  legislacao: 'legislacao-e-seguranca-juridica',
+  setor: 'inteligencia-setorial-e-relatorios',
+  sindicato: 'relacionamento-com-o-sindeprestem',
+  sindi: 'sobre-a-sindi-e-limites',
+};
+
+/**
+ * Dá a cada nó a sua região e o seu nível, para o cérebro fazer sentido: a estante mora na área que a consulta, o documento na estante em que está
+ * catalogado, o conhecimento na área com que mais compartilha gatilhos e a lei/NR/projeto na região onde mais é citada. Também liga cada estante às
+ * entidades que os documentos dela citam (as três maiores), para a rede continuar ligada quando os documentos estão recolhidos na tela.
+ */
+function classificar({ nos, arestas, liga }: Montador, lista: Conector[]) {
+  const regiaoDe = new Map<string, string>([['sindi', 'sindi']]);
+  for (const c of lista) regiaoDe.set(`conector:${c.id}`, c.id);
+  // Estante: uma só área que a consulta → mora nela; várias (biblioteca compartilhada) → região geral, no meio das áreas; nenhuma → pela ala.
+  const consultores = new Map<string, string[]>();
+  for (const c of lista) for (const e of c.estantes) consultores.set(e, [...(consultores.get(e) ?? []), c.id]);
+  const idsDasAreas = new Set(lista.map((c) => c.id));
+  for (const n of nos.values()) {
+    if (n.tipo !== 'estante') continue;
+    const areas = consultores.get(n.id.replace(/^estante:/, '')) ?? [];
+    const areaDaAla = AREA_DA_ALA[n.grupo];
+    regiaoDe.set(
+      n.id,
+      areas.length === 1
+        ? areas[0]
+        : areas.length > 1
+          ? REGIAO_GERAL.id
+          : idsDasAreas.has(areaDaAla)
+            ? areaDaAla
+            : REGIAO_GERAL.id,
+    );
+  }
+  // Conhecimento: a área com mais peso de gatilhos em comum.
+  const melhorArea = new Map<string, { area: string; peso: number }>();
+  for (const a of arestas) {
+    if (a.tipo !== 'gatilho') continue;
+    const atual = melhorArea.get(a.para);
+    if (!atual || a.peso > atual.peso) melhorArea.set(a.para, { area: idDaArea(a.de), peso: a.peso });
+  }
+  for (const n of nos.values())
+    if (n.tipo === 'conhecimento') regiaoDe.set(n.id, melhorArea.get(n.id)?.area ?? REGIAO_GERAL.id);
+  // Documento → estante (aresta `guarda`); o documento herda a região da estante.
+  const paiDoDocumento = new Map<string, string>();
+  for (const a of arestas) if (a.tipo === 'guarda' && a.de.startsWith('doc:')) paiDoDocumento.set(a.de, a.para);
+  for (const [doc, estante] of paiDoDocumento) {
+    nos.get(doc)!.pai = estante;
+    regiaoDe.set(doc, regiaoDe.get(estante) ?? REGIAO_GERAL.id);
+  }
+  // Entidade: a região mais frequente entre os documentos que a citam, e as estantes que mais a citam.
+  const porRegiao = new Map<string, Map<string, number>>();
+  const porEstante = new Map<string, Map<string, number>>();
+  const contar = (m: Map<string, Map<string, number>>, chave: string, valor: string) => {
+    const t = m.get(chave) ?? m.set(chave, new Map()).get(chave)!;
+    t.set(valor, (t.get(valor) ?? 0) + 1);
+  };
+  for (const a of arestas) {
+    if (a.tipo !== 'cita' || !a.de.startsWith('doc:') || !a.para.startsWith('ent:')) continue;
+    contar(porRegiao, a.para, regiaoDe.get(a.de) ?? REGIAO_GERAL.id);
+    const estante = paiDoDocumento.get(a.de);
+    if (estante) contar(porEstante, a.para, estante);
+  }
+  const maior = (t?: Map<string, number>) => [...(t ?? [])].sort((x, y) => y[1] - x[1]);
+  for (const n of nos.values())
+    if (n.tipo === 'lei' || n.tipo === 'nr' || n.tipo === 'proposicao')
+      regiaoDe.set(n.id, maior(porRegiao.get(n.id))[0]?.[0] ?? REGIAO_GERAL.id);
+  for (const [entidade, porEst] of porEstante)
+    for (const [estante, quantos] of maior(porEst).slice(0, 3)) liga(estante, entidade, 'cita', quantos);
+  const NIVEL: Record<TipoDeNo, number> = {
+    nucleo: 0,
+    conector: 1,
+    estante: 2,
+    conhecimento: 2,
+    lei: 3,
+    nr: 3,
+    proposicao: 3,
+    documento: 4,
+    sistema: 2,
+  };
+  for (const n of nos.values()) {
+    n.regiao = regiaoDe.get(n.id) ?? REGIAO_GERAL.id;
+    n.nivel = NIVEL[n.tipo];
+  }
+}
+
+type NoSimulado = SimulationNodeDatum & {
+  id: string;
+  tipo: TipoDeNo;
+  regiao: string;
+  alvoX: number;
+  alvoY: number;
+};
+const ANGULO_AUREO = 2.399963229728653;
+
+/** Âncora de cada região no mundo do cérebro: as áreas conhecidas, a geral e o centro da SINDI. */
+function ancorasDasRegioes(base: Omit<No, 'x' | 'y' | 'grau'>[]): Map<string, Regiao> {
+  const mapa = new Map<string, Regiao>([
+    [REGIAO_GERAL.id, REGIAO_GERAL],
+    ['sindi', { id: 'sindi', anatomia: 'Tálamo', ...CENTRO, cor: '#f59e0b' }],
+  ]);
+  let reserva = 0;
+  for (const n of base) if (n.tipo === 'conector') mapa.set(n.regiao!, regiaoDoConector(n.regiao!, reserva++));
+  return mapa;
+}
+
+/**
+ * Espalha os documentos de uma estante em espiral de girassol em volta dela (determinístico), com raio proporcional à raiz da quantidade: cada
+ * estante vira uma nuvem de pontos, e o navegador só a mostra quando o documento é pedido.
+ */
+function espalharDocumentos(estante: readonly [number, number], quantidade: number, indice: number) {
+  const raioTotal = Math.min(150, 22 + 3 * Math.sqrt(quantidade));
+  const raio = raioTotal * Math.sqrt((indice + 0.5) / quantidade);
+  const angulo = indice * ANGULO_AUREO;
+  return [estante[0] + Math.cos(angulo) * raio, estante[1] + Math.sin(angulo) * raio] as const;
+}
+
+/**
+ * Posições do cérebro: a SINDI no centro, cada área fixa na sua região, estantes, conhecimento e leis puxados para a região deles dentro da silhueta
+ * (força de contenção) e os documentos em nuvem em volta da estante. Só a rede pequena (cerca de 330 nós) passa por simulação de forças.
+ */
 function dispor(base: Omit<No, 'x' | 'y' | 'grau'>[], arestas: Aresta[], iteracoes: number): Grafo {
-  type N = SimulationNodeDatum & { id: string; tipo: TipoDeNo };
   const grau = new Map<string, number>();
   for (const a of arestas) {
     grau.set(a.de, (grau.get(a.de) ?? 0) + 1);
     grau.set(a.para, (grau.get(a.para) ?? 0) + 1);
   }
-  const sim: N[] = base.map((n, i) => ({
-    id: n.id,
-    tipo: n.tipo,
-    ...(n.tipo === 'nucleo' ? { fx: 0, fy: 0 } : {}),
-    x: Math.cos(i) * (50 + (i % 400)),
-    y: Math.sin(i) * (50 + (i % 400)),
-  }));
-  const links: (SimulationLinkDatum<N> & { tipo: TipoDeAresta })[] = arestas.map((a) => ({
-    source: a.de,
-    target: a.para,
-    tipo: a.tipo,
-  }));
-  const distancia: Record<TipoDeAresta, number> = {
-    especialista: 220,
-    consulta: 160,
-    gatilho: 120,
-    guarda: 70,
-    cita: 40,
-    liga: 50,
-    parecido: 70,
-    fluxo: 80,
+  const regioes = ancorasDasRegioes(base);
+  const ancora = (regiao: string | undefined) => regioes.get(regiao ?? '') ?? REGIAO_GERAL;
+  const consultadaPor = new Map<string, string[]>();
+  for (const a of arestas)
+    if (a.tipo === 'consulta') consultadaPor.set(a.para, [...(consultadaPor.get(a.para) ?? []), idDaArea(a.de)]);
+  const media = (v: number[]) => v.reduce((x, y) => x + y, 0) / v.length;
+  const rede: NoSimulado[] = [];
+  const contadorPorRegiao = new Map<string, number>();
+  for (const n of base) {
+    if (n.tipo === 'documento') continue;
+    const a = ancora(n.regiao);
+    const i = contadorPorRegiao.get(n.regiao ?? '') ?? 0;
+    contadorPorRegiao.set(n.regiao ?? '', i + 1);
+    const angulo = i * ANGULO_AUREO;
+    const raio = n.tipo === 'estante' ? 95 : 40 + 14 * Math.sqrt(i);
+    const fixo = n.tipo === 'nucleo' ? CENTRO : n.tipo === 'conector' ? a : undefined;
+    // Estante compartilhada: o alvo é o centro das áreas que a consultam.
+    const donas = n.tipo === 'estante' ? (consultadaPor.get(n.id) ?? []).map((c) => ancora(c)) : [];
+    const alvo = donas.length > 1 ? { x: media(donas.map((d) => d.x)), y: media(donas.map((d) => d.y)) } : a;
+    rede.push({
+      id: n.id,
+      tipo: n.tipo,
+      regiao: n.regiao ?? REGIAO_GERAL.id,
+      alvoX: alvo.x,
+      alvoY: alvo.y,
+      x: fixo ? fixo.x : alvo.x + Math.cos(angulo) * raio,
+      y: fixo ? fixo.y : alvo.y + Math.sin(angulo) * raio,
+      ...(fixo ? { fx: fixo.x, fy: fixo.y } : {}),
+    });
+  }
+  const ids = new Set(rede.map((n) => n.id));
+  const links: (SimulationLinkDatum<NoSimulado> & { tipo: TipoDeAresta })[] = arestas
+    .filter((a) => ids.has(a.de) && ids.has(a.para))
+    .map((a) => ({ source: a.de, target: a.para, tipo: a.tipo }));
+  const distancia: Partial<Record<TipoDeAresta, number>> = {
+    especialista: 200,
+    consulta: 110,
+    gatilho: 90,
+    parecido: 60,
+    cita: 70,
   };
-  const forca: Record<TipoDeAresta, number> = {
-    especialista: 0.9,
-    consulta: 0.6,
-    gatilho: 0.3,
-    guarda: 0.08,
-    cita: 0.15,
-    liga: 0.05,
-    parecido: 0.3,
-    fluxo: 0.5,
+  const raioDeColisao = (t: TipoDeNo) => (t === 'estante' ? 34 : t === 'conector' ? 40 : t === 'nucleo' ? 44 : 11);
+  // Contenção: quem saiu da silhueta (com margem) é puxado de volta para a âncora da própria região.
+  const conter = (alfa: number) => {
+    for (const n of rede) {
+      if (n.fx != null || dentroDoCerebro(n.x ?? 0, n.y ?? 0, 0.9)) continue;
+      n.vx = (n.vx ?? 0) + (n.alvoX - (n.x ?? 0)) * 0.25 * alfa;
+      n.vy = (n.vy ?? 0) + (n.alvoY - (n.y ?? 0)) * 0.25 * alfa;
+    }
   };
-  forceSimulation(sim)
+  forceSimulation(rede)
     .force(
       'link',
-      forceLink<N, (typeof links)[number]>(links)
+      forceLink<NoSimulado, (typeof links)[number]>(links)
         .id((d) => d.id)
-        .distance((l) => distancia[l.tipo])
-        .strength((l) => forca[l.tipo]),
+        .distance((l) => distancia[l.tipo] ?? 80)
+        .strength(0.25),
     )
-    .force(
-      'charge',
-      forceManyBody<N>()
-        .strength((n) =>
-          n.tipo === 'documento'
-            ? -8
-            : n.tipo === 'nucleo' || n.tipo === 'conector'
-              ? -900
-              : n.tipo === 'estante'
-                ? -400
-                : -160,
-        )
-        .theta(0.9)
-        .distanceMax(900),
-    )
-    .force('x', forceX<N>(0).strength(0.015))
-    .force('y', forceY<N>(0).strength(0.015))
-    .force('center', forceCenter(0, 0))
+    .force('charge', forceManyBody<NoSimulado>().strength(-60).distanceMax(260))
+    .force('collide', forceCollide<NoSimulado>((n) => raioDeColisao(n.tipo)).strength(0.9))
+    .force('x', forceX<NoSimulado>((n) => n.alvoX).strength(0.07))
+    .force('y', forceY<NoSimulado>((n) => n.alvoY).strength(0.07))
+    .force('contencao', conter)
     .stop()
     .tick(iteracoes);
-  const posicao = new Map(sim.map((n) => [n.id, n]));
+  const posicao = new Map<string, readonly [number, number]>(rede.map((n) => [n.id, [n.x ?? 0, n.y ?? 0] as const]));
+  // Documentos: nuvem em volta da estante, na ordem em que aparecem.
+  const quantos = new Map<string, number>();
+  for (const n of base) if (n.pai) quantos.set(n.pai, (quantos.get(n.pai) ?? 0) + 1);
+  const visto = new Map<string, number>();
+  for (const n of base) {
+    if (n.tipo !== 'documento') continue;
+    const a = ancora(n.regiao);
+    const estante = posicao.get(n.pai ?? '') ?? ([a.x, a.y] as const);
+    const i = visto.get(n.pai ?? '') ?? 0;
+    visto.set(n.pai ?? '', i + 1);
+    posicao.set(n.id, espalharDocumentos(estante, quantos.get(n.pai ?? '') ?? 1, i));
+  }
   const nos: No[] = base.map((n) => {
-    const p = posicao.get(n.id)!;
-    return {
-      ...n,
-      x: Math.round((p.x ?? 0) * 10) / 10,
-      y: Math.round((p.y ?? 0) * 10) / 10,
-      grau: grau.get(n.id) ?? 0,
-    };
+    const [x, y] = posicao.get(n.id) ?? [0, 0];
+    return { ...n, x: Math.round(x * 10) / 10, y: Math.round(y * 10) / 10, grau: grau.get(n.id) ?? 0 };
   });
   const resumo = Object.fromEntries(
     (

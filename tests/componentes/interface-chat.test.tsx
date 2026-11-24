@@ -51,7 +51,7 @@ test('chat: a resposta em fluxo aparece, o saldo de mensagens é mostrado e o le
   await screen.findByText('O telefone é (11) 3215-8250.');
   await aguardarFim();
   assert.ok(screen.getByText('Qual o telefone?'));
-  assert.match(screen.getByText(/Restam 5 mensagens hoje/).textContent ?? '', /externos gratuitos/);
+  assert.match(screen.getByText(/Restam 5 mensagens hoje/).textContent ?? '', /IA gratuitos/);
   assert.match(
     screen.getByRole('status', { hidden: true, name: '' }).textContent ?? '',
     /SINDI respondeu: O telefone é \(11\) 3215-8250\./,

@@ -1,9 +1,10 @@
 'use client';
-import { useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { sortearSugestoes } from '@/lib/sugestoes';
 import { NOVA_CONVERSA } from '@/componentes/chat/nova-conversa';
 import { LIMITE_DA_PERGUNTA, pedirResposta, type MensagemDaConversa } from '@/componentes/chat/pedir-resposta';
 import { lerResposta, tratarFalha, type Progresso } from '@/componentes/chat/ler-resposta';
+import { useHistorico } from '@/componentes/chat/usar-historico';
 import { useTeclaEsc } from '@/componentes/ui/usar-tecla-esc';
 
 /** Quanto falta para o fim da página (px) para ainda se considerar que quem lê está acompanhando a resposta. */
@@ -41,7 +42,11 @@ export function useChat() {
   }, [vazia]);
   useEffect(() => {
     const medir = () => {
-      noFim.current = window.innerHeight + window.scrollY >= document.documentElement.scrollHeight - MARGEM_DO_FIM;
+      // Mede pelo fim da conversa, não pelo fim do documento: o rodapé do site fica abaixo dela.
+      const fim = fimDaConversa.current;
+      noFim.current = fim
+        ? fim.getBoundingClientRect().bottom <= window.innerHeight + MARGEM_DO_FIM
+        : window.innerHeight + window.scrollY >= document.documentElement.scrollHeight - MARGEM_DO_FIM;
     };
     window.addEventListener('scroll', medir, { passive: true });
     return () => window.removeEventListener('scroll', medir);
@@ -53,18 +58,27 @@ export function useChat() {
 
   const parar = () => controle.current?.abort();
   useTeclaEsc(carregando, parar);
-  useEffect(() => {
-    const limpar = () => {
-      if (ocupado.current) return;
-      setMensagens([]);
-      setErro('');
-      setEntrada('');
-      setAnuncio('');
-      caixaDeTexto.current?.focus({ preventScroll: true });
-    };
-    window.addEventListener(NOVA_CONVERSA, limpar);
-    return () => window.removeEventListener(NOVA_CONVERSA, limpar);
+  // Esvazia a tela (nova conversa) ou a preenche com uma conversa guardada; nunca no meio de uma resposta.
+  const mostrar = useCallback((conversa: MensagemDaConversa[]) => {
+    if (ocupado.current) return;
+    setMensagens(conversa);
+    setErro('');
+    setEntrada('');
+    setAnuncio('');
+    caixaDeTexto.current?.focus({ preventScroll: true });
   }, []);
+  const limparTela = useCallback(() => mostrar([]), [mostrar]);
+  const historico = useHistorico({ mensagens, carregando, aoAbrir: mostrar, aoLimpar: limparTela });
+  const { nova } = historico;
+  const comecarNova = useCallback(() => {
+    if (ocupado.current) return;
+    nova();
+    limparTela();
+  }, [nova, limparTela]);
+  useEffect(() => {
+    window.addEventListener(NOVA_CONVERSA, comecarNova);
+    return () => window.removeEventListener(NOVA_CONVERSA, comecarNova);
+  }, [comecarNova]);
 
   async function enviar(texto = entrada) {
     const pergunta = texto.trim();
@@ -116,6 +130,8 @@ export function useChat() {
     vazia,
     enviar,
     parar,
+    historico,
+    comecarNova,
     caixaDeTexto,
     fimDaConversa,
   };

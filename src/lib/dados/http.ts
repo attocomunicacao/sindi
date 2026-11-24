@@ -59,11 +59,13 @@ export type OpcoesDeBusca = {
   respectRobots?: boolean;
   accept?: string;
   headers?: Record<string, string>;
+  /** Recusa redirecionamento para outro host: fonte oficial (lei, NR) só vale se o texto vier do próprio endereço pedido, senão o domínio da URL guardada não prova nada. */
+  mesmoHost?: boolean;
 };
 
 export async function buscarComEducacao(
   url: string,
-  { minMs = 1000, respectRobots = true, accept, headers = {} }: OpcoesDeBusca = {},
+  { minMs = 1000, respectRobots = true, accept, headers = {}, mesmoHost = false }: OpcoesDeBusca = {},
 ): Promise<Response> {
   const alvo = new URL(url);
   destinoPermitido(alvo);
@@ -101,6 +103,8 @@ export async function buscarComEducacao(
         if (saltos >= MAX_REDIRECIONAMENTOS) throw new DestinoBloqueado('Redirecionamentos demais: ' + alvo.host);
         atual = new URL(destino, atual);
         destinoPermitido(atual);
+        if (mesmoHost && atual.host !== alvo.host)
+          throw new DestinoBloqueado(`Redirecionamento para outro host recusado: ${alvo.host} → ${atual.host}`);
         await resposta.body?.cancel();
       }
       if (resposta.status === 429 || resposta.status >= 500) {

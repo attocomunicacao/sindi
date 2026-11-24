@@ -1,4 +1,5 @@
 import { LeitorDoChat, textoParaLeitor, type EventoDoChat } from '@/lib/chat/leitor-ndjson';
+import { guardarUltimoUso } from '@/componentes/cerebro/ultimo-uso';
 import { avisoDaFalha, type MensagemDaConversa } from '@/componentes/chat/pedir-resposta';
 
 /** O que o envio já recebeu da resposta em andamento; a falha usa isso para decidir o que fica na tela. */
@@ -64,6 +65,7 @@ export async function lerResposta(
       completa = true;
       setConsumoNaoRegistrado(evento.metricsRecorded === false);
       if (typeof evento.restantes === 'number') setRestantes(evento.restantes);
+      guardarUltimoUso(evento.cerebro);
       setMensagens([...pendentes, { role: 'assistant', content: evento.text }]);
       setAnuncio(textoParaLeitor(evento.text));
     }

@@ -5,7 +5,7 @@ export const metadata = { title: 'Painel | SINDI' };
 
 export default function PainelPage() {
   return (
-    <Principal className="max-w-6xl space-y-6 py-10 text-slate-700">
+    <Principal className="max-w-[120rem] space-y-6 py-10 text-slate-700">
       <h1 className="text-2xl font-semibold text-slate-900">Painel do setor</h1>
       <PainelCompleto />
     </Principal>

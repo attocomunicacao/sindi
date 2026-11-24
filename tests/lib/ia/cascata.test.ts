@@ -5,7 +5,7 @@ import { tmpdir } from 'node:os';
 import path from 'node:path';
 import { gerarTexto, MENSAGEM_NEUTRA } from '@/lib/ia/cascata';
 import { enderecoDoOllama, provedoresAtivos } from '@/lib/ia/provedores';
-import { podeTentar, registrarFalha, registrarTentativa, reiniciarSaude } from '@/lib/ia/saude';
+import { podeTentar, registrarFalha, registrarSucesso, registrarTentativa, reiniciarSaude } from '@/lib/ia/saude';
 import { LlmError } from '@/lib/ia/tipos';
 import { cotaDisponivel, consumirCota, reiniciarCotaNaMemoria } from '@/lib/infra/cota';
 import { ipDoPedido } from '@/lib/http/ip';
@@ -16,17 +16,7 @@ import { limparRespostasGuardadas } from '@/lib/infra/cache-respostas';
 import { reiniciarLimitesNaMemoria } from '@/lib/infra/limite-por-minuto';
 
 // ------------------------------------------------------------------------------------------------ apoio
-const PROVEDORES = [
-  'GEMINI_API_KEY',
-  'GROQ_API_KEY',
-  'OPENROUTER_API_KEY',
-  'MISTRAL_API_KEY',
-  'CLOUDFLARE_API_TOKEN',
-  'CLOUDFLARE_ACCOUNT_ID',
-  'ANTHROPIC_API_KEY',
-  'SINDI_OLLAMA_URL',
-  'SINDI_CASCATA',
-];
+const PROVEDORES = ['GEMINI_API_KEY', 'GROQ_API_KEY', 'MISTRAL_API_KEY', 'SINDI_OLLAMA_URL', 'SINDI_CASCATA'];
 async function comAmbiente(vars: Record<string, string | undefined>, fn: () => Promise<void>) {
   const salvo = { ...process.env };
   const fetchOriginal = globalThis.fetch;
@@ -74,15 +64,11 @@ const qual = (url: string) =>
     ? 'gemini'
     : url.includes('groq')
       ? 'groq'
-      : url.includes('openrouter')
-        ? 'openrouter'
-        : url.includes('mistral')
-          ? 'mistral'
-          : url.includes('cloudflare')
-            ? 'cloudflare'
-            : url.includes('127.0.0.1:11434')
-              ? 'ollama'
-              : 'outro';
+      : url.includes('mistral')
+        ? 'mistral'
+        : url.includes('127.0.0.1:11434')
+          ? 'ollama'
+          : 'outro';
 const mensagens = [
   { role: 'system' as const, content: 'regras' },
   { role: 'user' as const, content: 'PERGUNTA: oi' },
@@ -125,7 +111,7 @@ test('cascata: Gemini sem limite gratuito → Groq responde em silêncio, com o 
 });
 
 test('cascata: falha no meio do texto apaga o que foi mostrado (reset) e o próximo provedor recomeça', async () => {
-  await comAmbiente({ GEMINI_API_KEY: 'g', OPENROUTER_API_KEY: 'o' }, async () => {
+  await comAmbiente({ GEMINI_API_KEY: 'g', GROQ_API_KEY: 'o' }, async () => {
     globalThis.fetch = (async (url: string) =>
       qual(String(url)) === 'gemini'
         ? corpoSse([JSON.stringify({ candidates: [{ content: { parts: [{ text: 'Começo...' }] } }] }), '{quebrado'])
@@ -140,16 +126,16 @@ test('cascata: falha no meio do texto apaga o que foi mostrado (reset) e o próx
       () => eventos.push('reset'),
     );
     assert.deepEqual(eventos, ['delta:Começo...', 'reset', 'delta:Resposta inteira.']);
-    assert.equal(r.provedor, 'openrouter');
+    assert.equal(r.provedor, 'groq');
   });
 });
 
-test('cascata: erro no meio do fluxo do OpenRouter (HTTP 200 + finish_reason "error") conta como limite e passa adiante', async () => {
-  await comAmbiente({ OPENROUTER_API_KEY: 'o', MISTRAL_API_KEY: 'm' }, async () => {
+test('cascata: erro no meio do fluxo do Groq (HTTP 200 + finish_reason "error") conta como limite e passa adiante', async () => {
+  await comAmbiente({ GROQ_API_KEY: 'o', MISTRAL_API_KEY: 'm' }, async () => {
     const chamadas: string[] = [];
     globalThis.fetch = (async (url: string, init?: RequestInit) => {
       chamadas.push(qual(String(url)));
-      if (qual(String(url)) === 'openrouter')
+      if (qual(String(url)) === 'groq')
         return corpoSse([
           JSON.stringify({ error: { code: 429, message: 'rate' }, choices: [{ delta: {}, finish_reason: 'error' }] }),
         ]);
@@ -162,7 +148,7 @@ test('cascata: erro no meio do fluxo do OpenRouter (HTTP 200 + finish_reason "er
     }) as typeof fetch;
     const r = await gerarTexto(mensagens, AbortSignal.timeout(5000), () => {}, {});
     assert.equal(r.provedor, 'mistral');
-    assert.equal(podeTentar('openrouter'), false, 'OpenRouter de castigo depois do limite');
+    assert.equal(podeTentar('groq'), false, 'Groq de castigo depois do limite');
   });
 });
 
@@ -250,15 +236,17 @@ test('Ollama: só endereços desta máquina, sem credenciais (o modelo local nã
     assert.equal(enderecoDoOllama(ruim), undefined, ruim);
 });
 
-test('saúde: limites conhecidos (OpenRouter 50/dia) pulam o provedor antes do 429, e a virada do dia UTC libera', () => {
+test('saúde: limites conhecidos (50/dia, configurado) pulam o provedor antes do 429, e a virada do dia UTC libera', () => {
   reiniciarSaude();
+  process.env.SINDI_LIMITE_DIA_GROQ = '50';
   const hoje = Date.parse('2026-11-23T10:00:00Z');
   for (let i = 0; i < 50; i++) {
-    assert.equal(podeTentar('openrouter', hoje + i * 4000), true);
-    registrarTentativa('openrouter', hoje + i * 4000);
+    assert.equal(podeTentar('groq', hoje + i * 4000), true);
+    registrarTentativa('groq', hoje + i * 4000);
   }
-  assert.equal(podeTentar('openrouter', hoje + 300_000), false);
-  assert.equal(podeTentar('openrouter', Date.parse('2026-11-24T00:00:01Z')), true);
+  assert.equal(podeTentar('groq', hoje + 300_000), false);
+  assert.equal(podeTentar('groq', Date.parse('2026-11-24T00:00:01Z')), true);
+  delete process.env.SINDI_LIMITE_DIA_GROQ;
   registrarFalha('gemini', new LlmError('x', 429, 'limite', 120), hoje);
   assert.equal(podeTentar('gemini', hoje + 60_000), false);
   assert.equal(podeTentar('gemini', hoje + 121_000), true);
@@ -342,6 +330,31 @@ test('chat: com a cota esgotada, nada é buscado nem gerado (nenhuma chamada a e
     const segunda = await pedir();
     assert.equal(segunda.status, 429);
     assert.equal(chamadas, antes, 'cota esgotada não gasta busca por significado nem geração');
+  });
+});
+
+test('chat: a resposta traz o resumo de uso do cérebro (área, origem e nós das fontes), sem a pergunta nem o texto das fontes', async () => {
+  await comAmbiente({ GEMINI_API_KEY: 'g', SINDI_COTA_IP_DIA: '0', SINDI_COTA_GLOBAL_DIA: '0' }, async () => {
+    globalThis.fetch = (async (url: string) =>
+      String(url).includes('embed')
+        ? Response.json({ embeddings: [] })
+        : Response.json({
+            candidates: [{ content: { parts: [{ text: 'Olá! Como posso ajudar?' }] }, finishReason: 'STOP' }],
+          })) as typeof fetch;
+    const pergunta = 'Quais são os benefícios de ser associada ao sindicato?';
+    const r = await POST(
+      new Request('http://localhost/api/chat', {
+        method: 'POST',
+        headers: { origin: 'http://localhost', 'content-type': 'application/json' },
+        body: JSON.stringify({ messages: [{ role: 'user', content: pergunta }] }),
+      }),
+    );
+    assert.equal(r.status, 200);
+    const corpo = (await r.json()) as { cerebro?: { conector?: string; origens: string[]; nos: string[] } };
+    assert.ok(corpo.cerebro, 'o resumo acompanha a resposta');
+    assert.equal(corpo.cerebro!.conector, 'relacionamento-com-o-sindeprestem');
+    assert.ok(corpo.cerebro!.origens.length > 0 && corpo.cerebro!.nos.length > 0);
+    assert.doesNotMatch(JSON.stringify(corpo.cerebro), /benefícios|associada/i, 'nada da pergunta no resumo');
   });
 });
 
@@ -467,4 +480,49 @@ test('repasse da Vercel: caminho que trocaria de host (barra invertida, tab, que
     process.env = salvo;
     globalThis.fetch = fetchOriginal;
   }
+});
+
+test('saúde: falha de disponibilidade tem castigo crescente e o modelo local nunca passa de 30 s de castigo', () => {
+  reiniciarSaude();
+  const t = Date.parse('2026-11-24T10:00:00Z');
+  registrarFalha('groq', new LlmError('x', 503, 'indisponivel'), t);
+  assert.equal(podeTentar('groq', t + 61_000), true, '1ª falha: 60 s');
+  registrarFalha('groq', new LlmError('x', 503, 'indisponivel'), t + 61_000);
+  assert.equal(podeTentar('groq', t + 61_000 + 100_000), false, '2ª falha seguida: 2 min');
+  assert.equal(podeTentar('groq', t + 61_000 + 121_000), true);
+  registrarSucesso('groq', t + 400_000);
+  registrarFalha('groq', new LlmError('x', 503, 'indisponivel'), t + 500_000);
+  assert.equal(podeTentar('groq', t + 561_000), true, 'sucesso zera a sequência');
+  // Modelo local sem o modelo baixado (404 = configuração): castigo curto, não de 1 hora.
+  registrarFalha('ollama', new LlmError('x', 404, 'configuracao'), t, true);
+  assert.equal(podeTentar('ollama', t + 31_000), true);
+});
+
+test('cascata: passado o orçamento de tempo da nuvem, o provedor na nuvem é pulado e o modelo local responde', async () => {
+  await comAmbiente(
+    { GEMINI_API_KEY: 'g', MISTRAL_API_KEY: 'm', SINDI_OLLAMA_URL: 'http://127.0.0.1:11434' },
+    async () => {
+      process.env.SINDI_ORCAMENTO_NUVEM_MS = '10000';
+      const chamadas: string[] = [];
+      const relogio = Date.now;
+      let agora = relogio();
+      Date.now = () => agora;
+      globalThis.fetch = (async (url: string) => {
+        chamadas.push(qual(String(url)));
+        if (qual(String(url)) === 'gemini') {
+          agora += 20_000; // o Gemini "demora" 20 s e falha
+          return new Response('erro', { status: 503 });
+        }
+        return compatSse(['Local.']);
+      }) as typeof fetch;
+      try {
+        const r = await gerarTexto(mensagens, AbortSignal.timeout(5000), () => {}, {});
+        assert.deepEqual(chamadas, ['gemini', 'ollama'], 'Mistral foi pulado pelo orçamento');
+        assert.equal(r.provedor, 'ollama');
+      } finally {
+        Date.now = relogio;
+        delete process.env.SINDI_ORCAMENTO_NUVEM_MS;
+      }
+    },
+  );
 });

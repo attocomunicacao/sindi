@@ -43,7 +43,7 @@ export function FormularioDeBusca({
       </label>
       <button
         type="submit"
-        className={`rounded-lg bg-primary px-5 font-medium text-on-primary hover:bg-primary-hover focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-amber-400 ${altura}`}
+        className={`rounded-full bg-primary px-6 font-medium text-on-primary hover:bg-primary-hover focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-amber-400 ${altura}`}
       >
         Buscar
       </button>

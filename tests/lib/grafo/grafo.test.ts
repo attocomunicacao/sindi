@@ -6,6 +6,7 @@ import path from 'node:path';
 import { abrirBanco, gravarDocumento } from '@/lib/dados/db';
 import { extrairEntidades } from '@/lib/grafo/entidades';
 import { construirGrafo } from '@/lib/grafo/construir';
+import { dentroDoCerebro } from '@/lib/grafo/cerebro-forma';
 import { exportarObsidian } from '@/lib/grafo/obsidian';
 import { arquivoDoGrafo, documentosPeloGrafo, esquecerGrafo } from '@/lib/grafo/consulta';
 import { grafoDaArquitetura } from '@/lib/grafo/arquitetura';
@@ -117,7 +118,7 @@ test('grafo: núcleo → especialistas → estantes; documentos ligados por lei,
     const lei = 'ent:lei:6019/1974';
     assert.equal(porId.get(lei)?.rotulo, 'Lei 6.019/1974');
     assert.equal(
-      g.arestas.filter((a) => a.para === lei || a.de === lei).length,
+      g.arestas.filter((a) => (a.para === lei || a.de === lei) && a.de.startsWith('doc:')).length,
       3,
       'os três documentos que citam a Lei 6.019 ficam ligados a ela',
     );
@@ -134,6 +135,56 @@ test('grafo: núcleo → especialistas → estantes; documentos ligados por lei,
       /foi debatido pelo sindicato em audiência/,
       'o grafo não leva o texto dos documentos',
     );
+  });
+});
+
+test('grafo: cada nó mora numa região do cérebro, com nível e pai; a SINDI no centro orquestra as áreas e as estantes seguem as áreas que as consultam', async () => {
+  await comBancoDoGrafo((pasta) => {
+    const g = construirGrafo({ banco: path.join(pasta, 'sindi-dados.sqlite'), iteracoes: 60 });
+    const porId = new Map(g.nos.map((n) => [n.id, n]));
+    const areas = conectores().map((c) => c.id);
+    const regioesValidas = new Set([...areas, 'geral', 'sindi']);
+    assert.ok(
+      g.nos.every((n) => n.regiao && regioesValidas.has(n.regiao) && typeof n.nivel === 'number'),
+      'todo nó tem região conhecida e nível',
+    );
+    const nivel = (id: string) => porId.get(id)!.nivel;
+    assert.equal(nivel('sindi'), 0);
+    for (const a of areas) assert.equal(nivel(`conector:${a}`), 1);
+    assert.equal(porId.get('sindi')!.regiao, 'sindi');
+    // A SINDI fica no centro do cérebro e cada área na região dela (fixa), em lados diferentes.
+    assert.deepEqual([porId.get('sindi')!.x, porId.get('sindi')!.y], [0, 20]);
+    const lado = (a: string) => Math.sign(porId.get(`conector:${a}`)!.x);
+    assert.ok(new Set(areas.map(lado)).size >= 2, 'áreas nos dois hemisférios');
+    // Estante consultada por uma só área mora nela; por várias (biblioteca compartilhada), na região geral.
+    const consultores = (estante: string) => conectores().filter((c) => c.estantes.includes(estante));
+    for (const e of g.nos.filter((n) => n.tipo === 'estante')) {
+      const quem = consultores(e.id.replace('estante:', ''));
+      if (quem.length === 1) assert.equal(e.regiao, quem[0].id, e.id);
+      if (quem.length > 1) assert.equal(e.regiao, 'geral', e.id);
+      assert.equal(e.nivel, 2);
+    }
+    // Documento: pai = a estante onde está catalogado, e herda a região dela; fica na nuvem em volta da estante.
+    const docs = g.nos.filter((n) => n.tipo === 'documento');
+    assert.equal(docs.length, 4);
+    for (const d of docs) {
+      const pai = porId.get(d.pai!)!;
+      assert.equal(pai.tipo, 'estante');
+      assert.equal(d.regiao, pai.regiao);
+      assert.equal(d.nivel, 4);
+      assert.ok(Math.hypot(d.x - pai.x, d.y - pai.y) <= 150, 'a nuvem de documentos fica em volta da estante');
+    }
+    // A lei citada fica ligada também às estantes dos documentos que a citam (a rede segue ligada com os documentos recolhidos).
+    const lei = porId.get('ent:lei:6019/1974')!;
+    assert.equal(lei.nivel, 3);
+    assert.ok(
+      g.arestas.some((a) => a.tipo === 'cita' && a.para === lei.id && a.de.startsWith('estante:')),
+      'estante → lei',
+    );
+    // Posições finitas, e os nós da rede pequena (fora os fixos) ficam dentro ou junto da silhueta do cérebro.
+    assert.ok(g.nos.every((n) => Number.isFinite(n.x) && Number.isFinite(n.y)));
+    for (const n of g.nos.filter((x) => x.tipo === 'estante' || x.tipo === 'conhecimento'))
+      assert.ok(dentroDoCerebro(n.x, n.y, 1.25), `${n.id} em ${n.x},${n.y}`);
   });
 });
 
@@ -264,6 +315,6 @@ test('orquestra: pergunta entre duas áreas aciona o especialista de apoio; perg
       misturada[0].conector.estantes,
       'as estantes do principal vêm primeiro',
     );
-    assert.ok(estantes.length <= 6);
+    assert.ok(estantes.length <= 7);
   }
 });

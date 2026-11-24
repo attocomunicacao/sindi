@@ -13,6 +13,8 @@ import type { Passagem } from '@/lib/base/tipos';
 import { recuperarConhecimento } from '@/lib/recuperacao/recuperar';
 import { escolherConector, type Conector } from '@/lib/cerebro/conectores';
 import { maximoDeFontes, PEDE_REDACAO } from '@/lib/chat/prompt';
+import { consultaDaConversa } from '@/lib/chat/assunto';
+import { fiscalizarFontes } from '@/lib/fontes/fiscalizador';
 
 // Decide, por regras, o que fazer com a pergunta: dados sensíveis, caso jurídico, saudação, fora do escopo ou busca de fontes. Nenhuma resposta é escrita aqui.
 
@@ -49,7 +51,7 @@ export async function decidirSituacao({ mensagens }: { mensagens: { role: string
   // As perguntas anteriores entram na busca (inclusive na por significado, que vai ao provedor de IA): dados pessoais e segredos já ditos saem delas.
   const anteriores = mensagens
     .filter((m) => m.role === 'user')
-    .slice(-3, -1)
+    .slice(-4, -1)
     .map((m) => redigirDadosSensiveis(m.content));
   const conector = escolherConector(perguntaAtual, anteriores);
   // Porta de escopo: fora do assunto do setor a SINDI recusa antes de buscar. Uma busca fraca não decide isto, pois acertos de palavras comuns
@@ -66,8 +68,7 @@ export async function decidirSituacao({ mensagens }: { mensagens: { role: string
     // Continuação curta ("e para empresa filiada?"): a busca usa também a pergunta anterior, que carrega o assunto.
     // A busca por significado manda a consulta ao provedor de embeddings: a pergunta atual também sai redigida, sem depender só do detector acima.
     const atual = redigirDadosSensiveis(perguntaAtual);
-    const consulta =
-      anteriores.length && atual.trim().split(/\s+/).length <= 6 ? `${anteriores.at(-1)} ${atual}` : atual;
+    const consulta = consultaDaConversa(atual, anteriores);
     const conhecimento = await referenciaDentroDoOrcamento(consulta, conector);
     lista = conhecimento.lista === true;
     relatorio = conhecimento.relatorio === true;
@@ -87,6 +88,8 @@ export async function decidirSituacao({ mensagens }: { mensagens: { role: string
     if (
       conhecimento.semResposta ||
       lacunaConhecida(perguntaAtual, escolhidas.map((p) => p.content).join(' ')) ||
+      // Fiscalizador de fontes: pergunta jurídica só se responde com texto oficial (governo, Constituição, tribunais, Congresso); sem ele, a SINDI diz que não conseguiu confirmar.
+      (!ehRedacao && fiscalizarFontes(perguntaAtual, escolhidas).semOficial) ||
       (!escolhidas.length && conector?.modo !== 'orientacao' && semFonteSemChute(perguntaAtual))
     ) {
       situacao = 'sem-fonte';

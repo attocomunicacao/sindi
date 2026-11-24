@@ -1,7 +1,7 @@
 # SINDI
 
 Assistente virtual do SINDEPRESTEM para empresas de terceirização, trabalho temporário e prestação de serviços. Next.js, TypeScript, Tailwind, shadcn/ui e Lucide,
-com o modelo de linguagem numa **cascata de APIs gratuitas** (Gemini, Groq, OpenRouter, Mistral, Cloudflare) e um **modelo local de emergência** (Ollama): quando um provedor esgota o limite gratuito, o próximo responde, sem aviso ao usuário. Sem login e sem histórico de conversas; há uma cota de mensagens por pessoa e por dia. Nos níveis gratuitos os provedores podem usar as perguntas para melhorar seus produtos, por isso a SINDI remove dados pessoais antes de enviar.
+com o modelo de linguagem numa **cascata de APIs gratuitas** (Gemini, Groq, Mistral) e um **modelo local de emergência** (Ollama): quando um provedor esgota o limite gratuito, o próximo responde, sem aviso ao usuário. Sem login e sem histórico de conversas no servidor (quem conversa pode guardar o histórico só no próprio navegador); há uma cota de mensagens por pessoa e por dia. Nos níveis gratuitos os provedores podem usar as perguntas para melhorar seus produtos, por isso a SINDI remove dados pessoais antes de enviar.
 
 A SINDI não é um modelo treinado com fatos do sindicato: ela consulta uma biblioteca (documentos coletados + conhecimento escrito pela equipe), entrega ao modelo
 só os trechos que respondem à pergunta e confere a resposta antes de mostrar. O fluxo, o modelo e as medições estão em
@@ -37,7 +37,7 @@ tests/          node:test via tsx
 
 ## Executar no computador
 
-1. Crie ao menos uma chave gratuita: Gemini (https://aistudio.google.com/apikey), Groq (https://console.groq.com/keys), OpenRouter, Mistral ou Cloudflare Workers AI (instruções em `env.example`). Quanto mais provedores, mais respostas por dia.
+1. Crie ao menos uma chave gratuita: Gemini (https://aistudio.google.com/apikey), Groq (https://console.groq.com/keys) ou Mistral (https://console.mistral.ai/api-keys); instruções em `env.example`. Quanto mais provedores, mais respostas por dia.
    Opcional: `winget install Ollama.Ollama` e `ollama pull qwen2.5:3b` para o modelo local de emergência.
 2. Copie `env.example` para `.env.local` (privado, nunca versionado) e preencha `GEMINI_API_KEY`.
 3. Instale, indexe a busca por significado e rode:
@@ -92,6 +92,6 @@ ligado. Roteiro, verificação e limites em [`docs/operacao/23-publicacao.md`](d
 
 ## Privacidade e limites
 
-Não envie dados pessoais ou confidenciais: CPF, cartão e senha detectados são removidos antes de chegar ao modelo, e nada da conversa é gravado. A SINDI pode errar;
+Não envie dados pessoais ou confidenciais: CPF, cartão e senha detectados são removidos antes de chegar ao modelo, e nada da conversa é gravado em servidor (o histórico opcional fica só no navegador de quem usa e pode ser apagado). A SINDI pode errar;
 as respostas trazem as referências para conferência. Casos jurídicos concretos são encaminhados ao Setor Jurídico do SINDEPRESTEM. Segurança em
 [`SECURITY.md`](SECURITY.md) e [`docs/seguranca/`](docs/seguranca).

@@ -47,5 +47,17 @@ export function somarPorProvedor(dias: DiaDeUso[]): [string, UsoDoProvedor][] {
   return Object.entries(soma).sort((a, b) => b[1].successes - a[1].successes);
 }
 
+/** Soma, no período, dos contadores de "o que o cérebro entregou", separados por tipo (`conector`, `origem`, `situacao`), do maior para o menor. */
+export function somarCerebro(dias: DiaDeUso[]): Record<'conector' | 'origem' | 'situacao', [string, number][]> {
+  const soma: Record<string, Record<string, number>> = { conector: {}, origem: {}, situacao: {} };
+  for (const dia of dias)
+    for (const [chave, n] of Object.entries(dia.cerebro ?? {})) {
+      const [tipo, ...resto] = chave.split(':');
+      if (soma[tipo]) soma[tipo][resto.join(':')] = (soma[tipo][resto.join(':')] ?? 0) + n;
+    }
+  const ordenar = (m: Record<string, number>) => Object.entries(m).sort((a, b) => b[1] - a[1]);
+  return { conector: ordenar(soma.conector), origem: ordenar(soma.origem), situacao: ordenar(soma.situacao) };
+}
+
 export const diaEMes = (data: string) => data.split('-').reverse().slice(0, 2).join('/');
 export const dataCompleta = (data: string) => data.split('-').reverse().join('/');

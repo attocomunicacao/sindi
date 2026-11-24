@@ -3,6 +3,7 @@ import { useId, useState, type KeyboardEvent } from 'react';
 import { AbaDas } from '@/componentes/tributos/aba-das';
 import { AbaRegimeRegular } from '@/componentes/tributos/aba-regime-regular';
 import { AbaSimples } from '@/componentes/tributos/aba-simples';
+import { SaibaMais } from '@/componentes/ui/saiba-mais';
 
 // Todo o cálculo roda no navegador, com as mesmas bibliotecas puras do servidor: nada é enviado nem gravado.
 const ABAS = [
@@ -60,11 +61,13 @@ export function CalculadoraDeTributos() {
           {aba === id && <Conteudo />}
         </div>
       ))}
-      <p className="text-xs leading-5 text-slate-500">
-        Estimativa para planejamento, calculada no seu navegador (nada é enviado). Regime regular e CBS/IBS do Simples
-        seguem a lógica da Calculadora da Receita Federal (MIT); as tabelas do DAS vêm da LC 123/2006 e precisam de
-        conferência antes de uso comercial. Não substitui contador nem parecer jurídico.
-      </p>
+      <SaibaMais titulo="Metodologia">
+        <p>
+          Estimativa para planejamento, calculada no seu navegador (nada é enviado). Regime regular e CBS/IBS do Simples
+          seguem a lógica da Calculadora da Receita Federal (MIT); as tabelas do DAS vêm da LC 123/2006 e precisam de
+          conferência antes de uso comercial. Não substitui contador nem parecer jurídico.
+        </p>
+      </SaibaMais>
     </div>
   );
 }

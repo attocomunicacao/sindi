@@ -11,6 +11,10 @@ export const PAGINAS = [
   { id: 'painel', rota: '/painel', rotulo: 'Painel do setor', previa: true, menu: true },
   { id: 'orcamento', rota: '/orcamento', rotulo: 'Orçamento', previa: true, menu: true },
   { id: 'tributos', rota: '/tributos', rotulo: 'Tributos', previa: true, menu: true },
+  // Kit da Emenda Constitucional 141/2026 (roteiro, custo do posto e comunicados).
+  { id: 'jornada42', rota: '/jornada-42', rotulo: 'Jornada 42', previa: true, menu: true },
+  // Diagnóstico de Exposição: perguntas, semáforo e plano de ação calculados no navegador, sem guardar as respostas.
+  { id: 'diagnostico', rota: '/diagnostico', rotulo: 'Diagnóstico', previa: true, menu: true },
   { id: 'base', rota: '/base', rotulo: 'Biblioteca', previa: false, menu: true },
   { id: 'cerebro', rota: '/cerebro', rotulo: 'Cérebro', previa: false, menu: true },
   { id: 'uso', rota: '/uso', rotulo: 'Uso', previa: false, menu: true },
@@ -18,6 +22,8 @@ export const PAGINAS = [
   { id: 'custos', rota: '/custos', rotulo: 'Custos', previa: false, menu: false },
   // Gerador do DANFSe (porte do projeto da Receita Federal): aberto pela calculadora de tributos.
   { id: 'danfse', rota: '/danfse', rotulo: 'DANFSe', previa: false, menu: false },
+  // Política de dados e limites do serviço (informação, não consultoria): ligada pelo rodapé, fora do menu.
+  { id: 'privacidade', rota: '/privacidade', rotulo: 'Privacidade', previa: false, menu: false },
 ] as const;
 export type Pagina = (typeof PAGINAS)[number]['id'];
 

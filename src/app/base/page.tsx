@@ -41,21 +41,19 @@ async function Inicio() {
   const resumo = resumoDaBiblioteca();
   const status = await statusDoConhecimento();
   return (
-    <div className="mx-auto max-w-6xl gutter py-12 sm:py-16">
+    <div className="mx-auto max-w-[120rem] gutter py-12 sm:py-16">
       <header>
         <Titulo>Biblioteca</Titulo>
-        <p className="mt-3 max-w-2xl text-base leading-7 text-slate-600">
-          Acervo consultado pela SINDI antes de cada resposta, com a fonte sempre indicada.
+        <p className="mt-3 max-w-3xl text-base leading-7 text-slate-600">
+          Acervo consultado pela SINDI antes de cada resposta, com a fonte sempre indicada.{' '}
+          {numeroBR(resumo.documentos)} documentos · {resumo.estantes.length} estantes · última coleta em{' '}
+          {data(resumo.atualizado)}.
         </p>
         <div className="mt-8">
           <FormularioDeBusca acao="/base" placeholder="Buscar por tema, norma, categoria ou palavra" />
         </div>
-        <p className="mt-5 text-sm text-slate-500">
-          {numeroBR(resumo.documentos)} documentos · {resumo.estantes.length} estantes · última coleta em{' '}
-          {data(resumo.atualizado)}
-        </p>
         {!resumo.disponivel && (
-          <p role="status" className="mt-5 max-w-2xl border-l-2 border-amber-400 pl-3 text-sm text-slate-600">
+          <p role="status" className="mt-5 max-w-3xl border-l-2 border-amber-400 pl-3 text-sm text-slate-600">
             A coleta de documentos ainda não está disponível neste ambiente. Apenas o conhecimento escrito pela equipe
             aparece nas estantes.
           </p>
@@ -73,7 +71,7 @@ async function Resultados({ q, estanteId }: { q: string; estanteId?: string }) {
   const resultado = buscarNaBiblioteca(q, filtro);
   const total = resultado.porEstante.reduce((s, e) => s + e.n, 0);
   return (
-    <div className="mx-auto max-w-6xl gutter py-10">
+    <div className="mx-auto max-w-[120rem] gutter py-10">
       <nav aria-label="Você está em" className="text-sm text-slate-500">
         <Link href="/base" className="hover:text-slate-900 hover:underline">
           Biblioteca
@@ -164,9 +162,6 @@ async function Resultados({ q, estanteId }: { q: string; estanteId?: string }) {
           </p>
         )}
       </section>
-      <p className="mt-8 text-xs text-slate-500">
-        A busca considera título e texto e aceita o início da palavra (por exemplo, “terceiriz”).
-      </p>
     </div>
   );
 }

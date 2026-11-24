@@ -1,4 +1,5 @@
 import { historicoParaOModelo, mensagensRecentes } from '@/lib/chat/esquema';
+import { semReferencias } from '@/lib/chat/historico';
 import { guardarResposta } from '@/lib/infra/cache-respostas';
 import { sistema, exemplos } from '@/lib/cerebro/instrucoes';
 import type { Mensagem } from '@/lib/base/tipos';
@@ -11,8 +12,9 @@ import { respostaEmFluxo } from '@/lib/chat/stream';
 import { LlmError, MENSAGEM_NEUTRA, rapidoLigado } from '@/lib/ia/cascata';
 import { erroJson, jsonSemCache } from '@/lib/http/guarda';
 import { redigirDadosSensiveis } from '@/lib/seguranca/redacao';
-import { referenciasDasFontes } from '@/lib/recuperacao/fontes';
+import { fontesApoiadas, referenciasDasFontes } from '@/lib/recuperacao/fontes';
 import { registrarUso as registrarUsoReal } from '@/lib/infra/uso';
+import { chavesDeMetricaDoCerebro, resumirUsoDoCerebro } from '@/lib/chat/uso-do-cerebro';
 
 export const runtime = 'nodejs';
 export const maxDuration = 300;
@@ -46,6 +48,7 @@ export async function POST(request: Request) {
       }));
       const pergunta = recentes.at(-1)!.content;
       const historico = historicoParaOModelo(recentes.slice(0, -1));
+      const respostaAnterior = semReferencias(recentes.filter((m) => m.role === 'assistant').at(-1)?.content ?? '');
       const { situacao, escolhidas, lista, relatorio, conector, anteriores, ehRedacao, perguntaAtual } =
         await decidirSituacao({ mensagens });
 
@@ -65,8 +68,13 @@ export async function POST(request: Request) {
       const reuso = await reaproveitarOuAbrir(chave, sinal);
       if ('texto' in reuso) {
         onDelta?.(reuso.texto);
-        const metricasRegistradas = await registrarUso({ success: true, durationMs: Date.now() - inicio });
-        return jsonSemCache({ text: reuso.texto, metricsRecorded: metricasRegistradas });
+        const cerebro = resumirUsoDoCerebro({ conector, situacao, fontes: escolhidas });
+        const metricasRegistradas = await registrarUso({
+          success: true,
+          durationMs: Date.now() - inicio,
+          cerebro: chavesDeMetricaDoCerebro(cerebro),
+        });
+        return jsonSemCache({ text: reuso.texto, metricsRecorded: metricasRegistradas, cerebro });
       }
       concluirGeracao = reuso.concluir;
       // A cota é gasta antes de escrever e verificar os fatos: a geração já consome o limite do provedor, mesmo quando a verificação reprova e manda reescrever.
@@ -83,19 +91,24 @@ export async function POST(request: Request) {
         onDelta,
         onReset,
         manterColchetes: ehRedacao || PEDE_MODELO.test(perguntaAtual),
-        perguntas: [...anteriores, perguntaAtual].join(' '),
+        // O que o usuário já disse e a última resposta que a SINDI deu (já verificada): números e contatos repetidos numa continuação não reprovam.
+        perguntas: [...anteriores, respostaAnterior, perguntaAtual].filter(Boolean).join(' '),
       });
       if (!confiavel) {
         await registrarUso({ success: false, durationMs: Date.now() - inicio, usage: uso, provedor });
         return erro('Não foi possível gerar uma resposta confiável. Tente reformular a pergunta.', 502);
       }
-      const referencias = !ehRedacao && texto.trim() && fontesUsadas.length ? referenciasDasFontes(fontesUsadas) : '';
+      // O que o cérebro entregou nesta resposta (áreas, origem e nós das fontes): vai ao navegador para acender o /cerebro e vira contador agregado.
+      const apoiadas = fontesApoiadas(texto, fontesUsadas);
+      const cerebro = resumirUsoDoCerebro({ conector, situacao, fontes: apoiadas });
+      const referencias = !ehRedacao && texto.trim() && apoiadas.length ? referenciasDasFontes(apoiadas) : '';
       if (referencias) onDelta?.(referencias);
       const metricasRegistradas = await registrarUso({
         success: Boolean(texto.trim()),
         durationMs: Date.now() - inicio,
         usage: uso,
         provedor,
+        cerebro: chavesDeMetricaDoCerebro(cerebro),
       });
       if (!texto.trim()) return erro('Não foi possível gerar uma resposta. Tente novamente.', 502);
       if (chave && fontesUsadas === escolhidas) {
@@ -106,6 +119,7 @@ export async function POST(request: Request) {
         text: texto + referencias,
         metricsRecorded: metricasRegistradas,
         restantes: gasto.cota?.restantes,
+        cerebro,
       });
     } catch (causa) {
       await registrarUso({ success: false, durationMs: Date.now() - inicio });

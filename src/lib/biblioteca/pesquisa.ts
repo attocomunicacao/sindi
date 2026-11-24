@@ -207,6 +207,8 @@ function escolherPassagens(
       title: titulo,
       fetchedAt: c.fetched_at,
       pinned: true,
+      origem: 'biblioteca',
+      no: `estante:${c.estante}`,
       content: `${ROTULO[c.estante] ?? 'Documento da biblioteca'}${data ? ` em ${data}` : ''}. ${trechosRelevantes(limparParaTrecho(c.content), [...termos.map(radical), ...(nr === undefined ? [] : [`nr-${nr}`, `nr ${nr}`])], 650, 320).replace(/\s+/g, ' ')}`,
     });
     if (escolhidos.length === limite) break;

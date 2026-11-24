@@ -1,7 +1,11 @@
 import type { Metadata, Viewport } from 'next';
 import '@/app/globals.css';
 import { connection } from 'next/server';
+import { Inter } from 'next/font/google';
 import { CabecalhoDoSite } from '@/componentes/layout/cabecalho-do-site';
+import { RodapeDoSite } from '@/componentes/layout/rodape-do-site';
+/** Inter é a reserva da pilha do Apple (SF Pro): baixada no build e servida do próprio domínio, então a CSP não muda. */
+const inter = Inter({ subsets: ['latin'], variable: '--font-inter', display: 'swap' });
 import { FaixaDeIndicadores } from '@/componentes/painel/faixa-de-indicadores';
 const title = 'SINDI | SINDEPRESTEM';
 const description = 'Assistente virtual do SINDEPRESTEM sobre terceirização e trabalho temporário. Protótipo.';
@@ -43,11 +47,12 @@ export const viewport: Viewport = {
 export default async function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
   await connection();
   return (
-    <html lang="pt-BR" suppressHydrationWarning>
+    <html lang="pt-BR" className={inter.variable} suppressHydrationWarning>
       <body>
         <CabecalhoDoSite />
         <FaixaDeIndicadores />
         {children}
+        <RodapeDoSite />
       </body>
     </html>
   );

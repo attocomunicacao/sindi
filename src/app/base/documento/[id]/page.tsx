@@ -51,7 +51,7 @@ export default async function DocumentoPage({
   const cortado = recorte.length < documento.texto.length;
   const pdf = Boolean(pdfPermitido(documento.fonteOriginal));
   return (
-    <Principal className="max-w-6xl py-10">
+    <Principal className="max-w-[120rem] py-10">
       <Migalhas
         itens={[
           { rotulo: 'Biblioteca', href: '/base' },

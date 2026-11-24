@@ -134,7 +134,7 @@ test('menu e tema: no celular o menu abre, navega e fecha com Esc; o tema escuro
     await page.locator('#menu-principal').getByRole('link', { name: 'Orçamento' }).click();
   } else await page.getByRole('navigation', { name: 'Principal' }).getByRole('link', { name: 'Orçamento' }).click();
   await expect(page).toHaveURL(/\/orcamento$/);
-  await expect(page.getByText('Valor mensal estimado')).toBeVisible();
+  await expect(page.getByText('Custo mensal estimado')).toBeVisible();
   const claro = await page.evaluate(() => getComputedStyle(document.body).backgroundColor);
   await page.getByRole('button', { name: /Ativar tema escuro/ }).click();
   await expect(page.getByRole('button', { name: /Ativar tema claro/ })).toBeVisible();

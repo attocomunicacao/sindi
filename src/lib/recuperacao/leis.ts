@@ -5,9 +5,10 @@ import { normalizar, numeroDaNR, trechosRelevantes } from '@/lib/base/texto';
 import { consultaPorPrefixos, caminhoDoBanco } from '@/lib/dados/db';
 import { PEDIDO_DE_REDACAO } from '@/lib/recuperacao/intencao';
 import { chaveDoArtigo, termosDoDocumento } from '@/lib/recuperacao/termos-de-documento';
+import { normasCitadas, trechosDeNormas } from '@/lib/recuperacao/legislacao';
 
 /**
- * Artigo da Constituição ou de um regimento citado na pergunta, ou os trechos que mais combinam com ela. Devolve o texto-fonte para o modelo
+ * Artigo da Constituição, de um regimento ou de uma norma da lista curada do Planalto (Lei 6.019, CLT...) citado na pergunta, ou os trechos que mais combinam com ela. Devolve o texto-fonte para o modelo
  * explicar com as próprias palavras; quem apresenta a resposta ao usuário é a SINDI, não uma cópia da lei.
  */
 export function trechosDeLei(pergunta: string, termos: string[], arquivo = caminhoDoBanco()): TrechosDeDocumentos {
@@ -23,11 +24,18 @@ export function trechosDeLei(pergunta: string, termos: string[], arquivo = camin
           ? 'rccn'
           : undefined
     : undefined;
-  if (!constituicao && !regimento) return { passages: [] };
+  const normas = normasCitadas(pergunta).length > 0;
+  if (!constituicao && !regimento && !normas) return { passages: [] };
   const chave = chaveDoArtigo(pergunta);
   const adct = /\badct\b|disposicoes constitucionais transitorias/.test(q);
   const db = new DatabaseSync(arquivo, { readOnly: true });
   try {
+    // "art. 7º da Constituição" cita artigo da Constituição, mesmo que a pergunta também nomeie uma emenda ou a CLT; sem artigo, as normas vêm primeiro.
+    if (normas && !regimento && !(constituicao && chave)) {
+      const daNorma = trechosDeNormas(db, pergunta, termos);
+      if (daNorma && (daNorma.passages.length || daNorma.semResposta)) return daNorma;
+    }
+    if (!constituicao && !regimento) return { passages: [] };
     if (chave) {
       const linha = (
         constituicao
@@ -87,6 +95,49 @@ export function trechosDeLei(pergunta: string, termos: string[], arquivo = camin
   }
 }
 
+/** Palavras da pergunta que nada dizem sobre o assunto dentro da NR; "epi", "gro" e "pgr" ficam (siglas de três letras são o que mais se pergunta). */
+const SEM_ASSUNTO_NA_NR = new Set(
+  'que qual quais como onde quando porque para por com uma uns umas dos das nos nas sobre diz dizem fala falam isso esta esse essa norma normas regulamentadora regulamentadoras artigo artigos explique explica significa quer dizer exemplo existe tem ter ser sao foi aos ele ela eles elas seu sua nossa nosso minha meu empresa empresas'.split(
+    ' ',
+  ),
+);
+const seMesmaOrdem = (a: string, b: string) => a.localeCompare(b, 'pt-BR', { numeric: true });
+
+/**
+ * Seções do texto oficial da NR (coletor `nrs`, PDF do Ministério) que mais combinam com a pergunta: pontua cada seção pelos termos da pergunta
+ * (no título pesa mais) e devolve as três melhores; sem termo útil ("O que é a NR-1?"), o objetivo e o campo de aplicação, que definem a norma.
+ */
+function secoesDaNR(db: DatabaseSync, numero: number, pergunta: string) {
+  const linhas = db
+    .prepare(
+      "SELECT title, url, content, fetched_at AS fetchedAt FROM documents WHERE source = 'nrs' AND json_extract(meta, '$.nr') = ?",
+    )
+    .all(numero) as { title: string; url: string; content: string; fetchedAt: string }[];
+  if (!linhas.length) return undefined;
+  linhas.sort((x, y) => seMesmaOrdem(x.url.split('#')[1] ?? '', y.url.split('#')[1] ?? ''));
+  const termos = [
+    ...new Set(
+      (normalizar(pergunta).match(/[a-z0-9]{3,}/g) ?? []).filter((w) => !SEM_ASSUNTO_NA_NR.has(w) && !/^\d+$/.test(w)),
+    ),
+  ].slice(0, 10);
+  const padroes = termos.map((t) => new RegExp(String.raw`\b${t}`, 'g'));
+  const pontuadas = linhas.map((l, ordem) => {
+    const corpo = normalizar(l.content);
+    const titulo = normalizar(l.title.split(' — ').slice(2).join(' '));
+    const pontos = padroes.reduce(
+      (soma, p) => soma + Math.min(corpo.match(p)?.length ?? 0, 4) + ((titulo.match(p)?.length ?? 0) ? 4 : 0),
+      0,
+    );
+    return { l, pontos, ordem };
+  });
+  const melhores = pontuadas
+    .filter((p) => p.pontos > 0)
+    .sort((x, y) => y.pontos - x.pontos || x.ordem - y.ordem)
+    .slice(0, 3);
+  const escolhidas = melhores.length ? melhores : pontuadas.slice(0, 2);
+  return { termos, linhas: escolhidas.map((p) => p.l) };
+}
+
 export const PAGINA_SST =
   'https://www.gov.br/trabalho-e-emprego/pt-br/assuntos/inspecao-do-trabalho/seguranca-e-saude-no-trabalho';
 /**
@@ -98,6 +149,26 @@ export function trechosDeNR(pergunta: string, arquivo = caminhoDoBanco()): Trech
   if (numero === undefined || PEDIDO_DE_REDACAO.test(normalizar(pergunta))) return { passages: [] };
   const preenchido = String(numero).padStart(2, '0');
   let linha: { title: string; url: string; content: string; fetchedAt: string } | undefined;
+  if (existsSync(arquivo)) {
+    const db = new DatabaseSync(arquivo, { readOnly: true });
+    try {
+      const oficial = secoesDaNR(db, numero, pergunta);
+      if (oficial)
+        return {
+          passages: oficial.linhas.map((l) => ({
+            url: l.url.split('#')[0],
+            title: l.title,
+            content: trechosRelevantes(l.content, oficial.termos, 1600),
+            fetchedAt: l.fetchedAt,
+            pinned: true as const,
+          })),
+        };
+    } catch {
+      /* sem a tabela ou sem o texto oficial: cai na página do portal, se houver */
+    } finally {
+      db.close();
+    }
+  }
   if (existsSync(arquivo)) {
     const db = new DatabaseSync(arquivo, { readOnly: true });
     try {

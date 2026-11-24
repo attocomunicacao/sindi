@@ -1,13 +1,13 @@
 ---
 titulo: Artigos do presidente e notícias do SINDEPRESTEM
 fonte: https://www.sindeprestem.com.br/artigos
-atualizado: 2026-11-05
+atualizado: 2026-11-24
 tipo: autogerado
 prioridade: 2
 gatilhos: artigo, artigos, vander morales, presidente, opinião, notícia, notícias, novidades, posicionamento, 6x1, escala, reforma, clt, nr-1, pec do emprego, jornada, custo brasil, inclusão
 ---
 
-<!-- AUTOGERADO por src/lib/cerebro/gerar.ts em 2026-11-05. Não edite: as alterações serão perdidas. Para ajustar regras e respostas, edite os arquivos da pasta cerebro/. -->
+<!-- AUTOGERADO por src/lib/cerebro/gerar.ts em 2026-11-24. Não edite: as alterações serão perdidas. Para ajustar regras e respostas, edite os arquivos da pasta cerebro/. -->
 
 ## Artigos assinados pelo presidente (28)
 Artigos de Vander Morales, presidente do SINDEPRESTEM, com "análises e reflexões sobre os principais temas em evidência no setor" ([página Artigos](https://www.sindeprestem.com.br/artigos)). Indicam o posicionamento do sindicato sobre cada tema.
@@ -42,6 +42,12 @@ Artigos de Vander Morales, presidente do SINDEPRESTEM, com "análises e reflexõ
 - **Com resiliência, persistência e coragem, que tenhamos dias melhores em 2022** (16/12/2021) — Incansáveis, resilientes e criativos. Assim são os empresários brasileiros. No dia a dia de suas empresas, em meio a tantos esforços hercúleos para conseguir progredir com seus negócios, gerar emprego e renda para a sociedade, ainda precisam lidar com as surpresas de ordem legislativa e tributária e demais desafios – às vezes […] [ler](https://www.sindeprestem.com.br/post/com-resili%C3%AAncia-persist%C3%AAncia-e-coragem-que-tenhamos-dias-melhores-em-2022)
 
 ## Notícias mais recentes
+- **Veja em que etapa estão as propostas acompanhadas pelo Sindeprestem e o que elas podem mudar para o setor** (23/11/2026) [ler](https://www.sindeprestem.com.br/post/veja-em-que-etapa-est%C3%A3o-as-propostas-acompanhadas-pelo-sindeprestem-e-o-que-elas-podem-mudar-para-o)
+- **CEBRASSE e FENASERHTT apresentam propostas à AGU para aperfeiçoamento da NR-1** (23/11/2026) [ler](https://www.sindeprestem.com.br/post/cebrasse-e-fenaserhtt-apresentam-propostas-%C3%A0-agu-para-aperfei%C3%A7oamento-da-nr-1)
+- **Sindeprestem reúne representantes do setor para debater negociações coletivas de 2027** (23/11/2026) [ler](https://www.sindeprestem.com.br/post/sindeprestem-re%C3%BAne-representantes-do-setor-para-debater-negocia%C3%A7%C3%B5es-coletivas-de-2027)
+- **Redução da jornada: STF coloca negociação coletiva no centro das discussões sobre novas regras trabalhistas** (11/11/2026) [ler](https://www.sindeprestem.com.br/post/redu%C3%A7%C3%A3o-da-jornada-stf-coloca-negocia%C3%A7%C3%A3o-coletiva-no-centro-das-discuss%C3%B5es-sobre-novas-regras-traba)
+- **Vander Morales destaca oportunidades de inovação na China e propõe compras coletivas para fortalecer o setor de serviços brasileiro** (06/11/2026) [ler](https://www.sindeprestem.com.br/post/vander-morales-destaca-oportunidades-de-inova%C3%A7%C3%A3o-na-china-e-prop%C3%B5e-compras-coletivas-para-fortalecer)
+- **Sindeprestem reúne representantes de empresas para debater impactos da redução da jornada de trabalho** (03/11/2026) [ler](https://www.sindeprestem.com.br/post/sindeprestem-re%C3%BAne-representantes-de-empresas-para-debater-impactos-da-redu%C3%A7%C3%A3o-da-jornada-de-trabalh)
 - **WORKSHOP JORNADA EM DEBATE** (22/10/2026) [ler](https://www.sindeprestem.com.br/post/workshop-jornada-em-debate)
 - **Senado aprova fim da Escala 6x1 nesta quarta-feira; Sindeprestem alerta para impactos no emprego formal** (15/10/2026) [ler](https://www.sindeprestem.com.br/post/senado-aprova-fim-da-escala-6x1-nesta-quarta-feira-sindeprestem-alerta-para-impactos-no-emprego-for)
 - **Sindeprestem aproxima associados de Procuradores do Trabalho para discutir desafios setor** (29/09/2026) [ler](https://www.sindeprestem.com.br/post/sindeprestem-aproxima-associados-de-procuradores-do-trabalho-para-discutir-desafios-setor)
@@ -76,11 +82,5 @@ Artigos de Vander Morales, presidente do SINDEPRESTEM, com "análises e reflexõ
 - **Sindeprestem reforça agenda institucional em reunião com o ex-presidente Michel Temer** (05/05/2026) [ler](https://www.sindeprestem.com.br/post/sindeprestem-refor%C3%A7a-agenda-institucional-em-reuni%C3%A3o-com-o-ex-presidente-michel-temer)
 - **Reunião mensal da diretoria marcou o fechamento do primeiro trimestre no Sindeprestem** (17/04/2026) [ler](https://www.sindeprestem.com.br/post/reuni%C3%A3o-mensal-da-diretoria-marcou-o-fechamento-do-primeiro-trimestre-no-sindeprestem)
 - **Café com Associados fortalece diálogo direto e posiciona Sindeprestem como a casa do empresário** (17/04/2026) [ler](https://www.sindeprestem.com.br/post/caf%C3%A9-com-associados-fortalece-di%C3%A1logo-direto-e-posiciona-sindeprestem-como-a-casa-do-empres%C3%A1rio)
-- **Sindeprestem recebe deputado federal Luiz Gastão para discutir pautas estratégicas do setor de serviços** (16/04/2026) [ler](https://www.sindeprestem.com.br/post/sindeprestem-recebe-deputado-federal-luiz-gast%C3%A3o-para-discutir-pautas-estrat%C3%A9gicas-do-setor-de-servi)
-- **Juiz do Trabalho Otavio Calvet ministra curso sobre prática trabalhista na sede do Sindeprestem** (16/04/2026) [ler](https://www.sindeprestem.com.br/post/juiz-do-trabalho-otavio-calvet-ministra-curso-sobre-pr%C3%A1tica-trabalhista-na-sede-do-sindeprestem)
-- **NR-1: Palestras do Workshop disponíveis no Youtube** (16/04/2026) [ler](https://www.sindeprestem.com.br/post/nr-1-palestras-do-workshop-dispon%C3%ADveis-no-youtube)
-- **Sindeprestem firma parceria com a ABRH-SP** (15/04/2026) [ler](https://www.sindeprestem.com.br/post/sindeprestem-firma-parceria-com-a-abrh-sp)
-- **Diretor Institucional do Sindeprestem participa de evento global e traz uma visão estratégica para os associados** (15/04/2026) [ler](https://www.sindeprestem.com.br/post/diretor-institucional-do-sindeprestem-participa-de-evento-global-e-traz-uma-vis%C3%A3o-estrat%C3%A9gica-para-o)
-- **Sindeprestem é reconhecido em matéria internacional da SIA** (15/04/2026) [ler](https://www.sindeprestem.com.br/post/sindeprestem-%C3%A9-reconhecido-em-mat%C3%A9ria-internacional-da-sia)
 
 Todas as notícias desde 2020 estão em [https://www.sindeprestem.com.br/noticias](https://www.sindeprestem.com.br/noticias).

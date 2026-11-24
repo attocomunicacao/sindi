@@ -2,23 +2,23 @@
 import { useState } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { Menu, RotateCcw, X } from 'lucide-react';
+import { Menu, PanelLeft, RotateCcw, X } from 'lucide-react';
 import { MarcaSindi } from '@/componentes/layout/marca-sindi';
 import { paginaDe, paginasDoMenu, type Pagina } from '@/lib/paginas';
 import { AlternarTema } from '@/componentes/layout/alternar-tema';
 import { Pendente } from '@/componentes/layout/pendente';
 import { Configuracao } from '@/componentes/layout/configuracao';
-import { NOVA_CONVERSA } from '@/componentes/chat/nova-conversa';
+import { ABRIR_CONVERSAS, NOVA_CONVERSA } from '@/componentes/chat/nova-conversa';
 import { useTeclaEsc } from '@/componentes/ui/usar-tecla-esc';
 
 // Links e página atual vêm do registro de páginas (src/lib/paginas.ts).
 const LINKS = paginasDoMenu();
 const CLASSE_DO_ICONE =
-  'flex size-9 items-center justify-center rounded-lg text-slate-500 hover:bg-slate-100 hover:text-slate-900 focus-visible:outline-2 focus-visible:outline-amber-400 pointer-coarse:size-11';
+  'flex size-9 items-center justify-center rounded-full text-slate-500 hover:bg-slate-100 hover:text-slate-900 focus-visible:outline-2 focus-visible:outline-amber-400 pointer-coarse:size-11';
 
 function MenuEmLinha({ pagina }: { pagina: Pagina }) {
   return (
-    <nav aria-label="Principal" className="hidden items-center gap-0.5 md:flex">
+    <nav aria-label="Principal" className="hidden flex-1 items-center justify-center gap-0.5 md:flex">
       {LINKS.map(({ rota, id, rotulo }) => {
         const ativo = pagina === id;
         return (
@@ -26,7 +26,7 @@ function MenuEmLinha({ pagina }: { pagina: Pagina }) {
             key={rota}
             href={rota}
             aria-current={ativo ? 'page' : undefined}
-            className={`relative whitespace-nowrap rounded-lg px-2.5 py-2 hover:text-slate-900 focus-visible:outline-2 focus-visible:outline-amber-400 lg:px-3 ${ativo ? 'font-medium text-slate-900 after:absolute after:inset-x-2.5 after:-bottom-px after:h-0.5 after:bg-amber-400' : 'text-slate-500'}`}
+            className={`relative whitespace-nowrap rounded-full px-3 py-2 hover:text-slate-900 focus-visible:outline-2 focus-visible:outline-amber-400 lg:px-3 ${ativo ? 'font-medium text-slate-900 after:absolute after:inset-x-3 after:-bottom-px after:h-0.5 after:rounded-full after:bg-amber-400' : 'text-slate-500'}`}
           >
             {rotulo}
             <Pendente />
@@ -46,9 +46,9 @@ function MenuSuspenso({ pagina, aoFechar }: { pagina: Pagina; aoFechar: () => vo
       <nav
         id="menu-principal"
         aria-label="Principal"
-        className="anim-fade absolute inset-x-0 top-full max-h-[calc(100dvh-4rem-env(safe-area-inset-top))] overflow-y-auto border-b border-slate-200 bg-surface pb-[env(safe-area-inset-bottom)] shadow-sm md:hidden"
+        className="anim-fade absolute inset-x-0 top-full max-h-[calc(100dvh-3.5rem-env(safe-area-inset-top))] overflow-y-auto bg-canvas pb-[env(safe-area-inset-bottom)] shadow-flutuante md:hidden"
       >
-        <ul className="gutter mx-auto max-w-6xl divide-y divide-slate-200 py-2">
+        <ul className="gutter mx-auto max-w-[120rem] divide-y divide-slate-200 py-4">
           {LINKS.map(({ rota, id, rotulo }) => {
             const ativo = pagina === id;
             return (
@@ -57,7 +57,7 @@ function MenuSuspenso({ pagina, aoFechar }: { pagina: Pagina; aoFechar: () => vo
                   href={rota}
                   aria-current={ativo ? 'page' : undefined}
                   onClick={aoFechar}
-                  className={`flex min-h-12 items-center gap-3 text-base focus-visible:outline-2 focus-visible:outline-amber-400 ${ativo ? 'font-medium text-slate-900' : 'text-slate-600'}`}
+                  className={`flex min-h-14 items-center gap-3 text-xl font-semibold tracking-tight focus-visible:outline-2 focus-visible:outline-amber-400 ${ativo ? 'font-medium text-slate-900' : 'text-slate-600'}`}
                 >
                   <span aria-hidden className={`h-5 w-1 rounded-full ${ativo ? 'bg-amber-400' : 'bg-transparent'}`} />
                   {rotulo}
@@ -86,18 +86,29 @@ export function CabecalhoDoSite() {
   const fechar = () => setAbertoEm(null);
   useTeclaEsc(aberto, fechar);
   return (
-    <header className="no-print sticky top-0 z-20 border-b border-slate-200 bg-surface/90 pt-[env(safe-area-inset-top)] backdrop-blur baixo:static">
-      <div className="gutter mx-auto flex h-16 max-w-6xl items-center justify-between gap-3">
+    <header className="no-print sticky top-0 z-20 vidro border-b border-slate-200/70 pt-[env(safe-area-inset-top)] baixo:static">
+      <div className="gutter mx-auto flex h-14 max-w-[120rem] items-center justify-between gap-3">
         <Link
           href="/"
           aria-label="SINDI, início"
           className="flex shrink-0 items-center focus-visible:outline-2 focus-visible:outline-amber-400"
         >
-          <MarcaSindi pagina={pagina} tamanho={44} />
+          <MarcaSindi pagina={pagina} tamanho={40} />
           <Pendente />
         </Link>
+        <MenuEmLinha pagina={pagina} />
         <div className="flex items-center gap-0.5 text-sm">
-          <MenuEmLinha pagina={pagina} />
+          {caminho === '/' && (
+            <button
+              type="button"
+              aria-label="Conversas anteriores"
+              title="Conversas anteriores"
+              onClick={() => window.dispatchEvent(new Event(ABRIR_CONVERSAS))}
+              className={`${CLASSE_DO_ICONE} lg:hidden`}
+            >
+              <PanelLeft size={16} />
+            </button>
+          )}
           {caminho === '/' && (
             <button
               type="button"

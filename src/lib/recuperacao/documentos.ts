@@ -1,4 +1,4 @@
-import type { TrechosDeDocumentos } from '@/lib/base/tipos';
+import type { Passagem, TrechosDeDocumentos } from '@/lib/base/tipos';
 import { normalizar } from '@/lib/base/texto';
 import { caminhoDoBanco } from '@/lib/dados/db';
 import { trechosDeClausula } from '@/lib/recuperacao/convencoes';
@@ -19,15 +19,27 @@ export function trechosDeDocumentos(
 ): TrechosDeDocumentos {
   const q = normalizar(pergunta);
   const nr = trechosDeNR(pergunta, arquivo);
-  if (nr.passages.length || nr.semResposta) return nr;
+  if (nr.passages.length || nr.semResposta) return marcar(nr, () => 'estante:normas');
   const lei = trechosDeLei(pergunta, termos, arquivo);
-  if (lei.passages.length || lei.semResposta) return lei;
-  if (perguntaDeClausula(q)) return trechosDeClausula(pergunta, arquivo);
+  if (lei.passages.length || lei.semResposta)
+    return marcar(lei, (p) =>
+      /^Constitui/i.test(p.title)
+        ? 'estante:constituicao'
+        : /^Regimento/i.test(p.title)
+          ? 'estante:regimentos'
+          : 'estante:legislacao',
+    );
+  if (perguntaDeClausula(q)) return marcar(trechosDeClausula(pergunta, arquivo), () => 'estante:convencoes');
   const indicadores = trechosDeIndicadores(pergunta, arquivo);
-  if (indicadores.length) return { passages: indicadores };
+  if (indicadores.length) return marcar({ passages: indicadores }, () => 'estante:indicadores');
   const posicao = trechosDePosicionamento(pergunta, arquivo);
-  if (posicao.passages.length || posicao.semResposta) return posicao;
+  if (posicao.passages.length || posicao.semResposta) return marcar(posicao, () => 'estante:noticias');
   const lista = trechosDoSindicato(pergunta, arquivo);
-  if (lista.length) return { passages: lista, lista: true };
+  if (lista.length) return marcar({ passages: lista, lista: true }, () => 'estante:institucional');
   return { passages: [] };
+}
+
+/** Marca de onde cada trecho veio (a estante do grafo), para a telemetria de uso do cérebro; o conteúdo não muda. */
+function marcar(r: TrechosDeDocumentos, estante: (p: Passagem) => string): TrechosDeDocumentos {
+  return { ...r, passages: r.passages.map((p) => ({ ...p, origem: 'documento' as const, no: estante(p) })) };
 }

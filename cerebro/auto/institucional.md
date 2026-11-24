@@ -1,13 +1,13 @@
 ---
 titulo: SINDEPRESTEM — institucional
 fonte: https://www.sindeprestem.com.br/institucional-do-sindeprestem-sindicat
-atualizado: 2026-10-13
+atualizado: 2026-11-24
 tipo: autogerado
 prioridade: 2
 gatilhos: sindeprestem, sindicato, quem somos, o que é, missão, visão, valores, diretoria, presidente, história, fenaserhtt, associado, filiado, benefícios, endereço, telefone, contato, horário
 ---
 
-<!-- AUTOGERADO por src/lib/cerebro/gerar.ts em 2026-10-13. Não edite: as alterações serão perdidas. Para ajustar regras e respostas, edite os arquivos da pasta cerebro/. -->
+<!-- AUTOGERADO por src/lib/cerebro/gerar.ts em 2026-11-24. Não edite: as alterações serão perdidas. Para ajustar regras e respostas, edite os arquivos da pasta cerebro/. -->
 
 ## O que é o SINDEPRESTEM
 Sindicato das Empresas de Terceirização e Trabalho Temporário do Estado de São Paulo.

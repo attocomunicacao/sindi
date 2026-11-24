@@ -92,11 +92,37 @@ const GLIFOS: Record<Pagina, React.ReactNode[]> = {
     </text>,
     <circle key="d" cx="50" cy="12" r="5.3" {...contorno} />,
   ],
+  jornada42: [
+    <circle key="a" cx="14" cy="16" r="14" fill={INK} />,
+    <path
+      key="b"
+      d="M14 7V16L20 20"
+      fill="none"
+      stroke={GOLD}
+      strokeWidth="2.6"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    />,
+    <rect key="c" x="34" y="4" width="9" height="24" fill={RED} />,
+    <rect key="d" x="46.7" y="10.7" width="8.6" height="17.6" {...contorno} />,
+  ],
+  diagnostico: [
+    <rect key="a" x="0" y="2" width="16" height="28" rx="8" fill={INK} />,
+    <circle key="b" cx="8" cy="9" r="3" fill={RED} />,
+    <circle key="c" cx="8" cy="16" r="3" fill={GOLD} />,
+    <circle key="d" cx="8" cy="23" r="3" fill="var(--color-canvas)" />,
+  ],
   danfse: [
     <rect key="a" x="0" y="0" width="26" height="32" rx="2" fill={INK} />,
     <rect key="b" x="4" y="6" width="18" height="3" fill={GOLD} />,
     <rect key="c" x="32" y="8" width="16" height="16" fill={RED} />,
     <rect key="d" x="35.7" y="11.7" width="8.6" height="8.6" {...contorno} />,
+  ],
+  privacidade: [
+    <path key="a" d="M0 4H26V20Q26 30 13 34Q0 30 0 20Z" fill={INK} />,
+    <rect key="b" x="7" y="14" width="12" height="9" fill={GOLD} />,
+    <circle key="c" cx="42" cy="14" r="8" fill={RED} />,
+    <circle key="d" cx="42" cy="14" r="3.6" {...contorno} />,
   ],
   custos: [
     <circle key="a" cx="10" cy="22" r="10" fill={GOLD} />,

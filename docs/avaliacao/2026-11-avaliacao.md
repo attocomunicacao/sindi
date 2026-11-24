@@ -98,7 +98,7 @@
 | P0 | `auto.anterior/` duplicando o cérebro | Corrigido; índice de vetores 231 → 168 (+1 seção nova) |
 | P0 | Token de aquecimento não criptográfico | Corrigido (`RandomNumberGenerator`) |
 | P0 | Histórico forjado e injeção pelas fontes | Assistente com teto de 4.000 caracteres; fontes entre marcadores fixos; marcadores e rótulos vindos de fora neutralizados (inclusive variantes Unicode) |
-| P1 | Provedor único | Cascata `src/lib/ia/` (Gemini → Groq → OpenRouter → Mistral → Cloudflare → Anthropic desligado → Ollama), disjuntor, limites conhecidos, troca silenciosa e `reset` no meio do texto; mensagem neutra se tudo cair |
+| P1 | Provedor único | Cascata `src/lib/ia/` (hoje Gemini → Groq → Mistral → Ollama; OpenRouter, Cloudflare e Anthropic foram removidos em 24/11/2026), disjuntor, limites conhecidos, troca silenciosa e `reset` no meio do texto; mensagem neutra se tudo cair |
 | P1 | Ollama de emergência | Instalado (v0.40.16) com `qwen2.5:3b`; `publicar.ps1` liga e aponta a SINDI para ele |
 | P1 | Embeddings por pergunta | Cache LRU de vetores de consulta (500, 6 h) |
 | P1 | Métricas por provedor | `/uso` mostra quem respondeu |

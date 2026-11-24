@@ -19,6 +19,7 @@ import {
 } from '@/lib/biblioteca/pesquisa';
 import { caminhoDoBanco } from '@/lib/dados/db';
 import { documentosPeloGrafo } from '@/lib/grafo/consulta';
+import { bonusDeConfianca, exigeFonteOficial, nivelDaUrl } from '@/lib/fontes/fiscalizador';
 import { estantesDaOrquestra, montarOrquestra } from '@/lib/agentes/orquestrador';
 try {
   process.loadEnvFile('.env.knowledge');
@@ -36,6 +37,24 @@ const resultadoDe = (
   lista: extras.lista ?? false,
   relatorio: extras.relatorio ?? false,
 });
+/** Trechos curados do cérebro cuja fonte é oficial (governo, Congresso, tribunais) e que respondem à pergunta, no formato de passagem fixada. */
+async function trechosOficiaisDoCerebro(pergunta: string): Promise<Passagem[]> {
+  const termos = termosDaPesquisa(pergunta);
+  const pesos = pesosDosTermos(termos);
+  return (await buscarHibrido(pergunta, 3))
+    .filter(({ trecho }) => trecho.tipo === 'curado' && nivelDaUrl(trecho.fonte) === 'oficial')
+    .filter(({ trecho }) => cobertura(termos, `${trecho.titulo} ${trecho.secao} ${trecho.texto}`, pesos) >= 0.3)
+    .slice(0, 1)
+    .map(({ trecho }) => ({
+      url: trecho.fonte!,
+      title: `${trecho.titulo} — ${trecho.secao}`,
+      content: trecho.texto.replace(/^Varia[cç][oõ]es:.*$/im, '').trim(),
+      fetchedAt: trecho.atualizado ?? new Date().toISOString(),
+      pinned: true,
+      origem: 'cerebro' as const,
+      no: `conhecimento:${trecho.arquivo}`,
+    }));
+}
 /** Estantes pesquisadas quando a pergunta não cai em nenhum conector. */
 const ESTANTES_PADRAO = ['artigos', 'noticias', 'cartilhas'];
 /**
@@ -53,10 +72,16 @@ export async function recuperarConhecimento(
   conector: Conector | undefined = escolherConector(pergunta),
 ) {
   const ferramentas = await executarFerramentas(pergunta, { conector });
-  if (ferramentas.length) return resultadoDe(ferramentas);
+  if (ferramentas.length) return resultadoDe(ferramentas.map((p) => ({ ...p, origem: 'ferramenta' as const })));
   if (pedeRelatorio(conector, pergunta)) {
     const relatorio = materialDoRelatorio(pergunta);
-    if (relatorio.length) return resultadoDe(relatorio, { relatorio: true });
+    if (relatorio.length) {
+      // Pergunta jurídica ampla ("quais mudanças na legislação…") também precisa do texto oficial: o painel de projetos em tramitação não o é (src/lib/fontes/fiscalizador.ts).
+      const oficiais = exigeFonteOficial(pergunta) ? await trechosOficiaisDoCerebro(pergunta) : [];
+      return resultadoDe([...oficiais, ...relatorio.map((p) => ({ ...p, origem: 'documento' as const }))], {
+        relatorio: true,
+      });
+    }
   }
   if (PERGUNTA_DE_ATUACAO.test(normalizar(pergunta))) {
     const atuacao = pesquisarNaBiblioteca(pergunta, ['noticias', 'artigos', 'cartilhas'], { limite: 3 });
@@ -67,7 +92,8 @@ export async function recuperarConhecimento(
     return resultadoDe(documentos.passages as Passagem[], { lista: documentos.lista === true });
   // Contribuição por faixa (capital social ou número de colaboradores citado): só a linha da tabela que se aplica, e os vencimentos.
   const faixas = faixasDeContribuicao(pergunta);
-  if (faixas.length) return resultadoDe(faixas);
+  if (faixas.length)
+    return resultadoDe(faixas.map((p) => ({ ...p, origem: 'cerebro' as const, no: 'estante:institucional' })));
   const termos = termosDaPesquisa(pergunta);
   const pesos = pesosDosTermos(termos);
   // A relevância de um trecho do cérebro conta também as "Variações:" da seção (formas de perguntar), que não vão ao modelo.
@@ -80,6 +106,8 @@ export async function recuperarConhecimento(
       content: trecho.texto.replace(/^Varia[cç][oõ]es:.*$/im, '').trim(),
       fetchedAt: trecho.atualizado ?? new Date().toISOString(),
       pinned: true,
+      origem: 'cerebro',
+      no: `conhecimento:${trecho.arquivo}`,
     } as Passagem,
   }));
   // Pedidos de redação e de método ("redija…", "como organizar…") se resolvem com o conhecimento escrito pela equipe; notícias antigas só desviariam a resposta.
@@ -107,7 +135,11 @@ export async function recuperarConhecimento(
         );
   // Fontes externas coletadas (Câmara, Senado, TST, WEC, IBGE) entram quando a pergunta as menciona.
   const externas = INTENCAO_EXTERNA.test(pergunta)
-    ? buscarFontesExternas(termosDaConsulta(pergunta), 2).map((p) => ({ ...p, pinned: true }))
+    ? buscarFontesExternas(termosDaConsulta(pergunta), 2).map((p) => ({
+        ...p,
+        pinned: true,
+        origem: 'externa' as const,
+      }))
     : [];
   let passagens: Passagem[];
   if (biblioteca.length || externas.length || doGrafo.length) {
@@ -118,10 +150,14 @@ export async function recuperarConhecimento(
     const fortes = semListas.filter((c) => c.relevancia >= 0.6).slice(0, 2);
     const doCerebro = fortes.length ? fortes : semListas.slice(0, 1).filter((c) => c.relevancia >= 0.3);
     passagens = [
-      ...doCerebro.map((c) => ({ p: c.passagem, r: c.relevancia + (c.curado ? 0.2 : 0) })),
+      ...doCerebro.map((c) => ({
+        p: c.passagem,
+        r: c.relevancia + (c.curado ? 0.2 : 0) + bonusDeConfianca(c.passagem),
+      })),
+      // Fonte oficial (governo, tribunais, Congresso) pesa mais: ver src/lib/fontes/fiscalizador.ts.
       ...[...biblioteca, ...doGrafo, ...externas].map((p) => ({
         p,
-        r: cobertura(termos, `${p.title} ${p.content}`, pesos),
+        r: cobertura(termos, `${p.title} ${p.content}`, pesos) + bonusDeConfianca(p),
       })),
     ]
       .map((x, i) => ({ ...x, i }))

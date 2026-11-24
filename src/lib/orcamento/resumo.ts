@@ -4,6 +4,7 @@ import type { Resultado, TipoAdicional } from '@/lib/orcamento/calculo';
 export function resumoDoOrcamento(r: Resultado) {
   return {
     valorContrato: r.valorContrato,
+    margemInformada: r.margemInformada,
     valorAnual: r.valorAnual,
     funcionarios: r.funcionarios,
     precoMedioFuncionario: r.precoMedioFuncionario,

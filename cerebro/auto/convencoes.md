@@ -1,30 +1,30 @@
 ---
 titulo: Convenções coletivas do SINDEPRESTEM
 fonte: https://www.sindeprestem.com.br/convencoes-coletivas
-atualizado: 2026-10-13
+atualizado: 2026-11-24
 tipo: autogerado
 prioridade: 3
 gatilhos: convenção, convenções, convenção coletiva, cct, aditivo, comunicado, errata, piso, piso salarial, salário, reajuste, correção salarial, data-base, categoria, geral, portaria, poupatempo, promoção, merchandising, leiturista, promotores, bombeiros, jundiaí, quanto ganha
 ---
 
-<!-- AUTOGERADO por src/lib/cerebro/gerar.ts em 2026-10-13. Não edite: as alterações serão perdidas. Para ajustar regras e respostas, edite os arquivos da pasta cerebro/. -->
+<!-- AUTOGERADO por src/lib/cerebro/gerar.ts em 2026-11-24. Não edite: as alterações serão perdidas. Para ajustar regras e respostas, edite os arquivos da pasta cerebro/. -->
 
 ## Como funcionam as convenções no site
-O SINDEPRESTEM publica convenções coletivas de trabalho (CCT), aditivos, errata e comunicados conjuntos na página [Documentos coletivos](https://www.sindeprestem.com.br/convencoes-coletivas). São 142 documentos em PDF, de 2002 a 2027, para São Paulo e Jundiaí. Categorias: Bombeiros, Geral, Leiturista, Portaria, Poupatempo, Promotores de crédito, Promoção e merchandising.
+O SINDEPRESTEM publica convenções coletivas de trabalho (CCT), aditivos, errata e comunicados conjuntos na página [Documentos coletivos](https://www.sindeprestem.com.br/convencoes-coletivas). São 143 documentos em PDF, de 2002 a 2027, para São Paulo e Jundiaí. Categorias: Bombeiros, Geral, Leiturista, Portaria, Poupatempo, Promotores de crédito, Promoção e merchandising.
 
 A convenção Geral do SINDEPRESTEM exclui, entre outros, trabalhadores de empresas de asseio e conservação, higiene e limpeza pública urbana, da construção civil e de vigilância e segurança patrimonial, que têm convenções próprias de outras entidades.
 
 ## Bombeiros
 Documentos recentes (2025 em diante) da categoria **Bombeiros**:
-- [CCT BOMBEIROS CIVIS – SP — cct 2026/2027](https://www.sindeprestem.com.br/_files/ugd/a96667_abe21f2677ed4630ae8fcc0a7bb0ebda.pdf)
+- [CCT BOMBEIROS CIVIS – SP — CCT 2026/2027](https://www.sindeprestem.com.br/_files/ugd/a96667_915650a72f0f43c6b33e8e9d5f1baa25.pdf)
 - [CCT BOMBEIROS CIVIS – SP — cct 2025/2026](https://www.sindeprestem.com.br/_files/ugd/a96667_36361044c96244409609bd17a4176df4.pdf)
 - [CCT BOMBEIROS CIVIS – SP — cct 2024-2025](https://www.sindeprestem.com.br/_files/ugd/a96667_d255cbefca854a3f9ce82a3d8b164daa.pdf)
 
-Trecho literal da cláusula de salários em [CCT BOMBEIROS CIVIS – SP — cct 2025/2026](https://www.sindeprestem.com.br/_files/ugd/a96667_36361044c96244409609bd17a4176df4.pdf) (confira o documento e os aditivos):
-> CLÁUSULA TERCEIRA - SALÁRIO NORMATIVO A partir de 1º de setembro de 2025 serão garantidos os salários normativos abaixo. Cargo/Função Piso Gratificação Bombeiro Civil Aeródromo / R$ 2.850,28 15% (quinze por cento) Bombeiro Civil Aeródromo Condutor R$ 2.850,28 28% (vinte e oito por cento) Bombeiro Civil Aeródromo Líder ou Técnico em Prevenção e Combate ao Incêndio Aeródromo R$ 3.828,40 25% (vinte e cinco por cento) Bombeiro Civil Aeródromo Inspetor R$ 4.085,03 25% (vinte e cinco por cento) Bombeiro Civil Aeródromo Chefe R$ 4.341,65 25% (vinte e cinco por cento) Bombeiro de Aeródromo Operador de Central de R$ 2.870,36 Sem Gratificação Privacidade - Termos 28/11/2025, 10:34 Mediador - Extrato Convenção Coletiva https://www3.mte.gov.br/sistemas/mediador/Resumo/ResumoVisualizar 1/27 Comunicação Bombeiro Civil R$ 2.784,30 Sem gratificação Bombeiro Civil Condutor R$ 2.784,30 25% (vinte e cinco por cento) Bombeiro Civil Líder Condutor ou Técnico em Prevenção e Combate ao Incêndio Condutor R$ 3.828,40 25% (vinte e cinco por cento) Bombeiro Civil Líder ou Técnico em Prevenção e Combate ao […]
+Trecho literal da cláusula de salários em [CCT BOMBEIROS CIVIS – SP — CCT 2026/2027](https://www.sindeprestem.com.br/_files/ugd/a96667_915650a72f0f43c6b33e8e9d5f1baa25.pdf) (confira o documento e os aditivos):
+> CLÁUSULA TERCEIRA - SALÁRIO NORMATIVO A partir de 1º de setembro de 2026 serão garantidos os salários normativos abaixo. Cargo/Função Piso Gratificação Bombeiro Civil Aeródromo / R$ 2.978,54 15% (quinze por cento) Bombeiro Civil Aeródromo Condutor R$ 2.978,54 28% (vinte e oito por cento) Bombeiro Civil Aeródromo Líder ou Técnico em Prevenção e Combate ao Incêndio Aeródromo R$ 4.000,68 25% (vinte e cinco por cento) Bombeiro Civil Aeródromo Inspetor R$ 4.268,86 25% (vinte e cinco por cento) Bombeiro Civil Aeródromo Chefe R$ 4.537,02 25% (vinte e cinco por cento) Bombeiro de Aeródromo Operador de Central de R$ 2.999,52 Sem Gratificação 06/11/2026, 15:28 Mediador - Extrato Convenção Coletiva https://mediador.trabalho.gov.br/sistemas/mediador/Resumo/ResumoVisualizar 1/28 Comunicação Bombeiro Civil R$ 2.909,59 Sem gratificação Bombeiro Civil Condutor R$ 2.909,59 25% (vinte e cinco por cento) Bombeiro Civil Líder Condutor ou Técnico em Prevenção e Combate ao Incêndio Condutor R$ 4.000,68 25% (vinte e cinco por cento) Bombeiro Civil Líder ou Técnico em Prevenção e Combate ao Incêndio R$ […]
 
 Trecho literal da cláusula de correção salarial:
-> CLÁUSULA QUARTA - CORREÇÃO SALARIAL As empresas corrigirão os salários percebidos por seus empregados em 1º de setembro de 2025 em 5,50% (cinco virgula cinquenta por cento) que terá como base de aplicação os salários vigentes em 01 de setembro de 2024. Com relação ao piso salarial do Bombeiro Civil Aeródromo e Bombeiro Civil Aeródromo Condutor, ambos tiveram reajuste diferenciado, considerando a desvalorização salarial, perfazendo com aplicação do reajuste piso salarial no valor de R$ 2.850,28. Parágrafo Único: Poderá ocorrer livre negociação do reajuste previsto no caput desta cláusula para empregados portadores de diploma de nível […]
+> CLÁUSULA QUARTA - CORREÇÃO SALARIAL As empresas corrigirão os salários percebidos por seus empregados em 1º de setembro de 2026 em 4,50% (quatro virgula cinquenta por cento) que terá como base de aplicação os salários vigentes em 01 de setembro de 2025. Parágrafo Único: Poderá ocorrer livre negociação do reajuste previsto no caput desta cláusula para empregados portadores de diploma de nível superior, e, que percebam salário mensal igual ou superior a duas vezes o limite máximo dos benefícios do regime geral da previdência social, equivalente a R$ 16.951,10 (Dezesseis mil, novecentos e cinquenta e um reais e dez centavos) PAGAMENTO DE […]
 
 
 ## Geral

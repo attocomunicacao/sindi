@@ -10,7 +10,12 @@ export type Passagem = {
   pinned?: boolean;
   /** Fonte produzida por uma ferramenta (src/lib/ferramentas): a orientação dela diz ao modelo como apresentar o resultado. */
   ferramenta?: { id: string; orientacao: string };
+  /** De onde a fonte veio (telemetria de "o chat usou o cérebro"): nunca vai ao modelo nem ao usuário. */
+  origem?: OrigemDaFonte;
+  /** Nó do grafo do cérebro que esta fonte representa (`conhecimento:...`, `estante:...`, `doc:...`): serve para acender o caminho em /cerebro. */
+  no?: string;
 };
+export type OrigemDaFonte = 'cerebro' | 'biblioteca' | 'grafo' | 'externa' | 'documento' | 'ferramenta' | 'contato';
 
 /** Passagem já escolhida pela pergunta (documentos e indicadores nomeados): sempre fixada. */
 export type PassagemFixa = Passagem & { pinned: true };

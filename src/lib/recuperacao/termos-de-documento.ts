@@ -2,13 +2,13 @@ import { normalizar } from '@/lib/base/texto';
 
 /** Artigo citado na pergunta ("art. 7º", "artigo 5-A"); devolve a chave usada nas URLs (7, 5-A). */
 export function chaveDoArtigo(pergunta: string) {
-  const m = normalizar(pergunta).match(/\bart(?:igo|\.)?\s*(\d{1,4})\s*(?:[-º°o]\s*)?([a-z])?\b/);
+  const q = normalizar(pergunta);
+  const m = q.match(/\bart(?:igo|\.)?\s*(\d{1,4})/);
   if (!m) return undefined;
-  const sufixo =
-    m[2] && /^[a-z]$/.test(m[2]) && /art(?:igo|\.)?\s*\d+\s*[-º°o]?\s*[a-z]\b/.test(normalizar(pergunta))
-      ? `-${m[2].toUpperCase()}`
-      : '';
-  return m[1] + sufixo;
+  // A letra do artigo vem com hífen ("5-A", "5º-A") ou colada ao número ("5a"); "art. 7º a lei..." não é o artigo 7-A. O "o" colado é o ordinal ("5o").
+  const resto = q.slice((m.index ?? 0) + m[0].length);
+  const letra = resto.match(/^\s*[º°o]?\s*-\s*([a-z])\b/)?.[1] ?? resto.match(/^[º°]?([a-np-z])\b/)?.[1];
+  return m[1] + (letra ? `-${letra.toUpperCase()}` : '');
 }
 /** Palavras que não ajudam a achar o trecho certo dentro de um documento longo (perguntas do tipo "como a NR-1 impacta minha empresa?"). */
 const PALAVRAS_GENERICAS_DO_DOCUMENTO = new Set(

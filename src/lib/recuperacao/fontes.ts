@@ -25,6 +25,30 @@ export function escolherFontes(passages: Passagem[], question: string, maximo = 
     )
     .slice(0, maximo);
 }
+/** Radicais (6 letras) e números da resposta ou da fonte: dá tolerância a flexões ("contribuição", "contribuições") sem depender de lista de palavras. */
+const radicaisDe = (texto: string) =>
+  new Set((normalizar(texto).match(/[a-z]{5,}|\d{2,}/g) ?? []).map((p) => (/^\d/.test(p) ? p : p.slice(0, 6))));
+
+/**
+ * Das fontes enviadas ao modelo, as que a resposta realmente apoia: as que compartilham com ela pelo menos metade dos radicais da mais aderente.
+ * Com uma fonte só, ou sem nenhuma aderência medida (resposta curta demais), todas ficam: na dúvida, a referência não some.
+ * É a diferença entre "o chat mostrou o que leu" e "o chat mostrou em que se baseou", e serve também para medir o uso real do cérebro.
+ */
+export function fontesApoiadas(resposta: string, fontes: Passagem[]): Passagem[] {
+  if (fontes.length < 2) return fontes;
+  const da = radicaisDe(resposta);
+  if (!da.size) return fontes;
+  const pontos = fontes.map((f) => {
+    const dela = radicaisDe(`${f.title} ${f.content}`);
+    let n = 0;
+    for (const r of da) if (dela.has(r)) n++;
+    return n;
+  });
+  const maior = Math.max(...pontos);
+  if (maior === 0) return fontes;
+  return fontes.filter((_, i) => pontos[i] >= Math.max(1, maior * 0.5));
+}
+
 export function referenciasDasFontes(escolhidas: Passagem[]): string {
   const unique = [...new Map(escolhidas.map((p) => [p.url, p])).values()];
   if (!unique.length) return '';
@@ -45,6 +69,7 @@ export const trechoDeContato = (): Passagem => ({
   title: 'Contato do SINDEPRESTEM',
   fetchedAt: new Date().toISOString(),
   pinned: true,
+  origem: 'contato',
   content:
     'Contatos do SINDEPRESTEM: telefone (11) 3215-8250; e-mail sindeprestem@sindeprestem.com.br; Setor Jurídico e Gerência: (11) 3215-8250, juridico@sindeprestem.com.br; comunicação (WhatsApp): (11) 99205-3371. Atendimento de segunda a sexta, das 08:30 às 17:30. Endereço: Av. São Luís, 258, 18º andar, Centro Histórico de São Paulo.',
 });

@@ -213,6 +213,8 @@ ${linha('wec', 'World Employment Confederation', 'notícias e publicações do s
 ${linha('mte', 'Ministério do Trabalho e Emprego', 'notícias e páginas de assuntos, incluindo as Normas Regulamentadoras (NR-1 a NR-38).', 'notícias a cada 30 minutos; assuntos revisados a cada 7 dias')}
 ${linha('caged', 'Novo CAGED', 'saldo mensal de empregos formais (Brasil, São Paulo, serviços administrativos e locação de mão de obra temporária).', 'verificação a cada hora; o dado é mensal')}
 ${linha('constituicao', 'Constituição Federal', 'texto compilado, um documento por artigo, mais o ADCT.', 'diária')}
+${linha('legislacao', 'Legislação (Planalto)', 'Lei 6.019/1974 (trabalho temporário), Leis 13.429/2017 e 13.467/2017, CLT e Emenda Constitucional 141/2026, um documento por artigo, mais a ementa de cada norma.', 'diária')}
+${linha('nrs', 'Normas Regulamentadoras (MTE)', 'texto oficial das NRs vigentes do Ministério do Trabalho e Emprego (NR-1, NR-6, NR-7, NR-9, NR-17, NR-35, NR-38 e demais, exceto as revogadas), um documento por seção ou anexo, extraído do PDF atual de cada norma.', 'diária')}
 ${linha('regimentos', 'Regimentos', 'Regimento Interno da Câmara, do Senado e Regimento Comum do Congresso, um documento por artigo.', 'semanal')}
 
 ## Limites

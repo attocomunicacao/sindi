@@ -17,9 +17,21 @@ export type PostoEntrada = {
   horasExtras?: { h50?: number; h100?: number; h150?: number };
 };
 export type InsumoEntrada = { categoria: string; id: string; quantidade: number };
+export type ImpostosInformados = {
+  iss?: number;
+  pis?: number;
+  cofins?: number;
+  contribuicaoSocial?: number;
+  irpj?: number;
+};
 export type OrcamentoEntrada = {
   postos: PostoEntrada[];
   iss?: number;
+  /** BDI e lucro (fração do preço, 0 a 0,5), informados por quem usa. Ausentes valem zero: a SINDI não sugere margem. */
+  bdi?: number;
+  lucro?: number;
+  /** Tributos do preço (fração do faturamento, 0 a 0,5 cada), informados por quem usa; ausentes valem zero. Não afeta CBS/IBS nem o DAS, que são cálculo legal. */
+  impostos?: ImpostosInformados;
   metrosQuadrados?: number;
   insumos?: InsumoEntrada[];
   /** Regime tributário do preço; ausente ou `atual` mantém as regras atuais (ISS, PIS, COFINS, CSLL, IRPJ), com o resultado de sempre. */
@@ -28,6 +40,53 @@ export type OrcamentoEntrada = {
 
 export const HORAS_NOTURNAS_PADRAO = 180;
 export const ISS_PERMITIDO = [0.02, 0.025, 0.03, 0.035, 0.04, 0.045, 0.05];
+/** Limites da entrada: valem na página, no cálculo e no servidor (o esquema da rota usa as mesmas constantes), para a tela nunca mostrar um preço que o PDF recusaria. */
+/** Teto de cada fração informada (BDI, lucro, tributos): acima disso é quase certamente engano de digitação (50 em vez de 0,5%). */
+export const LIMITE_DE_FRACAO = 0.5;
+export const fracaoValida = (v: unknown): v is number =>
+  typeof v === 'number' && Number.isFinite(v) && v >= 0 && v <= LIMITE_DE_FRACAO;
+export const LIMITE_DE_QUANTIDADE = 500;
+export const LIMITE_DE_HORAS_NOTURNAS = 220;
+export const LIMITE_DE_METROS_QUADRADOS = 10_000_000;
+
+/** Primeira razão pela qual a entrada não pode ser calculada (mensagem para quem usa a tela), ou `undefined` se está válida. */
+export function erroDaEntrada(entrada: OrcamentoEntrada): string | undefined {
+  for (const p of entrada.postos) {
+    if (!Number.isFinite(p.quantidade) || p.quantidade < 0 || p.quantidade > LIMITE_DE_QUANTIDADE)
+      return `A quantidade de um posto vai de 1 a ${LIMITE_DE_QUANTIDADE} funcionários.`;
+    if (p.horasNoturnas !== undefined && (!(p.horasNoturnas >= 0) || p.horasNoturnas > LIMITE_DE_HORAS_NOTURNAS))
+      return `As horas noturnas por mês vão de 0 a ${LIMITE_DE_HORAS_NOTURNAS}.`;
+  }
+  if (entrada.iss !== undefined && !ISS_PERMITIDO.some((v) => Math.abs(v - entrada.iss!) < 1e-9))
+    return 'O ISS deve ficar entre 2% e 5%.';
+  for (const [nome, v] of [
+    ['O BDI', entrada.bdi],
+    ['O lucro', entrada.lucro],
+    ...Object.entries(entrada.impostos ?? {}).map(([k, x]) => [`O tributo ${k}`, x] as const),
+  ] as const)
+    if (v !== undefined && !fracaoValida(v)) return `${nome} informado deve ficar entre 0% e 50%.`;
+  if (somaInformada(entrada) >= 1) return 'BDI, lucro e tributos informados somam 100% ou mais do preço.';
+  if (
+    entrada.metrosQuadrados !== undefined &&
+    !(entrada.metrosQuadrados >= 0 && entrada.metrosQuadrados <= LIMITE_DE_METROS_QUADRADOS)
+  )
+    return 'A área informada é inválida.';
+  return undefined;
+}
+
+/** Soma das taxas que quem usa informou (a parte legal, DAS e CBS/IBS, vem do plano tributário). */
+function somaInformada(e: OrcamentoEntrada) {
+  const i = e.impostos ?? {};
+  return soma(
+    e.bdi ?? 0,
+    e.lucro ?? 0,
+    e.iss ?? i.iss ?? 0,
+    i.pis ?? 0,
+    i.cofins ?? 0,
+    i.contribuicaoSocial ?? 0,
+    i.irpj ?? 0,
+  );
+}
 
 export type Parcelas = {
   salario: number;
@@ -113,7 +172,10 @@ export type Resultado = {
     totalBdi: number;
     totalImpostos: number;
   };
+  /** Com margem e tributos zerados é igual ao `custoTotal`: a SINDI mostra custo, nunca preço. */
   valorContrato: number;
+  /** Verdadeiro quando há BDI, lucro ou tributos informados (ou o DAS do Simples) e o valor passa a ser "por dentro" deles. */
+  margemInformada: boolean;
   valorAnual: number;
   precoMedioFuncionario: number;
   precoPorMetro: number | null;
@@ -262,14 +324,17 @@ export function calcularInsumos(entrada: InsumoEntrada[] = []): InsumoCalculado[
 }
 
 export function calcularOrcamento(entrada: OrcamentoEntrada): Resultado {
-  const imp = tabela.parametros.impostos;
-  const iss = entrada.iss ?? imp.iss;
+  const recusa = erroDaEntrada(entrada);
+  if (recusa) throw new RangeError(recusa);
+  // Nada vem da tabela: BDI, lucro e tributos do preço só valem se quem usa informou (parecer jurídico: custo, não preço).
+  const imp = entrada.impostos ?? {};
+  const iss = entrada.iss ?? imp.iss ?? 0;
   const plano = planejarTributacao(entrada.tributacao, {
     iss,
-    pis: imp.pis,
-    cofins: imp.cofins,
-    contribuicaoSocial: imp.contribuicaoSocial,
-    irpj: imp.irpj,
+    pis: imp.pis ?? 0,
+    cofins: imp.cofins ?? 0,
+    contribuicaoSocial: imp.contribuicaoSocial ?? 0,
+    irpj: imp.irpj ?? 0,
   });
   // No Simples, as contribuições que o DAS substitui saem dos encargos (ver tributacao.ts).
   const encargos = calcularEncargos(undefined, { excluirLinhas: plano.excluirEncargos });
@@ -341,9 +406,12 @@ export function calcularOrcamento(entrada: OrcamentoEntrada): Resultado {
     subtotal: soma(t.uniformes, t.epis, totalInsumos),
   };
   const custoTotal = folha.subtotal + t.encargos + beneficios.subtotal + outros.subtotal + materiais.subtotal;
-  const taxas: Record<string, number> = { BDI: tabela.parametros.bdi, Lucro: tabela.parametros.lucro, ...plano.taxas };
+  const taxas: Record<string, number> = { BDI: entrada.bdi ?? 0, Lucro: entrada.lucro ?? 0, ...plano.taxas };
   const somaTaxas = soma(...Object.values(taxas));
+  // O DAS do Simples pode somar às taxas informadas: a conta só fecha se o total ficar abaixo de 100%.
+  if (somaTaxas >= 1) throw new RangeError('BDI, lucro e tributos somam 100% ou mais do preço.');
   // O preço é o custo "por dentro": tributos e margem incidem sobre o valor faturado (custo ÷ (1 − soma das taxas)), como no Resumo da planilha.
+  // Sem taxas, a divisão é por 1 e o valor é o próprio custo.
   const valorContrato = custoTotal > 0 ? custoTotal / (1 - somaTaxas) : 0;
   const valor = (taxa: number) => valorContrato * taxa;
   const c = plano.componentes;
@@ -386,6 +454,7 @@ export function calcularOrcamento(entrada: OrcamentoEntrada): Resultado {
     custoTotal,
     tributos,
     valorContrato,
+    margemInformada: somaTaxas > 0,
     valorAnual: valorContrato * 12,
     precoMedioFuncionario: funcionarios > 0 ? valorContrato / funcionarios : 0,
     precoPorMetro: metros ? valorContrato / metros : null,

@@ -21,7 +21,7 @@ test('orçamento: periculosidade e insalubridade juntas avisam que só o maior e
   await page.goto('/orcamento');
   await expect(page.getByText('Posto 1')).toBeVisible();
   // O valor mensal é o parágrafo logo depois do rótulo (a primeira ocorrência de "R$" no painel é a nota da tabela).
-  const valor = () => page.getByText('Valor mensal estimado').locator('xpath=following-sibling::p[1]').innerText();
+  const valor = () => page.getByText('Custo mensal estimado').locator('xpath=following-sibling::p[1]').innerText();
   const base = await valor();
   await page.getByLabel(/Periculosidade/).check();
   const comPericulosidade = await valor();

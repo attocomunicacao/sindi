@@ -120,8 +120,9 @@ export const ESTANTES: Estante[] = [
     ala: 'legislacao',
     icone: 'hard-hat',
     ordem: 'artigo',
-    descricao: 'NR-1 a NR-38, segurança e saúde no trabalho, do portal do Ministério do Trabalho e Emprego.',
-    onde: "d.source = 'mte' AND d.url LIKE '%normas-regulamentadoras-vigentes/%'",
+    descricao:
+      'O texto oficial das Normas Regulamentadoras vigentes (NR-1 a NR-38, exceto as revogadas) do Ministério do Trabalho e Emprego, um documento por seção ou anexo.',
+    onde: "(d.source = 'nrs' OR (d.source = 'mte' AND d.url LIKE '%normas-regulamentadoras-vigentes/%'))",
     facetas: [],
   },
   {
@@ -133,6 +134,24 @@ export const ESTANTES: Estante[] = [
     descricao: 'O texto compilado, um documento por artigo, incluindo o ADCT.',
     onde: "d.source = 'constituicao'",
     facetas: [],
+  },
+  {
+    id: 'legislacao',
+    nome: 'Leis e emendas',
+    ala: 'legislacao',
+    icone: 'scale',
+    ordem: 'artigo',
+    descricao:
+      'Lei 6.019/1974 (trabalho temporário), Leis 13.429 e 13.467 de 2017, a CLT e a Emenda Constitucional 141/2026, do Planalto, um documento por artigo.',
+    onde: "d.source = 'legislacao'",
+    facetas: [
+      {
+        id: 'norma',
+        rotulo: 'Norma',
+        expr: "json_extract(d.meta, '$.norma')",
+        ordem: 'asc',
+      },
+    ],
   },
   {
     id: 'regimentos',
@@ -242,6 +261,7 @@ export function estanteDoDocumento(d: {
         } as Record<string, string>
       )[d.section ?? ''] ?? 'institucional'
     );
+  if (d.source === 'nrs') return 'normas';
   if (d.source === 'mte')
     return d.url.includes('normas-regulamentadoras-vigentes/')
       ? 'normas'
@@ -249,6 +269,7 @@ export function estanteDoDocumento(d: {
         ? 'noticias-setor'
         : 'orientacoes';
   if (d.source === 'constituicao') return 'constituicao';
+  if (d.source === 'legislacao') return 'legislacao';
   if (d.source === 'regimentos') return 'regimentos';
   if (d.source === 'camara' || d.source === 'senado') return 'proposicoes';
   return 'noticias-setor';

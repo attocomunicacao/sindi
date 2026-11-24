@@ -176,9 +176,21 @@ test('par de alíquotas: com redistribuição no padrão; sem quando o ISS está
   assert.equal(escolherParAliquotas({ anexo: 'II' }).par, 'unico');
 });
 
+// Antes vinham da tabela; agora BDI, lucro e tributos do preço só valem se informados (a SINDI mostra custo, não preço).
+const INFORMADOS = {
+  bdi: 0.03,
+  lucro: 0.03,
+  impostos: { pis: 0.0165, cofins: 0.076, contribuicaoSocial: 0.01, irpj: 0.01 },
+};
 test('orçamento em "regras atuais" é idêntico ao anterior (sem tributacao, com modo atual e o preço de sempre)', () => {
-  const sem = calcularOrcamento({ postos, iss: 0.03, metrosQuadrados: 400 });
-  const atual = calcularOrcamento({ postos, iss: 0.03, metrosQuadrados: 400, tributacao: { modo: 'atual' } });
+  const sem = calcularOrcamento({ postos, ...INFORMADOS, iss: 0.03, metrosQuadrados: 400 });
+  const atual = calcularOrcamento({
+    postos,
+    ...INFORMADOS,
+    iss: 0.03,
+    metrosQuadrados: 400,
+    tributacao: { modo: 'atual' },
+  });
   assert.deepEqual(atual, sem);
   assert.equal('tributacao' in sem, false);
   perto(sem.valorContrato, sem.custoTotal / (1 - (0.03 + 0.03 + 0.03 + 0.0165 + 0.076 + 0.01 + 0.01)), 1e-9);
@@ -191,17 +203,23 @@ test('orçamento em "regras atuais" é idêntico ao anterior (sem tributacao, co
     'Contribuição social',
     'IRPJ',
   ]);
+  // Sem nada informado, o valor é o próprio custo.
+  const nu = calcularOrcamento({ postos });
+  assert.equal(nu.valorContrato, nu.custoTotal);
+  assert.equal(nu.margemInformada, false);
   assert.equal(calcularEncargos().total, calcularEncargos(undefined, { excluirLinhas: [] }).total);
 });
 
 test('orçamento na Reforma: 2026 não muda o preço (CBS/IBS sem custo); 2028 sem PIS/COFINS, CBS/IBS por fora; 2033 sem ISS', () => {
-  const atual = calcularOrcamento({ postos });
-  const r26 = calcularOrcamento({ postos, tributacao: { modo: 'reforma', ano: 2026 } });
+  const atual = calcularOrcamento({ postos, ...INFORMADOS, iss: 0.05 });
+  const r26 = calcularOrcamento({ postos, ...INFORMADOS, iss: 0.05, tributacao: { modo: 'reforma', ano: 2026 } });
   perto(r26.valorContrato, atual.valorContrato, 1e-9);
   assert.equal(r26.tributacao!.nota!.informativo, true);
-  perto(r26.tributacao!.nota!.totalNota, r26.valorContrato, 1e-9);
+  // A nota é em centavos (meio para o par): o total é o preço arredondado, não o preço com dízimas.
+  perto(r26.tributacao!.nota!.totalNota, r26.valorContrato, 0.006);
+  assert.equal(r26.tributacao!.nota!.totalNota, Math.round(r26.tributacao!.nota!.totalNota * 100) / 100);
   assert.equal(r26.tributacao!.simulado, false);
-  const r28 = calcularOrcamento({ postos, tributacao: { modo: 'reforma', ano: 2028 } });
+  const r28 = calcularOrcamento({ postos, ...INFORMADOS, iss: 0.05, tributacao: { modo: 'reforma', ano: 2028 } });
   const n = r28.tributacao!.nota!;
   perto(r28.valorContrato, r28.custoTotal / (1 - (0.03 + 0.03 + 0.05 + 0.01 + 0.01)), 1e-9);
   assert.ok(r28.valorContrato < atual.valorContrato);
@@ -212,17 +230,19 @@ test('orçamento na Reforma: 2026 não muda o preço (CBS/IBS sem custo); 2028 s
   assert.equal(r28.tributos.cofins, 0);
   const r33 = calcularOrcamento({
     postos,
+    ...INFORMADOS,
+    iss: 0.05,
     tributacao: { modo: 'reforma', ano: 2033, aliquotas: { cbs: 9, ibsUf: 17, ibsMun: 3 } },
   });
   perto(r33.valorContrato, r33.custoTotal / (1 - (0.03 + 0.03 + 0 + 0.01 + 0.01)), 1e-9);
   perto(r33.tributacao!.nota!.cbs, (Math.round(r33.valorContrato * 100) / 100) * 0.09, 0.006);
-  const r30 = calcularOrcamento({ postos, tributacao: { modo: 'reforma', ano: 2030 } });
+  const r30 = calcularOrcamento({ postos, ...INFORMADOS, iss: 0.05, tributacao: { modo: 'reforma', ano: 2030 } });
   perto(r30.tributos.taxas.ISS, 0.05 * 0.8, 1e-12);
 });
 
 test('orçamento no Simples: o preço usa a alíquota efetiva do DAS; Anexo IV mantém INSS e RAT e tira só os terceiros; III e V tiram também a CPP', () => {
-  const atual = calcularOrcamento({ postos });
-  const iv = calcularOrcamento({ postos, tributacao: { modo: 'simples', anexo: 'IV', rbt12: 500000 } });
+  const atual = calcularOrcamento({ postos, ...INFORMADOS, iss: 0.05 });
+  const iv = calcularOrcamento({ postos, ...INFORMADOS, tributacao: { modo: 'simples', anexo: 'IV', rbt12: 500000 } });
   perto(iv.tributos.taxas['DAS (Simples Nacional)'], 0.07716, 1e-12);
   perto(iv.valorContrato, iv.custoTotal / (1 - (0.06 + 0.07716)), 1e-9);
   const linhas = (e: ReturnType<typeof calcularEncargos>) => e.grupos[0].linhas.map((l) => l.nome);
@@ -230,20 +250,33 @@ test('orçamento no Simples: o preço usa a alíquota efetiva do DAS; Anexo IV m
   assert.ok(!linhas(iv.encargos).includes('SEBRAE') && !linhas(iv.encargos).includes('SESC SESI'));
   perto(iv.encargos.grupos[0].total, 0.368 - 0.058, 1e-12);
   assert.ok(iv.taxaEncargos < atual.taxaEncargos);
-  const iii = calcularOrcamento({ postos, tributacao: { modo: 'simples', anexo: 'III', rbt12: 500000 } });
+  const iii = calcularOrcamento({
+    postos,
+    ...INFORMADOS,
+    tributacao: { modo: 'simples', anexo: 'III', rbt12: 500000 },
+  });
   assert.ok(!linhas(iii.encargos).includes('INSS'));
   perto(iii.encargos.grupos[0].total, 0.08, 1e-12);
   assert.ok(iii.taxaEncargos < iv.taxaEncargos);
-  const v = calcularOrcamento({ postos, tributacao: { modo: 'simples', anexo: 'V', rbt12: 500000, folha12: 200000 } });
+  const v = calcularOrcamento({
+    postos,
+    ...INFORMADOS,
+    tributacao: { modo: 'simples', anexo: 'V', rbt12: 500000, folha12: 200000 },
+  });
   assert.equal(v.tributacao!.das!.anexoAplicado, 'III');
   const par = calcularOrcamento({
     postos,
+    ...INFORMADOS,
     tributacao: { modo: 'simples', anexo: 'IV', rbt12: 500000, ano: 2027, pCBSSN: 0.5, pIBSSN: 0.25 },
   });
   assert.ok(par.tributacao!.cbsIbsSimples!.vCBS > 0);
   assert.ok(par.tributacao!.avisos.some((a) => /2027 em diante/.test(a)));
   perto(par.valorContrato, iv.valorContrato, 1e-9);
-  const seis = calcularOrcamento({ postos, tributacao: { modo: 'simples', anexo: 'III', rbt12: 4000000 } });
+  const seis = calcularOrcamento({
+    postos,
+    ...INFORMADOS,
+    tributacao: { modo: 'simples', anexo: 'III', rbt12: 4000000 },
+  });
   assert.ok('ISS (fora do DAS)' in seis.tributos.taxas);
 });
 

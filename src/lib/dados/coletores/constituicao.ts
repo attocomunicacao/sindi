@@ -15,12 +15,15 @@ export const constituicao: Coletor = {
     const anterior = lerEstado(db, 'constituicao:lastModified')?.value;
     const resposta = await buscarComEducacao(URL_DA_CONSTITUICAO, {
       headers: anterior && !full ? { 'If-Modified-Since': anterior } : {},
+      mesmoHost: true,
     });
     gravarEstado(db, 'constituicao:check', new Date().toISOString());
     if (resposta.status === 304) return { fetched: 1, changed: 0 };
     if (!resposta.ok) throw new Error(`HTTP ${resposta.status} no Planalto`);
+    // O texto compilado do Planalto traz a redação revogada riscada ao lado da vigente: sem descartar o riscado, a resposta citaria a lei antiga como se valesse.
     const texto = htmlParaLinhas(
       decodificarHtml(new Uint8Array(await resposta.arrayBuffer()), resposta.headers.get('content-type') ?? ''),
+      { semRiscado: true },
     );
     const artigos = dividirArtigos(texto, { adct: true });
     if (artigos.length < 100) throw new Error(`Extração suspeita: apenas ${artigos.length} artigos`);

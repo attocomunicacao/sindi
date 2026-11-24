@@ -1,8 +1,10 @@
-// Sem dependências: usado pela página do chat no navegador e pelos testes.
+// Usado pela página do chat no navegador e pelos testes (só importa módulos puros).
+import { lerUsoDoCerebro, type UsoDoCerebro } from '@/lib/chat/uso-do-cerebro';
+
 export type EventoDoChat =
   | { type: 'delta'; text: string }
   | { type: 'reset' }
-  | { type: 'done'; text: string; metricsRecorded?: boolean; restantes?: number }
+  | { type: 'done'; text: string; metricsRecorded?: boolean; restantes?: number; cerebro?: UsoDoCerebro }
   | { type: 'error'; error?: string };
 
 /** Interpreta uma linha do fluxo NDJSON; linha vazia, truncada ou de tipo desconhecido devolve `undefined`. */
@@ -15,6 +17,7 @@ export function lerLinhaDoChat(linha: string): EventoDoChat | undefined {
       error?: unknown;
       metricsRecorded?: unknown;
       restantes?: unknown;
+      cerebro?: unknown;
     };
     if (evento.type === 'delta' && typeof evento.text === 'string') return { type: 'delta', text: evento.text };
     if (evento.type === 'reset') return { type: 'reset' };
@@ -24,6 +27,7 @@ export function lerLinhaDoChat(linha: string): EventoDoChat | undefined {
         text: evento.text,
         metricsRecorded: typeof evento.metricsRecorded === 'boolean' ? evento.metricsRecorded : undefined,
         restantes: typeof evento.restantes === 'number' ? evento.restantes : undefined,
+        ...(lerUsoDoCerebro(evento.cerebro) ? { cerebro: lerUsoDoCerebro(evento.cerebro) } : {}),
       };
     if (evento.type === 'error')
       return { type: 'error', error: typeof evento.error === 'string' ? evento.error : undefined };

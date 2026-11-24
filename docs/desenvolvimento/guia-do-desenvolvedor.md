@@ -8,7 +8,7 @@ para ensinar a SINDI, [`../../cerebro/README.md`](../../cerebro/README.md).
 
 A SINDI é a assistente virtual do SINDEPRESTEM. Não é um modelo treinado com fatos do sindicato: o servidor decide por regras o que fazer com a pergunta, busca as fontes
 (cérebro em Markdown, biblioteca coletada em SQLite, resultado de uma ferramenta), entrega só isso ao modelo (cascata de APIs gratuitas, `src/lib/ia/`, com o Ollama local por último) e **verifica** a resposta
-antes de mostrá-la (e-mail, site, telefone, valor, número e lei precisam constar nas fontes). Há cota de mensagens por pessoa e por dia, sem histórico de conversas.
+antes de mostrá-la (e-mail, site, telefone, valor, número e lei precisam constar nas fontes). Há cota de mensagens por pessoa e por dia, sem histórico de conversas no servidor (o histórico opcional fica só no navegador: `componentes/chat/historico-local.ts`).
 
 ## 2. Mapa do código
 
@@ -23,7 +23,7 @@ src/
     base/                 sem domínio: constantes (SITE), texto, tipos, formato (moeda, %, número), url-segura, classes, baixar-arquivo
     infra/                cota, limite-por-minuto, redis (Upstash), uso (métricas), cache-respostas, origem
     http/                 guarda.ts (origem, tipo, limite, corpo, erro JSON, PDF) e ip.ts (ipDoPedido)
-    ia/                   cascata, provedores, gemini, anthropic, openai-compat, saude (disjuntor), vez (fila), sse, tipos
+    ia/                   cascata, provedores, gemini, openai-compat, saude (disjuntor), vez (fila), sse, tipos
     chat/                 etapas do chat: requisicao, situacao, prompt, respostas, geracao, stream; esquema, historico, leitor-ndjson (cliente), escopo, notas
     seguranca/            redacao (dados sensíveis) e verificar-fatos
     recuperacao/          escolha das fontes de cada pergunta (contexto, recuperar, leis, indicadores, sindicato, ...); legado/ = espelho antigo do site

@@ -1,7 +1,7 @@
 import { provedoresAtivos } from '@/lib/ia/provedores';
 import type { Mensagem } from '@/lib/base/tipos';
 import { podeTentar, registrarFalha, registrarSucesso, registrarTentativa } from '@/lib/ia/saude';
-import { LlmError, type Nivel, type OpcoesDeGeracao, type Resultado } from '@/lib/ia/tipos';
+import { env, inteiro, LlmError, type Nivel, type OpcoesDeGeracao, type Resultado } from '@/lib/ia/tipos';
 import { entrarNaVez, sairDaVez } from '@/lib/ia/vez';
 
 /**
@@ -12,6 +12,7 @@ import { entrarNaVez, sairDaVez } from '@/lib/ia/vez';
  * - Falha no meio do texto: `onReset` apaga o que foi mostrado (a tela já trata o evento `reset`) e o próximo provedor recomeça.
  * - Todos falharam: mensagem neutra (503). Se todos recusaram o conteúdo: pede para reformular (422).
  * - O modelo local (Ollama) é sempre o último degrau, e é tentado mesmo de castigo se ninguém mais pôde ser tentado.
+ * - Orçamento de tempo: passado `SINDI_ORCAMENTO_NUVEM_MS` (150 s), os provedores na nuvem são pulados e sobra o tempo do modelo local dentro do `maxDuration` da rota (300 s).
  */
 export const MENSAGEM_NEUTRA = 'A SINDI está com muita procura agora. Tente novamente em instantes.';
 export { LlmError } from '@/lib/ia/tipos';
@@ -34,9 +35,12 @@ export async function gerarTexto(
     let tentou = false;
     let recusas = 0;
     let falhas = 0;
+    const inicio = Date.now();
+    const orcamentoNuvemMs = inteiro(env('SINDI_ORCAMENTO_NUVEM_MS'), 150_000, 10_000, 250_000);
     const tentar = async (indice: number, ignorarCastigo: boolean): Promise<Resultado | undefined> => {
       const p = provedores[indice];
       if (!ignorarCastigo && !podeTentar(p.id)) return undefined;
+      if (!p.local && Date.now() - inicio > orcamentoNuvemMs) return undefined;
       tentou = true;
       registrarTentativa(p.id);
       let mostrou = false;
@@ -55,7 +59,7 @@ export async function gerarTexto(
         const erro = falha instanceof LlmError ? falha : new LlmError('Provedor indisponível.', 502, 'indisponivel');
         if (erro.tipo === 'bloqueio') recusas++;
         else falhas++;
-        registrarFalha(p.id, erro);
+        registrarFalha(p.id, erro, Date.now(), p.local);
         // Só o tipo e o status vão ao registro: nunca a pergunta, a resposta ou o corpo de erro do provedor.
         console.warn('SINDI provedor de IA falhou', { provedor: p.id, tipo: erro.tipo, status: erro.status });
         if (mostrou) onReset?.();

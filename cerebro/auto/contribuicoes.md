@@ -1,13 +1,13 @@
 ---
 titulo: Contribuições do SINDEPRESTEM
 fonte: https://www.sindeprestem.com.br/contribuicao-sindical
-atualizado: 2026-10-13
+atualizado: 2026-11-24
 tipo: autogerado
 prioridade: 2
 gatilhos: contribuição, contribuições, mensalidade, associativa, confederativa, negocial, valor, tabela, quanto custa, vencimento, boleto, cartão de crédito, capital social, filiação, associação
 ---
 
-<!-- AUTOGERADO por src/lib/cerebro/gerar.ts em 2026-10-13. Não edite: as alterações serão perdidas. Para ajustar regras e respostas, edite os arquivos da pasta cerebro/. -->
+<!-- AUTOGERADO por src/lib/cerebro/gerar.ts em 2026-11-24. Não edite: as alterações serão perdidas. Para ajustar regras e respostas, edite os arquivos da pasta cerebro/. -->
 
 ## Regulamento e vencimentos
 A Contribuição Patronal vigente, em conformidade com a Lei 13.467/2017 (Lei da Reforma Trabalhista) e por aprovação da Assembleia Geral Ordinária realizada no dia 09 de Dezembro de 2025, se encontra determinada pelas seguintes contribuições abaixo.

@@ -43,7 +43,7 @@ categoria: setorial
 
 ## Quais mudanças na legislação trabalhista podem impactar minha empresa?
 categoria: legislacao
-espera: discussão
+espera: Emenda Constitucional 141
 
 ## Quais são os principais impactos da Reforma Tributária para o setor de serviços?
 categoria: custos
@@ -51,7 +51,7 @@ espera: Reforma Tributária
 
 ## Como a redução da jornada de trabalho pode afetar empresas de terceirização?
 categoria: legislacao
-espera: jornada
+espera: 42 horas
 
 ## Quais projetos de lei acompanhados pelo Sindeprestem podem afetar minha empresa?
 categoria: legislacao

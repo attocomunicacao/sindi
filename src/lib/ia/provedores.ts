@@ -1,5 +1,4 @@
 import { provedorGemini } from '@/lib/ia/gemini';
-import { provedorAnthropic } from '@/lib/ia/anthropic';
 import { provedorCompat } from '@/lib/ia/openai-compat';
 import { env, inteiro, type Nivel, type Provedor } from '@/lib/ia/tipos';
 
@@ -7,9 +6,8 @@ import { env, inteiro, type Nivel, type Provedor } from '@/lib/ia/tipos';
  * Os degraus da cascata. Cada provedor só entra se a credencial estiver no ambiente do servidor (nunca `NEXT_PUBLIC_`). Padrões de modelo conferidos na
  * documentação oficial em 23/11/2026; os catálogos gratuitos mudam, por isso todo modelo pode ser trocado por variável sem mexer no código.
  *
- * Nível gratuito (aprox., nov/2026): Groq ~30 req/min e 1.000 req/dia por modelo (200 mil tokens/dia nos gpt-oss); OpenRouter `:free` 20 req/min e
- * 50 req/dia (1.000 após US$ 10 de crédito); Mistral (Experiment) ~1 req/s; Cloudflare Workers AI 10.000 "neurons"/dia. GitHub Models foi descontinuado
- * em 30/07/2026 e Cerebras passou a exigir cartão: ficaram de fora.
+ * Nível gratuito (aprox., nov/2026): Groq ~30 req/min e 1.000 req/dia por modelo (200 mil tokens/dia nos gpt-oss); Mistral (Experiment) ~1 req/s.
+ * Só Gemini, Groq, Mistral e o modelo local fazem parte da cascata (decisão do usuário, 24/11/2026).
  */
 const modelo = (principal: string, rapido: string, padraoPrincipal: string, padraoRapido?: string) => (nivel: Nivel) =>
   nivel === 'rapido'
@@ -28,40 +26,11 @@ const provedorGroq = provedorCompat({
   extras: (nome) => (raciocinio(nome) ? { reasoning_effort: 'low', include_reasoning: false } : {}),
 });
 
-const provedorOpenRouter = provedorCompat({
-  id: 'openrouter',
-  base: () => 'https://openrouter.ai/api/v1',
-  chave: () => env('OPENROUTER_API_KEY'),
-  // `openrouter/free` sorteia um modelo gratuito por pedido; para respostas mais estáveis, fixe um `...:free` em OPENROUTER_MODEL.
-  modelos: modelo('OPENROUTER_MODEL', 'OPENROUTER_MODEL_RAPIDO', 'openrouter/free'),
-  usoNoFluxo: true,
-  folga: 300,
-  cabecalhos: () => ({ 'X-Title': 'SINDI' }),
-});
-
 const provedorMistral = provedorCompat({
   id: 'mistral',
   base: () => 'https://api.mistral.ai/v1',
   chave: () => env('MISTRAL_API_KEY'),
   modelos: modelo('MISTRAL_MODEL', 'MISTRAL_MODEL_RAPIDO', 'mistral-small-latest'),
-});
-
-const provedorCloudflare = provedorCompat({
-  id: 'cloudflare',
-  // O número da conta entra na URL: só formato hexadecimal de 32 caracteres, para não montar endereço com texto arbitrário.
-  base: () => {
-    const conta = env('CLOUDFLARE_ACCOUNT_ID');
-    return conta && /^[a-f0-9]{32}$/i.test(conta)
-      ? `https://api.cloudflare.com/client/v4/accounts/${conta}/ai/v1`
-      : undefined;
-  },
-  chave: () => env('CLOUDFLARE_API_TOKEN'),
-  modelos: modelo(
-    'CLOUDFLARE_MODEL',
-    'CLOUDFLARE_MODEL_RAPIDO',
-    '@cf/meta/llama-3.3-70b-instruct-fp8-fast',
-    '@cf/meta/llama-3.1-8b-instruct',
-  ),
 });
 
 /** Só endereços desta máquina: o modelo local nunca vira uma porta para a rede interna (SSRF). */
@@ -91,17 +60,9 @@ const provedorOllama = provedorCompat({
   inatividadeMs: () => inteiro(process.env.SINDI_OLLAMA_INATIVIDADE_MS, 90000, 5000, 300000),
 });
 
-const TODOS: Provedor[] = [
-  provedorGemini,
-  provedorGroq,
-  provedorOpenRouter,
-  provedorMistral,
-  provedorCloudflare,
-  provedorAnthropic,
-  provedorOllama,
-];
-/** Ordem padrão: os gratuitos com mais capacidade primeiro; Anthropic (pago) só com chave; o local sempre por último. */
-const ORDEM_PADRAO = 'gemini,groq,openrouter,mistral,cloudflare,anthropic,ollama';
+const TODOS: Provedor[] = [provedorGemini, provedorGroq, provedorMistral, provedorOllama];
+/** Ordem padrão: os gratuitos com mais capacidade primeiro; o local sempre por último. */
+const ORDEM_PADRAO = 'gemini,groq,mistral,ollama';
 
 /** Provedores configurados, na ordem de `SINDI_CASCATA` (ids desconhecidos são ignorados; o local vai sempre ao fim). */
 export function provedoresAtivos(): Provedor[] {

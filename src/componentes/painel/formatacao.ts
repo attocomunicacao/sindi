@@ -16,5 +16,7 @@ export const NOMES_DAS_FONTES: Record<string, string> = {
   mte: 'Ministério do Trabalho',
   caged: 'Novo CAGED',
   constituicao: 'Constituição',
+  legislacao: 'Legislação',
+  nrs: 'Normas Regulamentadoras',
   regimentos: 'Regimentos',
 };

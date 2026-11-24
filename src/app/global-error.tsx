@@ -27,13 +27,13 @@ export default function ErroGeral({ error, retry }: { error: Error & { digest?: 
     <html lang="pt-BR" suppressHydrationWarning>
       <body>
         <title>Erro | SINDI</title>
-        <main role="alert" className="mx-auto flex min-h-dvh max-w-6xl flex-col justify-center gutter py-12">
+        <main role="alert" className="mx-auto flex min-h-dvh max-w-[120rem] flex-col justify-center gutter py-12">
           <BarraDeDestaque cor="vermelha" />
           <p className="mt-5 text-sm text-slate-500">SINDI · erro inesperado</p>
           <h1 className="mt-1 text-3xl font-semibold tracking-tight text-slate-900 sm:text-4xl">
             O site não conseguiu carregar
           </h1>
-          <p className="mt-3 max-w-2xl text-base leading-7 text-slate-600">
+          <p className="mt-3 max-w-3xl text-base leading-7 text-slate-600">
             Pode ser uma falha temporária. Tente de novo; se continuar, recarregue a página mais tarde.
           </p>
           <div className="mt-8 flex flex-wrap items-center gap-x-6 gap-y-3">

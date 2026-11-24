@@ -5,6 +5,7 @@ import { CENARIO_EXTERNO, CENARIO_INTERNO, estimar, mediaReal, type Cenario } fr
 import { DATA_DOS_PRECOS, MODELOS } from '@/lib/custos/precos';
 import { brl, numeroBR } from '@/lib/base/formato';
 import { Cartao } from '@/componentes/ui/cartao';
+import { SaibaMais } from '@/componentes/ui/saiba-mais';
 import { CampoNumerico, CLASSE_CAIXA_DE_MARCACAO } from '@/componentes/ui/campo';
 import { Seletor } from '@/componentes/ui/seletor';
 
@@ -175,24 +176,22 @@ function CartaoDasPremissas({
   );
 }
 
+/** Metodologia recolhida: o texto continua no DOM, mas a página abre só com os números. */
 function ComoLer() {
   return (
-    <section aria-labelledby="notas" className="space-y-2 text-xs leading-6 text-slate-600">
-      <h2 id="notas" className="text-sm font-semibold text-slate-800">
-        Como ler
-      </h2>
+    <SaibaMais titulo="Metodologia">
       <p>
-        Hoje a SINDI roda em uma <strong>cascata de serviços gratuitos</strong> (Gemini, Groq, OpenRouter, Mistral,
-        Cloudflare) com um modelo local de emergência: custo de API <strong>R$ 0</strong>, mas com limites diários de
-        terceiros e sem garantia de serviço. Esta página estima o gasto se a resposta passar a vir de uma API paga da
-        Anthropic, com contrato e limites previsíveis.
+        Hoje a SINDI roda em uma <strong>cascata de serviços gratuitos</strong> (Gemini, Groq, Mistral) com um modelo
+        local de emergência: custo de API <strong>R$ 0</strong>, mas com limites diários de terceiros e sem garantia de
+        serviço. Esta página estima o gasto se a resposta passar a vir de uma API paga da Anthropic, com contrato e
+        limites previsíveis.
       </p>
       <p>
         Preços de tabela da Anthropic consultados em {DATA_DOS_PRECOS} (conferir antes de uma proposta). Não inclui
         impostos sobre serviço importado, IOF, hospedagem nem a busca por significado (embeddings), que continua no
         nível gratuito do Gemini. {MODELOS[0].observacao}
       </p>
-    </section>
+    </SaibaMais>
   );
 }
 

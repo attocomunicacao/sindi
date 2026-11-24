@@ -1,9 +1,11 @@
 import { Download, FileText, LoaderCircle } from 'lucide-react';
 import { brl } from '@/lib/base/formato';
+import { AVISOS } from '@/lib/produtos/avisos';
 import type { Resultado } from '@/lib/orcamento/calculo';
 import type { ResumoOrcamento } from '@/lib/orcamento/resumo';
 import { AvisoLateral } from '@/componentes/ui/aviso';
 import { Botao } from '@/componentes/ui/botao';
+import { SaibaMais } from '@/componentes/ui/saiba-mais';
 import { CATALOGO } from '@/componentes/orcamento/catalogo';
 import { ResumoDaTributacao } from '@/componentes/orcamento/resumo-da-tributacao';
 import type { TipoDoPdf } from '@/componentes/orcamento/usar-orcamento';
@@ -60,7 +62,9 @@ function Composicao({ resultado }: { resultado: ResumoOrcamento }) {
     ['Benefícios', composicao.beneficios],
     ['PCMSO e PPR', composicao.outros],
     ['Uniformes, EPIs e insumos', composicao.materiais],
-    ['Tributos, BDI e lucro', composicao.tributosMargem],
+    ...(resultado.margemInformada
+      ? ([['Tributos, BDI e lucro (informados)', composicao.tributosMargem]] as [string, number][])
+      : []),
   ];
   return (
     <ul className="space-y-1 border-t border-slate-200 pt-3 text-xs text-slate-600">
@@ -110,7 +114,9 @@ export function ResumoDoOrcamento({
           Tabela de referência de {dataDaTabela}. Salário mínimo usado na insalubridade: {brl(CATALOGO.salarioMinimo)}.
           Confira se os valores estão vigentes antes de usar.
         </p>
-        <p className="text-xs font-semibold uppercase tracking-wider text-slate-500">Valor mensal estimado</p>
+        <p className="text-xs font-semibold uppercase tracking-wider text-slate-500">
+          {resultado?.margemInformada ? 'Valor mensal estimado' : 'Custo mensal estimado'}
+        </p>
         <p className="text-3xl font-semibold tabular-nums tracking-tight text-slate-900" aria-live="polite">
           {resultado ? brl(resultado.valorContrato) : '—'}
         </p>
@@ -140,11 +146,19 @@ export function ResumoDoOrcamento({
             {icone('custo', <FileText size={16} aria-hidden />)} Relatório de custo detalhado (PDF)
           </Botao>
         </div>
-        <p className="text-xs text-slate-500">
-          Estimativa com base em tabela de referência (posição de {dataDaTabela}). Confirme a convenção coletiva vigente
-          da categoria antes de contratar. Encargos:{' '}
-          {(CATALOGO.encargos * 100).toLocaleString('pt-BR', { maximumFractionDigits: 2 })}% sobre a folha.
-        </p>
+        <p className="text-xs leading-5 text-slate-600">{AVISOS.custoNaoPreco}</p>
+        <SaibaMais titulo="Metodologia">
+          <p className="text-xs">
+            Estimativa com base em tabela de referência (posição de {dataDaTabela}). Confirme a convenção coletiva
+            vigente da categoria antes de contratar. Encargos:{' '}
+            {((calculo?.taxaEncargos ?? CATALOGO.encargos) * 100).toLocaleString('pt-BR', { maximumFractionDigits: 2 })}
+            % sobre a folha
+            {calculo && calculo.taxaEncargos < CATALOGO.encargos - 1e-9
+              ? ' (já sem os encargos que o regime não cobra)'
+              : ''}
+            .
+          </p>
+        </SaibaMais>
       </div>
     </aside>
   );

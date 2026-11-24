@@ -4,8 +4,15 @@ import { BarChart3, RefreshCw } from 'lucide-react';
 import { numeroBR } from '@/lib/base/formato';
 import { Botao } from '@/componentes/ui/botao';
 import { Cartao } from '@/componentes/ui/cartao';
+import { SaibaMais } from '@/componentes/ui/saiba-mais';
 import { Principal } from '@/componentes/ui/pagina-ferramenta';
-import { dataCompleta, somarDias, somarPorProvedor, type TotaisDoPeriodo } from '@/componentes/uso/calculos-de-uso';
+import {
+  dataCompleta,
+  somarCerebro,
+  somarDias,
+  somarPorProvedor,
+  type TotaisDoPeriodo,
+} from '@/componentes/uso/calculos-de-uso';
 import { GraficoDiario, type MetricaDoGrafico } from '@/componentes/uso/grafico-diario';
 import { useUso, type Uso } from '@/componentes/uso/usar-uso';
 import type { DiaDeUso } from '@/lib/infra/uso';
@@ -13,10 +20,7 @@ import type { DiaDeUso } from '@/lib/infra/uso';
 const NOMES_DOS_PROVEDORES: Record<string, string> = {
   gemini: 'Gemini (Google)',
   groq: 'Groq',
-  openrouter: 'OpenRouter',
   mistral: 'Mistral',
-  cloudflare: 'Cloudflare Workers AI',
-  anthropic: 'Claude (Anthropic)',
   ollama: 'Modelo local (Ollama)',
 };
 
@@ -120,6 +124,56 @@ function TabelaPorProvedor({ dias }: { dias: DiaDeUso[] }) {
   );
 }
 
+const NOMES_DAS_ORIGENS: Record<string, string> = {
+  cerebro: 'Conhecimento da equipe (cérebro)',
+  biblioteca: 'Biblioteca de documentos',
+  grafo: 'Grafo de leis e projetos',
+  externa: 'Fontes públicas (Câmara, Senado, TST...)',
+  documento: 'Documentos oficiais (NR, leis, convenções, indicadores)',
+  ferramenta: 'Ferramentas do site',
+  contato: 'Contato do sindicato (encaminhamento)',
+  nenhuma: 'Sem fonte (resposta por regra)',
+};
+
+/** O que o cérebro entregou nas respostas do período: de onde vieram as fontes, qual área atendeu e quais situações foram tratadas por regra. Só agregados. */
+function TabelaDoCerebro({ dias }: { dias: DiaDeUso[] }) {
+  const soma = somarCerebro(dias);
+  const total = soma.origem.reduce((n, [, v]) => n + v, 0);
+  if (!total) return null;
+  const grupos: [string, [string, number][], (id: string) => string][] = [
+    ['Origem das fontes', soma.origem, (id) => NOMES_DAS_ORIGENS[id] ?? id],
+    ['Área que atendeu', soma.conector, (id) => (id === 'nenhum' ? 'Nenhuma área específica' : id.replace(/-/g, ' '))],
+    ['Situação tratada por regra', soma.situacao, (id) => id.replace(/-/g, ' ')],
+  ];
+  return (
+    <Cartao como="section" className="mb-5" aria-label="O que o cérebro entregou nas respostas">
+      <h2 className="mb-3 text-sm font-medium">O cérebro nas respostas</h2>
+      <div className="grid gap-4 md:grid-cols-3">
+        {grupos.map(([titulo, linhas, nome]) =>
+          linhas.length ? (
+            <table key={titulo} className={CLASSE_DA_TABELA}>
+              <thead>
+                <tr>
+                  <th className={CLASSE_DA_CELULA}>{titulo}</th>
+                  <th className={CLASSE_DA_CELULA}>Respostas</th>
+                </tr>
+              </thead>
+              <tbody>
+                {linhas.map(([id, n]) => (
+                  <tr key={id} className={CLASSE_DA_LINHA}>
+                    <td className={`${CLASSE_DA_CELULA} font-medium`}>{nome(id)}</td>
+                    <td className={`${CLASSE_DA_CELULA} tabular-nums`}>{numeroBR(n)}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          ) : null,
+        )}
+      </div>
+    </Cartao>
+  );
+}
+
 function TabelaDiaria({ dias }: { dias: DiaDeUso[] }) {
   return (
     <details className="rounded-xl border border-slate-200 bg-surface p-4">
@@ -161,23 +215,23 @@ function Explicacoes({ armazenamento }: { armazenamento?: Uso['storage'] }) {
         ? 'Histórico compartilhado da aplicação. '
         : '';
   return (
-    <div className="mt-7 space-y-3 text-xs leading-6 text-slate-500">
+    <SaibaMais titulo="Como ler estes números" className="mt-7">
       <p>
         Entrada inclui sua pergunta, as instruções da SINDI e o contexto da conversa. Saída é a geração do modelo; o
         total pode incluir tokens de raciocínio, conforme informado pelo modelo. Falhas sem dados de consumo não entram
         nos totais de tokens.
       </p>
       <p>
-        A SINDI responde por uma cascata de serviços de IA gratuitos (Gemini, Groq, OpenRouter, Mistral, Cloudflare) e,
-        em último caso, por um modelo local; ela limita as mensagens por pessoa e por dia para não esgotar esses
-        limites. Este painel mostra apenas chamadas feitas pela SINDI desde o início da coleta; não mostra uso de outras
-        aplicações, saldo de cota nem faturamento.
+        A SINDI responde por uma cascata de serviços de IA gratuitos (Gemini, Groq, Mistral) e, em último caso, por um
+        modelo local; ela limita as mensagens por pessoa e por dia para não esgotar esses limites. Este painel mostra
+        apenas chamadas feitas pela SINDI desde o início da coleta; não mostra uso de outras aplicações, saldo de cota
+        nem faturamento.
       </p>
       <p>
         {historico}Datas no horário de São Paulo. Somente números agregados são armazenados; nenhuma conversa, IP ou
         chave aparece neste painel.
       </p>
-    </div>
+    </SaibaMais>
   );
 }
 
@@ -190,7 +244,7 @@ export function PainelDeUso() {
   const totais = somarDias(dias);
   const nomeDaMetrica = metrica === 'totalTokens' ? 'tokens' : 'requisições';
   return (
-    <Principal className="max-w-6xl py-10">
+    <Principal className="max-w-[120rem] py-10">
       <div className="flex flex-wrap items-center justify-between gap-4">
         <div>
           <h1 className="text-2xl font-semibold text-slate-900">Uso da IA</h1>
@@ -237,6 +291,7 @@ export function PainelDeUso() {
         <span>Chamadas com tokens informados: {numeroBR(totais.measured)}</span>
       </div>
       <TabelaPorProvedor dias={dias} />
+      <TabelaDoCerebro dias={dias} />
       <TabelaDiaria dias={dias} />
       <Explicacoes armazenamento={dados?.storage} />
     </Principal>

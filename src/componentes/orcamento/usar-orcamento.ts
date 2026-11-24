@@ -1,11 +1,11 @@
 'use client';
 import { useEffect, useMemo, useState, type Dispatch, type SetStateAction } from 'react';
-import { calcularOrcamento, type OrcamentoEntrada } from '@/lib/orcamento/calculo';
+import { calcularOrcamento, erroDaEntrada, type OrcamentoEntrada } from '@/lib/orcamento/calculo';
 import { resumoDoOrcamento } from '@/lib/orcamento/resumo';
 import { baixarArquivo } from '@/lib/base/baixar-arquivo';
 import { useAcao } from '@/componentes/ui/usar-acao';
 import { CATALOGO } from '@/componentes/orcamento/catalogo';
-import { corpoDoOrcamento } from '@/componentes/orcamento/corpo-do-orcamento';
+import { corpoDoOrcamento, MARGEM_VAZIA, type MargemEmTexto } from '@/componentes/orcamento/corpo-do-orcamento';
 import { metrosDaUrl, postosDaUrl } from '@/componentes/orcamento/postos-da-url';
 import { novoPosto, temPostoRepetido, type Posto } from '@/componentes/orcamento/posto';
 import { useInsumos } from '@/componentes/orcamento/usar-insumos';
@@ -59,7 +59,9 @@ export function useOrcamento() {
   const [postos, setPostos] = useState<Posto[]>([]);
   const [cliente, setCliente] = useState(CLIENTE_VAZIO);
   const [metros, setMetros] = useState('');
-  const [iss, setIss] = useState<number>(CATALOGO.issPadrao);
+  const [iss, setIss] = useState<number | undefined>(undefined);
+  // BDI, lucro e tributos começam em branco: a SINDI mostra custo e só aplica o que o usuário informar.
+  const [margem, setMargem] = useState<MargemEmTexto>(MARGEM_VAZIA);
   const insumos = useInsumos();
   const tributos = useTributosDoOrcamento();
   const { tributacao } = tributos;
@@ -76,8 +78,8 @@ export function useOrcamento() {
   }, []);
 
   const corpo = useMemo(
-    () => corpoDoOrcamento(postos, insumos.insumos, metros, iss),
-    [postos, insumos.insumos, metros, iss],
+    () => corpoDoOrcamento(postos, insumos.insumos, metros, iss, margem),
+    [postos, insumos.insumos, metros, iss, margem],
   );
   const calculo = useMemo(
     () => (corpo.postos.length ? calcular({ ...corpo, ...(tributacao ? { tributacao } : {}) }) : null),
@@ -87,13 +89,15 @@ export function useOrcamento() {
   const comparacao = useMemo(() => (calculo?.tributacao ? calcular(corpo) : null), [calculo, corpo]);
   const resultado = useMemo(() => (calculo ? resumoDoOrcamento(calculo) : null), [calculo]);
   const repetido = useMemo(() => temPostoRepetido(postos), [postos]);
+  // Entrada que a conta recusa: a tela diz o motivo (antes mostrava "—" sem explicar, e o PDF recusava com 400).
+  const erroDaConta = useMemo(() => erroDaEntrada(corpo as OrcamentoEntrada), [corpo]);
 
   const edicao = useEdicaoDosPostos(setPostos);
   const mudarCliente = (campo: keyof typeof CLIENTE_VAZIO, valor: string) =>
     setCliente((atual) => ({ ...atual, [campo]: valor }));
 
   const baixar = (tipo: TipoDoPdf) => {
-    if (repetido) return;
+    if (repetido || erroDaConta) return;
     void pdf.executar(tipo, () => baixarPdf(tipo, { ...corpo, ...(tributacao ? { tributacao } : {}), cliente }));
   };
 
@@ -106,6 +110,8 @@ export function useOrcamento() {
     setMetros,
     iss,
     setIss,
+    margem,
+    setMargem,
     insumos,
     tributos,
     calculo,
@@ -114,6 +120,6 @@ export function useOrcamento() {
     repetido,
     baixar,
     baixando: pdf.emAndamento,
-    erro: pdf.erro,
+    erro: erroDaConta ?? pdf.erro,
   };
 }

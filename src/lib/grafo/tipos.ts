@@ -21,18 +21,24 @@ export type No = {
   y: number;
   /** Número de ligações. */
   grau: number;
+  /** Região do cérebro onde o nó mora: o id da área (conector), "geral" ou "sindi". Todo nó da rede de conhecimento tem uma. */
+  regiao?: string;
+  /** Profundidade na hierarquia: 0 SINDI, 1 área, 2 estante e conhecimento, 3 lei/NR/projeto, 4 documento. */
+  nivel?: number;
+  /** Quem agrupa o nó: o documento aponta para a estante em que está catalogado. */
+  pai?: string;
 };
 export type Aresta = { de: string; para: string; tipo: TipoDeAresta; peso: number };
 export type Grafo = { versao: 1; geradoEm: string; nos: No[]; arestas: Aresta[]; resumo: Record<TipoDeNo, number> };
 
 /** Rótulos e cores por tipo (a página e o cofre do Obsidian usam a mesma legenda). */
 export const LEGENDA: Record<TipoDeNo, { nome: string; cor: string }> = {
-  nucleo: { nome: 'SINDI', cor: '#f59e0b' },
+  nucleo: { nome: 'SINDI', cor: '#ebb92e' },
   conector: { nome: 'Especialistas (áreas)', cor: '#ef4444' },
   estante: { nome: 'Estantes da biblioteca', cor: '#a855f7' },
   conhecimento: { nome: 'Conhecimento da equipe', cor: '#22c55e' },
   documento: { nome: 'Documentos coletados', cor: '#38bdf8' },
-  lei: { nome: 'Leis citadas', cor: '#facc15' },
+  lei: { nome: 'Leis citadas', cor: '#eab308' },
   nr: { nome: 'Normas regulamentadoras', cor: '#fb923c' },
   proposicao: { nome: 'Projetos de lei', cor: '#f472b6' },
   sistema: { nome: 'Arquitetura do sistema', cor: '#94a3b8' },

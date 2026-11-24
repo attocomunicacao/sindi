@@ -12,6 +12,8 @@ import { inteiro, type LlmError } from '@/lib/ia/tipos';
 type Estado = {
   foraAte: number;
   motivo?: LlmError['tipo'];
+  /** Falhas `indisponivel` seguidas, para o castigo crescer (recuo exponencial). */
+  seguidas?: number;
   minuto: { inicio: number; usados: number };
   dia: { data: string; usados: number };
 };
@@ -19,9 +21,7 @@ const estados = new Map<string, Estado>();
 
 const PADROES: Record<string, { minuto: number; dia: number }> = {
   groq: { minuto: 30, dia: 1000 },
-  openrouter: { minuto: 20, dia: 50 },
   mistral: { minuto: 60, dia: 0 },
-  cloudflare: { minuto: 300, dia: 300 },
 };
 // "0" desliga o limite; vazio ou inválido usa o padrão conhecido do provedor.
 const lerLimite = (nome: string, padrao: number) => {
@@ -71,12 +71,24 @@ export function registrarSucesso(id: string, agora = Date.now()) {
   const e = estadoDe(id, agora);
   e.foraAte = 0;
   e.motivo = undefined;
+  e.seguidas = 0;
 }
-export function registrarFalha(id: string, erro: LlmError, agora = Date.now()) {
+/** Castigo máximo do modelo local: ele é a última saída, então um erro (ex.: modelo ainda não baixado) nunca o tira do ar por muito tempo. */
+const CASTIGO_LOCAL_MAX_S = 30;
+/** Recuo exponencial das falhas de disponibilidade: 60 s, 2 min, 4 min... até 15 min, para não reexperimentar a cada minuto um provedor instável. */
+const castigoIndisponivel = (seguidas: number) => Math.min(60 * 2 ** Math.max(0, seguidas - 1), 900);
+
+export function registrarFalha(id: string, erro: LlmError, agora = Date.now(), local = false) {
   const e = estadoDe(id, agora);
   if (erro.tipo === 'bloqueio') return; // recusa do pedido, não do provedor
-  const segundos =
-    erro.tipo === 'limite' ? Math.min(erro.esperaSegundos ?? 600, 86_400) : erro.tipo === 'configuracao' ? 3600 : 60;
+  e.seguidas = erro.tipo === 'indisponivel' ? (e.seguidas ?? 0) + 1 : 0;
+  let segundos =
+    erro.tipo === 'limite'
+      ? Math.min(erro.esperaSegundos ?? 600, 86_400)
+      : erro.tipo === 'configuracao'
+        ? 3600
+        : castigoIndisponivel(e.seguidas);
+  if (local) segundos = Math.min(segundos, CASTIGO_LOCAL_MAX_S);
   e.foraAte = agora + Math.max(1, segundos) * 1000;
   e.motivo = erro.tipo;
 }

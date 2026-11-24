@@ -11,6 +11,7 @@ import {
   ProjetosEmPauta,
   SituacaoDasFontes,
 } from '@/componentes/painel/secoes-do-painel';
+import { SaibaMais } from '@/componentes/ui/saiba-mais';
 import { usePainel } from '@/componentes/painel/usar-painel';
 
 const UM_MINUTO_MS = 60 * 1000;
@@ -52,16 +53,21 @@ function ConteudoDoPainel({ dados, falhou }: { dados: Painel; falhou: boolean })
         </AvisoEmCaixa>
       )}
       {defasadas.length > 0 && <AvisoDeFontesDefasadas fontes={defasadas} />}
-      <p className="text-sm text-slate-500">
-        Dados públicos de fontes oficiais, coletados a cada 30 minutos neste computador. Última coleta bem-sucedida:{' '}
-        {dataEHora(dados.updatedAt)}. Indicadores como IPCA e PNAD são divulgados mensalmente; a coleta frequente só
-        captura novidades.
-      </p>
+      <p className="text-sm text-slate-500">Última coleta bem-sucedida: {dataEHora(dados.updatedAt)}.</p>
       {dashboard && <PainelIndicadores dados={dashboard} />}
       <NoticiasDoSindicato sindicato={dados.sindicato} />
       <ProjetosEmPauta projetos={dados.bills} />
       <NoticiasDasFontes noticias={dados.news} />
       <SituacaoDasFontes fontes={dados.sources} />
+      {/* Os dois textos de fontes (coleta e indicadores) ficam juntos e recolhidos: o painel abre só com os números. */}
+      <SaibaMais titulo="Sobre os dados">
+        <p>
+          Dados públicos do Banco Central, do IBGE e do Ministério do Trabalho (Novo CAGED), coletados pela SINDI a cada
+          30 minutos neste computador. Indicadores como IPCA e PNAD são divulgados uma vez por mês, então só o último
+          período e o anterior são mostrados e a coleta frequente só captura novidades; a evolução mensal existe hoje
+          apenas para o emprego formal. Valores derivados são cálculos simples sobre esses dados.
+        </p>
+      </SaibaMais>
     </div>
   );
 }

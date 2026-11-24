@@ -7,11 +7,10 @@ export const metadata = { title: 'Custo com API paga | SINDI', robots: { index: 
 export default function CustosPage() {
   return (
     <PaginaFerramenta
-      largura="max-w-6xl"
+      largura="max-w-[120rem]"
       espaco="space-y-8"
       titulo="Quanto custaria com uma API paga"
-      larguraDaDescricao="max-w-3xl"
-      descricao="Estimativa mensal do gasto com o modelo de IA se a SINDI usar a API da Anthropic (Claude Haiku), para os funcionários do sindicato e, depois, para os associados. Ajuste os números para simular."
+      descricao="Estimativa mensal do gasto com a API da Anthropic (Claude Haiku); ajuste os números para simular."
     >
       <CalculadoraDeCustos />
     </PaginaFerramenta>

@@ -16,14 +16,18 @@ export type DiaDeUso = {
   measured: number;
   durationMs: number;
   provedores?: Record<string, UsoDoProvedor>;
+  /** Contadores do dia de "o que o cérebro entregou": `conector:<id>`, `origem:<origem>`, `situacao:<situação>`. Só agregados, sem conteúdo. */
+  cerebro?: Record<string, number>;
 };
 type EventoDeUso = {
   success: boolean;
   durationMs: number;
   usage?: { inputTokens?: number; outputTokens?: number; totalTokens?: number };
   provedor?: string;
+  /** Chaves de métrica do cérebro (ver chavesDeMetricaDoCerebro). */
+  cerebro?: string[];
 };
-type Escalar = Exclude<keyof DiaDeUso, 'date' | 'provedores'>;
+type Escalar = Exclude<keyof DiaDeUso, 'date' | 'provedores' | 'cerebro'>;
 const ESCALARES: Escalar[] = [
   'requests',
   'successes',
@@ -34,6 +38,7 @@ const ESCALARES: Escalar[] = [
   'measured',
   'durationMs',
 ];
+const chaveDoCerebro = (c: string) => /^[a-z0-9][a-z0-9:_-]{0,59}$/i.test(c);
 const idDoProvedor = (id?: string) => (id && /^[a-z0-9-]{1,20}$/.test(id) ? id : undefined);
 const pasta = path.join(process.cwd(), '.data');
 const arquivo = path.join(pasta, 'usage.json');
@@ -72,6 +77,8 @@ export async function registrarUso(evento: EventoDeUso): Promise<boolean> {
   dia.measured = Number(evento.usage?.totalTokens !== undefined || evento.usage?.inputTokens !== undefined);
   const provedor = idDoProvedor(evento.provedor);
   if (provedor) dia.provedores = { [provedor]: { requests: 1, successes: dia.successes, tokens: dia.totalTokens } };
+  const cerebro = [...new Set((evento.cerebro ?? []).filter(chaveDoCerebro))];
+  if (cerebro.length) dia.cerebro = Object.fromEntries(cerebro.map((c) => [c, 1]));
   try {
     if (compartilhado()) {
       const pares: (string | number)[] = ESCALARES.flatMap((chave) => [chave, dia[chave]]);
@@ -84,6 +91,7 @@ export async function registrarUso(evento: EventoDeUso): Promise<boolean> {
           `prov:${provedor}:tokens`,
           dia.totalTokens,
         );
+      for (const c of cerebro) pares.push(`cer:${c}`, 1);
       await redis(['EVAL', roteiroLua, 1, `sindi:usage:${dia.date}`, ...pares]);
     } else {
       if (process.env.VERCEL) return false;
@@ -98,6 +106,8 @@ export async function registrarUso(evento: EventoDeUso): Promise<boolean> {
             atual.successes += uso.successes;
             atual.tokens += uso.tokens;
           }
+          for (const [c, n] of Object.entries(dia.cerebro ?? {}))
+            (existente.cerebro ??= {})[c] = (existente.cerebro[c] ?? 0) + n;
         } else dias.push(dia);
         await mkdir(pasta, { recursive: true });
         await writeFile(`${arquivo}.tmp`, JSON.stringify(dias.sort((a, b) => a.date.localeCompare(b.date)).slice(-30)));
@@ -146,7 +156,9 @@ async function lerUso() {
             ((dia.provedores ??= {})[prov[1]] ??= { requests: 0, successes: 0, tokens: 0 })[
               prov[2] as keyof UsoDoProvedor
             ] = valor;
-          } else if ((ESCALARES as string[]).includes(chave)) dia[chave as Escalar] = valor;
+          } else if (chave.startsWith('cer:') && chaveDoCerebro(chave.slice(4)))
+            (dia.cerebro ??= {})[chave.slice(4)] = valor;
+          else if ((ESCALARES as string[]).includes(chave)) dia[chave as Escalar] = valor;
         }
         return dia;
       }),

@@ -83,6 +83,8 @@ const FONTES: Record<string, string> = {
   ibge: 'IBGE',
   mte: 'Ministério do Trabalho',
   constituicao: 'Planalto',
+  legislacao: 'Planalto',
+  nrs: 'Ministério do Trabalho (NR)',
   regimentos: 'Congresso Nacional',
   caged: 'MTE (Novo CAGED)',
 };

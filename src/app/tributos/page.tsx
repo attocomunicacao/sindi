@@ -10,10 +10,10 @@ const CLASSE_DO_LINK = 'font-medium text-slate-900 underline decoration-amber-40
 export default function TributosPage() {
   return (
     <PaginaFerramenta
-      largura="max-w-5xl"
+      largura="max-w-[120rem]"
       espaco="space-y-10"
       titulo="Calculadora de tributos"
-      descricao="CBS e IBS da Reforma Tributária para serviços do setor, e o DAS e a CBS/IBS do Simples Nacional, com a memória de cálculo."
+      descricao="CBS e IBS da Reforma Tributária e o DAS do Simples Nacional, com a memória de cálculo."
     >
       <CalculadoraDeTributos />
       <Cartao como="section" aria-labelledby="mais" className="text-sm leading-6 text-slate-600">

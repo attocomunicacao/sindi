@@ -13,8 +13,8 @@ import type { Mensagem } from '@/lib/base/tipos';
 import { lerSse } from '@/lib/ia/sse';
 
 /**
- * Um adaptador para todos os provedores que seguem a API de chat da OpenAI (`POST {base}/chat/completions`, SSE com `data: [DONE]`): Groq, OpenRouter,
- * Mistral, Cloudflare Workers AI e o Ollama local. Cada um muda só a configuração abaixo. Sem SDK: `fetch`, como o Gemini.
+ * Um adaptador para todos os provedores que seguem a API de chat da OpenAI (`POST {base}/chat/completions`, SSE com `data: [DONE]`): Groq,
+ * Mistral e o Ollama local. Cada um muda só a configuração abaixo. Sem SDK: `fetch`, como o Gemini.
  */
 type ConfigCompat = {
   id: string;
@@ -33,7 +33,7 @@ type ConfigCompat = {
   /** Tempo limite da chamada e de inatividade do fluxo, em ms. */
   tempoMs?: () => number;
   inatividadeMs?: () => number;
-  /** Cabeçalhos extras (ex.: identificação do app no OpenRouter). */
+  /** Cabeçalhos extras (ex.: identificação do app). */
   cabecalhos?: () => Record<string, string>;
 };
 
@@ -48,7 +48,7 @@ type Pedaco = {
 };
 
 function erroHttp(status: number, espera: number | undefined) {
-  // 402: crédito/saldo do nível gratuito esgotado (OpenRouter); para a cascata é o mesmo que limite.
+  // 402: crédito/saldo do nível gratuito esgotado; para a cascata é o mesmo que limite.
   if (status === 429 || status === 402) return new LlmError('Limite do provedor atingido.', 429, 'limite', espera);
   if (status === 401 || status === 403 || status === 404)
     return new LlmError('Provedor recusou a chave ou o modelo configurado.', 503, 'configuracao');
@@ -114,7 +114,7 @@ async function chamar(
 function criarAcumulador(streaming: boolean, onDelta: ((t: string) => void) | undefined) {
   const estado: { texto: string; fim?: string; uso?: Pedaco['usage'] } = { texto: '' };
   const absorver = (p: Pedaco) => {
-    // Erro no meio do fluxo (OpenRouter manda um pedaço com `error` e finish_reason "error" depois do HTTP 200).
+    // Erro no meio do fluxo (alguns provedores mandam um pedaço com `error` e finish_reason "error" depois do HTTP 200).
     if (p.error || p.choices?.[0]?.finish_reason === 'error') {
       const codigo = Number(p.error?.code);
       throw codigo === 429 || codigo === 402

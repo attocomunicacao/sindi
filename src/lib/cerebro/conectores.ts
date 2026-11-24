@@ -70,7 +70,10 @@ export function escolherConector(pergunta: string, anteriores: string[] = [], to
   const atual = pontuar(pergunta);
   if (atual.length) return atual[0].conector;
   // Continuação ("e para empresa filiada?"): herda a área da pergunta anterior.
-  return normalizar(pergunta).trim().split(/\s+/).length <= 8 && anteriores.length ? pontuar(anteriores.at(-1)!)[0]?.conector : undefined;
+  // Procura da mais recente para a mais antiga: se a anterior também foi uma continuação, a área vem da que a definiu.
+  if (normalizar(pergunta).trim().split(/\s+/).length > 8) return undefined;
+  for (const anterior of [...anteriores].reverse()) { const area = pontuar(anterior)[0]?.conector; if (area) return area; }
+  return undefined;
 }
 /** A pergunta pede um relatório ou panorama da área deste conector? */
 export function pedeRelatorio(conector: Conector | undefined, pergunta: string): boolean {

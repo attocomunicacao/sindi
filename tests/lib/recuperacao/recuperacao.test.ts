@@ -108,7 +108,8 @@ test('the budget calculation is evidence for the model, marked with the tool and
     {},
   );
   assert.equal(orcamento.length, 1);
-  assert.match(orcamento[0].content, /R\$\s30\.756,86/);
+  assert.match(orcamento[0].content, /R\$\s23\.913,46/);
+  assert.match(orcamento[0].content, /Tributos, BDI e lucro não estão incluídos/);
   assert.match(orcamento[0].url, /^\/orcamento\?postos=/);
   assert.doesNotMatch(orcamento[0].content, /\]\(/);
   assert.equal(orcamento[0].ferramenta?.id, 'orcamento');

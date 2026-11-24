@@ -1,4 +1,5 @@
 @import 'tailwindcss';
+@import 'tw-animate-css';
 
 /* A variante dark segue o tema escolhido no site (data-theme), não a preferência do sistema. */
 @custom-variant dark (&:where([data-theme='dark'], [data-theme='dark'] *));
@@ -12,7 +13,12 @@
      lg 1024 (tablet deitado, notebook pequeno), xl 1280 (notebook), 2xl 1536 (desktop 1536×864 e 1920×1080).
      xs separa os celulares compactos (320 a 393: SE, 360, 375, 390, 393) dos grandes (412, 414, 430). */
   --breakpoint-xs: 25rem;
-  --font-sans: 'Segoe UI', system-ui, -apple-system, 'Helvetica Neue', Arial, sans-serif;
+  /* Pilha estilo Apple: SF Pro nos aparelhos Apple; Inter (self-host por next/font, variável --font-inter) nos demais. */
+  --font-sans: -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', var(--font-inter), 'Segoe UI', system-ui, 'Helvetica Neue', Arial, sans-serif;
+  --radius-card: 1.5rem;
+  --radius-painel: 1.75rem;
+  --shadow-suave: 0 1px 2px rgb(45 39 39 / .04), 0 8px 30px rgb(45 39 39 / .06);
+  --shadow-flutuante: 0 2px 6px rgb(45 39 39 / .06), 0 18px 50px rgb(45 39 39 / .12);
   /* Escala tipográfica: base 16 px, razão ~1,25 (terça maior) arredondada ao múltiplo de 4 px; entrelinha também em múltiplos de 4 px.
      Espaçamento: unidade de 4 px do Tailwind (--spacing), usando sobretudo múltiplos de 8 px (2, 4, 6, 8, 12, 16). */
   --text-xs: 0.75rem;   --text-xs--line-height: 1rem;
@@ -23,7 +29,9 @@
   --text-2xl: 2rem;     --text-2xl--line-height: 2.5rem;
   --text-3xl: 2.5rem;   --text-3xl--line-height: 3rem;
   --text-4xl: 3rem;     --text-4xl--line-height: 3.5rem;
-  --text-5xl: 3.5rem;   --text-5xl--line-height: 4rem;
+  --text-5xl: 3.5rem;   --text-5xl--line-height: 1.05;
+  --text-6xl: 4.5rem;   --text-6xl--line-height: 1.02;
+  --text-7xl: 5.5rem;   --text-7xl--line-height: 1;
   --color-slate-50: #faf8f5;
   --color-slate-100: #f3efe9;
   --color-slate-200: #e6e0d8;
@@ -43,11 +51,13 @@
   --color-amber-600: #855f04;
   --color-amber-800: #6b4e0a;
   --color-amber-900: #4a3607;
-  --color-canvas: #faf8f5;
-  --color-surface: #ffffff;
-  --color-primary: #2d2727;
-  --color-primary-hover: #433b3b;
-  --color-on-primary: #ffffff;
+  /* Fundo branco (Apple); superfícies e faixas em tom quente por cima. O amarelo é a cor de ação, sempre com texto grafite (contraste 8:1). */
+  --color-canvas: #ffffff;
+  --color-surface: #faf8f5;
+  --color-faixa: #f5f2ec;
+  --color-primary: #ebb92e;
+  --color-primary-hover: #f0cf5c;
+  --color-on-primary: #2d2727;
   --color-brand-red: #b61323;
 }
 html[data-theme='dark'] {
@@ -72,6 +82,7 @@ html[data-theme='dark'] {
   --color-amber-900: #f5e08f;
   --color-canvas: #141111;
   --color-surface: #1d1919;
+  --color-faixa: #1b1717;
   --color-primary: #ebb92e;
   --color-primary-hover: #f0cf5c;
   --color-on-primary: #2d2727;
@@ -79,18 +90,19 @@ html[data-theme='dark'] {
 }
 
 :root { color-scheme: light; }
-/* Margem lateral das páginas (utilidade .gutter): 16 px até 360 px de largura, 20 px nos demais celulares, 32 px a partir de sm,
-   nunca menor que a área segura (entalhe e cantos com o celular deitado; o layout usa viewport-fit=cover). */
-:root { --gutter: 1.25rem; }
-@media (max-width: 22.5rem) { :root { --gutter: 1rem; } }
-@media (min-width: 40rem) { :root { --gutter: 2rem; } }
+/* Margem lateral das páginas (utilidade .gutter): fluida, de 16 px nos celulares estreitos a 48 px nas telas largas, para o contêiner
+   de 90rem não encostar na borda; nunca menor que a área segura (entalhe e cantos com o celular deitado; o layout usa viewport-fit=cover). */
+:root { --gutter: clamp(1rem, 3vw, 3rem); }
 /* Telas grandes: a raiz cresce e, como tudo é medido em rem, texto, espaços e larguras máximas crescem juntos, sem virar uma faixa estreita.
    1920 lógico é Full HD em 100%; 2560, QHD; 3840, 4K ou TV sem ampliação do sistema. As media queries em rem usam sempre 16 px, não esta raiz. */
 @media (min-width: 120rem) { html { font-size: 106.25%; } }
 @media (min-width: 160rem) { html { font-size: 125%; } }
 @media (min-width: 240rem) { html { font-size: 150%; } }
-html { background: var(--color-canvas); scrollbar-gutter: stable; -webkit-text-size-adjust: 100%; text-size-adjust: 100%; -webkit-tap-highlight-color: transparent; }
-body { margin: 0; min-width: 20rem; overflow-x: clip; background: var(--color-canvas); color: var(--color-slate-800); font-family: var(--font-sans); -webkit-font-smoothing: antialiased; }
+html { background: var(--color-canvas); scroll-padding-top: 4rem; scrollbar-gutter: stable; -webkit-text-size-adjust: 100%; text-size-adjust: 100%; -webkit-tap-highlight-color: transparent; }
+body { margin: 0; min-width: 20rem; overflow-x: clip; background: var(--color-canvas); color: var(--color-slate-800); font-family: var(--font-sans); -webkit-font-smoothing: antialiased; -moz-osx-font-smoothing: grayscale; font-size: 1.0625rem; line-height: 1.47; letter-spacing: -0.01em; }
+h1, h2, h3 { letter-spacing: -0.025em; text-wrap: balance; }
+/* Foco amarelo visível em tudo que se navega pelo teclado. */
+:focus-visible { outline: 2px solid var(--color-amber-400); outline-offset: 3px; }
 button, select { cursor: pointer; }
 img, svg, video, iframe { max-width: 100%; }
 @utility gutter { padding-left: max(var(--gutter), env(safe-area-inset-left)); padding-right: max(var(--gutter), env(safe-area-inset-right)); }
@@ -112,6 +124,18 @@ a, button, input, select, textarea { transition: color .2s ease, background-colo
 .barra-navegacao::after { content: ''; position: absolute; inset-block: 0; width: 33%; background: var(--color-amber-400); animation: barra-carregando 1.2s cubic-bezier(.4, 0, .2, 1) infinite; }
 @keyframes barra-carregando { from { left: -33%; } to { left: 100%; } }
 .msg-in { animation: rise .35s ease both; }
+/* Cabeçalho translúcido com desfoque, como em apple.com. */
+.vidro { background: color-mix(in srgb, var(--color-canvas) 78%, transparent); -webkit-backdrop-filter: saturate(180%) blur(20px); backdrop-filter: saturate(180%) blur(20px); }
+/* Realce de título: faixa amarela atrás da palavra (o texto continua grafite, então o contraste não depende do amarelo). */
+.marca-texto { background: linear-gradient(transparent 62%, color-mix(in srgb, var(--color-amber-400) 70%, transparent) 62% 94%, transparent 94%); }
+/* Revelar ao rolar: CSS puro quando o navegador suporta linha do tempo de rolagem; sem suporte, o conteúdo aparece direto (sem JS nem style inline, compatível com a CSP). */
+@supports (animation-timeline: view()) {
+  .revelar { animation: rise linear both; animation-timeline: view(); animation-range: entry 0% entry 35%; }
+}
+/* Transição suave entre páginas (View Transitions API). */
+@view-transition { navigation: auto; }
+/* Gaveta de conversas aberta (componentes/chat/gaveta-de-conversas.tsx): a página atrás não rola. */
+.trava-rolagem { overflow: hidden; }
 .dot { width: 5px; height: 5px; border-radius: 50%; background: var(--color-amber-400); animation: pulse-dot 1.2s infinite; }
 .dot:nth-child(2) { animation-delay: .15s; }
 .dot:nth-child(3) { animation-delay: .3s; }

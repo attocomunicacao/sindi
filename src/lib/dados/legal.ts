@@ -24,9 +24,12 @@ export function decodificarHtml(bytes: Uint8Array, tipoDeConteudo = '') {
   }
 }
 /** Texto corrido de uma página HTML legislativa, uma linha por parágrafo/inciso. */
-export function htmlParaLinhas(html: string) {
+export function htmlParaLinhas(html: string, { semRiscado = false }: { semRiscado?: boolean } = {}) {
   const $ = load(html);
   $('script,style,noscript').remove();
+  // Texto compilado do Planalto mantém a redação antiga RISCADA ao lado da vigente. Sem tirá-la, o artigo traria as duas versões lado a lado,
+  // e a SINDI poderia citar como vigente um texto já revogado.
+  if (semRiscado) $('strike,s,del,[style*="line-through"]').remove();
   $('br').replaceWith('\n');
   $('p,li,tr,h1,h2,h3,h4,div,blockquote').append('\n');
   return $('body')
@@ -57,19 +60,25 @@ export async function pdfParaTexto(
   }
 }
 
-const INICIO_DE_ARTIGO = /^Art\.\s*(\d{1,4})\s*(?:[º°o.]|\s)?\s*(?:-\s*([A-Z]{1,2})\b)?/;
+// A letra do artigo ("Art. 5º-A") vem colada ao hífen. Com espaço ("Art. 5º - A lei...") é o hífen de pontuação do texto antigo e a
+// letra já é a primeira palavra do caput; lê-la como sufixo transformava "Art. 5º - O trabalho" em "5-O".
+const INICIO_DE_ARTIGO = /^Art\.\s*(\d{1,4})\s*(?:[º°o.]|\s)?\s*(?:-([A-Z]{1,2})\b)?/;
 // Só o título em maiúsculas (o sumário e as remissões usam "Ato das Disposições...").
 const ADCT = /^ATO DAS DISPOSI[ÇC][ÕO]ES CONSTITUCIONAIS TRANSIT[ÓO]RIAS\s*$/;
 /**
  * Divide um texto legal em artigos. Cada "Art. N" no início de linha abre um artigo; só a primeira ocorrência de cada
  * número é mantida (remissões a outros artigos não começam linha). O ADCT recebe prefixo próprio porque reinicia a numeração.
  */
-export function dividirArtigos(texto: string, opcoes: { adct?: boolean; maxChars?: number } = {}): Artigo[] {
+export function dividirArtigos(
+  texto: string,
+  opcoes: { adct?: boolean; maxChars?: number; sequencial?: boolean } = {},
+): Artigo[] {
   const maximoDeCaracteres = opcoes.maxChars ?? 12000;
   const resultado: Artigo[] = [];
   const vistos = new Set<string>();
   let atual: { key: string; label: string; lines: string[] } | undefined;
   let noAdct = false;
+  let ultimoNumero = 0;
   const fechar = () => {
     if (atual)
       resultado.push({
@@ -89,12 +98,17 @@ export function dividirArtigos(texto: string, opcoes: { adct?: boolean; maxChars
     if (achado) {
       const numero = achado[1] + (achado[2] ? `-${achado[2]}` : '');
       const chave = (noAdct ? 'adct-' : '') + numero;
-      if (!vistos.has(chave)) {
+      // Lei que altera outra cita, no corpo do próprio artigo, os artigos da norma alterada ("Art. 11-A. ..."). No modo sequencial só abre
+      // artigo novo o próximo número da própria lei (1, 2, 3...); o resto é o texto do artigo em curso.
+      const abre = opcoes.sequencial ? !achado[2] && Number(achado[1]) === ultimoNumero + 1 : !vistos.has(chave);
+      if (abre) {
+        ultimoNumero = Number(achado[1]);
         fechar();
         vistos.add(chave);
         atual = {
           key: chave,
-          label: `${noAdct ? 'ADCT, ' : ''}Art. ${numero}${/^\d$/.test(achado[1]) && !achado[2] ? 'º' : ''}`,
+          // Ordinal só até o 9, como no texto legal: "Art. 5º", "Art. 5º-A", "Art. 10", "Art. 10-A".
+          label: `${noAdct ? 'ADCT, ' : ''}Art. ${achado[1]}${/^\d$/.test(achado[1]) ? 'º' : ''}${achado[2] ? `-${achado[2]}` : ''}`,
           lines: [line],
         };
         continue;
@@ -104,4 +118,20 @@ export function dividirArtigos(texto: string, opcoes: { adct?: boolean; maxChars
   }
   fechar();
   return resultado.filter((a) => a.content.length > 20);
+}
+
+/**
+ * Junta as quebras de linha que o HTML do Planalto faz no meio da frase: a linha seguinte que começa em minúscula (e não é alínea "a)")
+ * continua a anterior, e "§" ou "Art." sozinhos na ponta da linha colam no que vem depois. Só espaço em branco muda; nenhuma palavra.
+ */
+export function juntarQuebras(texto: string) {
+  const saida: string[] = [];
+  for (const linha of texto.split('\n')) {
+    const anterior = saida.at(-1);
+    const continua = /^\p{Ll}/u.test(linha) && !/^\p{Ll}\)/u.test(linha);
+    if (anterior !== undefined && (continua || /(?:§|§§|Art\.)$/.test(anterior)))
+      saida[saida.length - 1] = `${anterior} ${linha}`;
+    else saida.push(linha);
+  }
+  return saida.join('\n');
 }

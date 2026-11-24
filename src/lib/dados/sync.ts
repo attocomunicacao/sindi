@@ -16,7 +16,9 @@ import { tst } from '@/lib/dados/coletores/tst';
 import { wec } from '@/lib/dados/coletores/wec';
 import { caged } from '@/lib/dados/coletores/caged';
 import { constituicao } from '@/lib/dados/coletores/constituicao';
+import { legislacao } from '@/lib/dados/coletores/legislacao';
 import { mte } from '@/lib/dados/coletores/mte';
+import { nrs } from '@/lib/dados/coletores/nrs';
 import { regimentos } from '@/lib/dados/coletores/regimentos';
 import type { Coletor } from '@/lib/dados/coletores/tipos';
 
@@ -31,6 +33,8 @@ export const COLETORES: Coletor[] = [
   mte,
   caged,
   constituicao,
+  legislacao,
+  nrs,
   regimentos,
 ];
 

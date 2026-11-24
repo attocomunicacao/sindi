@@ -287,6 +287,46 @@ test('fuzz do orçamento: 400 cargas aleatórias (tipos trocados, números extre
   });
 });
 
+test('orçamento: BDI, lucro e tributos informados negativos, NaN, texto, acima de 50% ou somando 100% ou mais são recusados (400), nunca 5xx', async () => {
+  const postos = [{ funcaoId: 'zelador', quantidade: 1, turno: 'diurno' }];
+  const enviar = (extra: object, i: number, caminho = '/api/orcamento/calcular') =>
+    (caminho.includes('pdf') ? gerarPdf : calcular)(
+      requisicao(JSON.stringify({ postos, ...extra }), { 'x-real-ip': `198.51.100.${i}` }, caminho),
+    );
+  const hostis: object[] = [
+    { bdi: -0.1 },
+    { lucro: -1 },
+    { bdi: '0.03' },
+    { lucro: [0.03] },
+    { bdi: null },
+    { bdi: 0.51 },
+    { lucro: 50 },
+    { impostos: { pis: -0.01 } },
+    { impostos: { cofins: '7,6' } },
+    { impostos: { irpj: 0.6 } },
+    { impostos: { desconhecido: 0.1 } },
+    { impostos: 'tudo' },
+    { impostos: { __proto__: { pis: 0.1 }, iss: 2 } },
+    // Cada uma está na faixa, mas a soma chega a 100%: a conta dividiria por zero ou por negativo.
+    { bdi: 0.5, lucro: 0.5 },
+    { bdi: 0.5, lucro: 0.3, impostos: { iss: 0.2 } },
+  ];
+  // NaN e Infinity não existem em JSON: o JSON.stringify os troca por null, que o esquema também recusa.
+  hostis.push({ bdi: Number.NaN }, { lucro: Number.POSITIVE_INFINITY });
+  let i = 0;
+  for (const carga of hostis)
+    for (const caminho of ['/api/orcamento/calcular', '/api/orcamento/pdf?tipo=orcamento']) {
+      const r = await enviar(carga, i++, caminho);
+      assert.equal(r.status, 400, `${caminho}: ${JSON.stringify(carga)} deveria ser recusado (veio ${r.status})`);
+    }
+  // O caso feliz: informado e na faixa, o valor sobe acima do custo; sem informar, é o próprio custo.
+  const com = await (await enviar({ bdi: 0.05, impostos: { pis: 0.0165 } }, i++)).json();
+  assert.ok(com.margemInformada && com.valorContrato > com.custoTotal);
+  const sem = await (await enviar({}, i++)).json();
+  assert.equal(sem.margemInformada, false);
+  assert.equal(sem.valorContrato, sem.custoTotal);
+});
+
 test('PDF do orçamento com texto hostil (operadores de PDF, controle, RLO, parênteses): sai um PDF válido sem JavaScript, ação automática nem anexos', async () => {
   await comAmbiente({}, async () => {
     const hostil = {

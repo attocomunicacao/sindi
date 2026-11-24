@@ -29,7 +29,7 @@ export function montarOrquestra(
   return orquestra;
 }
 
-/** Estantes pesquisadas pela orquestra: as do principal primeiro, depois as do apoio, sem repetir (até 6). */
+/** Estantes pesquisadas pela orquestra: as do principal primeiro, depois as do apoio, sem repetir (até 7: o conector de legislação sozinho já usa sete estantes). */
 export function estantesDaOrquestra(orquestra: Especialista[]): string[] {
-  return [...new Set(orquestra.flatMap((e) => e.conector.estantes))].slice(0, 6);
+  return [...new Set(orquestra.flatMap((e) => e.conector.estantes))].slice(0, 7);
 }

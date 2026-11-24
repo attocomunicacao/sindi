@@ -1,3 +1,6 @@
+import { lerNumero } from '@/lib/base/formato';
+import { AVISOS } from '@/lib/produtos/avisos';
+import { FAIXAS_LIMITE } from '@/lib/tributos/das';
 import { ROTULO_ESTIMATIVA } from '@/lib/tributos/regime-regular';
 import type { ModoTributacao } from '@/lib/orcamento/tributacao-do-formulario';
 import { AvisoLateral } from '@/componentes/ui/aviso';
@@ -5,6 +8,7 @@ import { CampoDecimal } from '@/componentes/ui/campo';
 import { Seletor } from '@/componentes/ui/seletor';
 import { SeletorDeAnexo, SeletorDeAno } from '@/componentes/tributos/seletores';
 import { CATALOGO } from '@/componentes/orcamento/catalogo';
+import type { MargemEmTexto } from '@/componentes/orcamento/corpo-do-orcamento';
 import { TituloDaSecao } from '@/componentes/orcamento/titulo-da-secao';
 import type { useTributosDoOrcamento } from '@/componentes/orcamento/usar-tributos-do-orcamento';
 
@@ -103,11 +107,56 @@ function CamposDoSimples({ tributos }: { tributos: Tributos }) {
   );
 }
 
-type PropsDaSecaoTributacao = { tributos: Tributos; iss: number; aoMudarIss: (iss: number) => void };
+type PropsDaSecaoTributacao = {
+  tributos: Tributos;
+  iss: number | undefined;
+  aoMudarIss: (iss: number | undefined) => void;
+  margem: MargemEmTexto;
+  aoMudarMargem: (margem: MargemEmTexto) => void;
+};
+
+const CAMPOS_DA_MARGEM: { chave: keyof MargemEmTexto; rotulo: string }[] = [
+  { chave: 'bdi', rotulo: 'BDI (%)' },
+  { chave: 'lucro', rotulo: 'Lucro (%)' },
+];
+const CAMPOS_DOS_TRIBUTOS: { chave: keyof MargemEmTexto; rotulo: string }[] = [
+  { chave: 'pis', rotulo: 'PIS (%)' },
+  { chave: 'cofins', rotulo: 'COFINS (%)' },
+  { chave: 'contribuicaoSocial', rotulo: 'Contribuição social (%)' },
+  { chave: 'irpj', rotulo: 'IRPJ (%)' },
+];
+
+/** Campos em branco: o que o usuário não informar vale zero, e o resultado é o custo. */
+function CamposDaMargem({
+  campos,
+  margem,
+  aoMudar,
+}: {
+  campos: typeof CAMPOS_DA_MARGEM;
+  margem: MargemEmTexto;
+  aoMudar: (margem: MargemEmTexto) => void;
+}) {
+  return (
+    <div className="grid gap-3 sm:grid-cols-4">
+      {campos.map((c) => (
+        <CampoDecimal
+          key={c.chave}
+          id={`m-${c.chave}`}
+          rotulo={c.rotulo}
+          value={margem[c.chave]}
+          aoMudar={(v) => aoMudar({ ...margem, [c.chave]: v })}
+          placeholder="informe"
+        />
+      ))}
+    </div>
+  );
+}
 
 /** Seção 04: regime de tributação do preço (regras atuais, Reforma Tributária ou Simples Nacional) e os campos de cada um. */
-export function SecaoTributacao({ tributos, iss, aoMudarIss }: PropsDaSecaoTributacao) {
-  const { modo, pendente } = tributos;
+export function SecaoTributacao({ tributos, iss, aoMudarIss, margem, aoMudarMargem }: PropsDaSecaoTributacao) {
+  const { modo, pendente, simples } = tributos;
+  // Na 6ª faixa do Simples (RBT12 acima de R$ 3,6 mi) o ISS é recolhido fora do DAS e entra no preço: o seletor precisa aparecer.
+  const issForaDoDas = (lerNumero(simples.rbt12) ?? 0) > FAIXAS_LIMITE[4];
   return (
     <section aria-labelledby="tributos" className="space-y-4">
       <TituloDaSecao id="tributos" numero="04">
@@ -124,13 +173,14 @@ export function SecaoTributacao({ tributos, iss, aoMudarIss }: PropsDaSecaoTribu
           <option value="reforma">Reforma Tributária (CBS/IBS)</option>
           <option value="simples">Simples Nacional (DAS)</option>
         </Seletor>
-        {modo !== 'simples' && (
+        {(modo !== 'simples' || issForaDoDas) && (
           <Seletor
             id="iss"
             rotulo="ISS do município da prestação"
             value={iss ?? ''}
-            aoMudar={(v) => aoMudarIss(Number(v))}
+            aoMudar={(v) => aoMudarIss(v === '' ? undefined : Number(v))}
           >
+            <option value="">informe</option>
             {CATALOGO.iss.map((v) => (
               <option key={v} value={v}>
                 {(v * 100).toLocaleString('pt-BR', { maximumFractionDigits: 2 })}%
@@ -139,11 +189,11 @@ export function SecaoTributacao({ tributos, iss, aoMudarIss }: PropsDaSecaoTribu
           </Seletor>
         )}
       </div>
-      {modo === 'atual' && (
-        <p className="text-xs text-slate-500">
-          PIS, COFINS, contribuição social, IRPJ, BDI e lucro seguem a tabela de referência.
-        </p>
-      )}
+      <CamposDaMargem campos={CAMPOS_DA_MARGEM} margem={margem} aoMudar={aoMudarMargem} />
+      {modo !== 'simples' && <CamposDaMargem campos={CAMPOS_DOS_TRIBUTOS} margem={margem} aoMudar={aoMudarMargem} />}
+      <p className="text-xs text-slate-500">
+        {AVISOS.custoNaoPreco} Campos em branco valem zero: o resultado é o custo.
+      </p>
       {modo === 'reforma' && <CamposDaReforma tributos={tributos} />}
       {modo === 'simples' && <CamposDoSimples tributos={tributos} />}
       {pendente && (

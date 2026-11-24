@@ -1,7 +1,7 @@
 ---
 titulo: Legislação trabalhista e segurança jurídica
-gatilhos: trabalho temporário, trabalhador temporário, empresa de trabalho temporário, tomadora, recontratar, lei, leis, legislação, trabalhista, trabalhistas, clt, norma regulamentadora, nr, nr-1, estabilidade, gestante*, jornada, 6x1, escala 6x1, redução da jornada, aprendiz*, aprendizagem, pcd, cota*, convenção, convenções, cct, convenção coletiva, cláusula*, projeto de lei, projetos de lei, pec, stf, tst, súmula*, decisão judicial, decisões judiciais, regulament*, reforma trabalhista, segurança jurídica, jurídic*, em vigor, aprovado, tramita*, riscos psicossociais
-estantes: artigos, noticias, cartilhas, proposicoes, noticias-setor
+gatilhos: trabalho temporário, trabalhador temporário, empresa de trabalho temporário, tomadora, recontratar, lei, leis, legislação, trabalhista, trabalhistas, clt, norma regulamentadora, nr, nr-1, estabilidade, gestante*, jornada, 6x1, escala 6x1, redução da jornada, aprendiz*, aprendizagem, pcd, cota*, convenção, convenções, cct, convenção coletiva, cláusula*, projeto de lei, projetos de lei, pec, stf, tst, súmula*, decisão judicial, decisões judiciais, regulament*, reforma trabalhista, emenda constitucional, segurança jurídica, jurídic*, em vigor, aprovado, tramita*, riscos psicossociais
+estantes: legislacao, normas, artigos, noticias, cartilhas, proposicoes, noticias-setor
 relatorio: projetos de lei, mudanças na legislação, mudanças regulatórias
 modo: fontes
 palavras: 55
@@ -20,6 +20,8 @@ Explique o que as fontes dizem sobre a regra ou a mudança e o que isso signific
 - Artigos do presidente e notícias do SINDEPRESTEM (posição da entidade, eventos, atuação da Fenaserhtt)
 - Cartilhas (trabalho temporário, Lei 13.429/17, NR-1)
 - Projetos em tramitação (Câmara e Senado) e notícias do TST e do Ministério do Trabalho
+- Leis e emendas do Planalto, um documento por artigo: Lei 6.019/1974 (trabalho temporário), Leis 13.429/2017 e 13.467/2017, CLT e Emenda Constitucional 141/2026 (`art. 5º-A da Lei 6.019`)
+- Normas Regulamentadoras (estante `normas`): texto oficial das NRs vigentes do Ministério do Trabalho e Emprego, um documento por seção ou anexo (`NR-1`, `NR-6`, `NR-35`)
 - Busca própria: texto das NRs (`NR-1`), artigos da Constituição (`art. 7º`), cláusulas das convenções (`piso da convenção de portaria`)
 
 ## Limites

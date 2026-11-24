@@ -13,7 +13,8 @@ export function calcularOuErro(
   try {
     return { resultado: calcularOrcamento(entrada) };
   } catch (causa) {
-    if (causa instanceof ErroTributario) return { resposta: erro(causa.message, 400) };
+    // RangeError é a recusa da conta (taxas informadas somando 100% ou mais); a mensagem é fixa e segura.
+    if (causa instanceof ErroTributario || causa instanceof RangeError) return { resposta: erro(causa.message, 400) };
     throw causa;
   }
 }

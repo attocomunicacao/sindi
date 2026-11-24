@@ -130,10 +130,9 @@ export function PainelIndicadores({ dados }: { dados: Dashboard }) {
         <div className="mt-10">
           <h3 className="text-base font-semibold text-slate-900">Emprego formal: saldo de vagas por mês</h3>
           <p className="mt-1 text-sm text-slate-500">
-            Admissões menos desligamentos (Novo CAGED). Dourado: saldo positivo; vermelho: saldo negativo; a última
-            coluna é o mês mais recente. Cada gráfico tem a sua escala.
+            Admissões menos desligamentos (Novo CAGED). Dourado: positivo; vermelho: negativo.
           </p>
-          <div className="mt-4 grid gap-4 sm:grid-cols-2">
+          <div className="mt-4 grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
             {dados.series.map((s) => (
               <GraficoDeColunas key={s.id} serie={s} />
             ))}
@@ -145,10 +144,9 @@ export function PainelIndicadores({ dados }: { dados: Dashboard }) {
         <div className="mt-10">
           <h3 className="text-base font-semibold text-slate-900">Juros, preços e atividade</h3>
           <p className="mt-1 text-sm text-slate-500">
-            Cada cartão compara o período mais recente com o anterior. Verde e vermelho indicam variação favorável ou
-            desfavorável ao emprego e ao crédito; cinza, sem julgamento.
+            Último período contra o anterior; verde favorável, vermelho desfavorável, cinza neutro.
           </p>
-          <div className="mt-4 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+          <div className="mt-4 grid gap-4 sm:grid-cols-2 lg:grid-cols-3 2xl:grid-cols-4">
             {dados.taxas.map((t) => (
               <CartaoDeTaxa key={t.rotulo} taxa={t} />
             ))}
@@ -167,12 +165,6 @@ export function PainelIndicadores({ dados }: { dados: Dashboard }) {
           ))}
         </div>
       )}
-      <p className="mt-6 text-xs leading-5 text-slate-500">
-        Dados públicos do Banco Central, do IBGE e do Ministério do Trabalho (Novo CAGED), coletados pela SINDI.
-        Indicadores como IPCA e PNAD são divulgados uma vez por mês, então só o último período e o anterior são
-        mostrados; a evolução mensal existe hoje apenas para o emprego formal. Valores derivados são cálculos simples
-        sobre esses dados.
-      </p>
     </section>
   );
 }

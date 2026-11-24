@@ -1,5 +1,6 @@
 import { calcularDas, type Anexo, type ResultadoDas } from '@/lib/tributos/das';
 import { brl, pontos } from '@/lib/base/formato';
+import { arred2, num, somar } from '@/lib/tributos/decimal';
 import {
   calcularCbsIbsServico,
   transicaoDoAno,
@@ -83,20 +84,22 @@ function finalizarReforma(
   iss: number,
   valorContrato: number,
 ): ResultadoTributacao {
+  // Centavos pela mesma regra da calculadora de tributos (meio para o par): o valor do serviço da nota, a base de CBS/IBS e o total usam o mesmo número.
+  const valorDoServico = num(arred2(valorContrato));
   const r = calcularCbsIbsServico({
-    base: Math.round(valorContrato * 100) / 100,
+    base: valorDoServico,
     ano: t.ano,
     servicoId: 'mao-de-obra',
     aliquotas: t.aliquotas,
   });
-  const total = r.informativo ? valorContrato : Math.round((valorContrato + r.total) * 100) / 100;
+  const total = r.informativo ? valorDoServico : num(arred2(somar(valorDoServico, r.total)));
   const memoria = [
     `Ano ${t.ano}: PIS/COFINS ${tr.pisCofins ? 'ainda existem' : 'deixam de existir (CBS/IBS os substituem)'}; ISS a ${pontos(tr.fatorIss * 100, 0, 0)} da alíquota do município (${pontos(imp.iss * 100, 2, 2)} → ${pontos(iss * 100, 2, 2)}); IRPJ e CSLL continuam.`,
-    `Preço "por dentro" (custo ÷ (1 − tributos, BDI e lucro)): ${brl(valorContrato)}. Esse é o valor do serviço na nota.`,
+    `Preço "por dentro" (custo ÷ (1 − tributos, BDI e lucro)): ${brl(valorDoServico)}. Esse é o valor do serviço na nota.`,
     ...r.memoria,
     r.informativo
       ? `Total da nota: ${brl(total)} (CBS/IBS de 2026 destacados, sem custo).`
-      : `Total da nota = ${brl(valorContrato)} + CBS ${brl(r.vCBS)} + IBS ${brl(r.vIBS)} = ${brl(total)}.`,
+      : `Total da nota = ${brl(valorDoServico)} + CBS ${brl(r.vCBS)} + IBS ${brl(r.vIBS)} = ${brl(total)}.`,
   ];
   const avisos = [
     ...r.avisos,
@@ -110,7 +113,7 @@ function finalizarReforma(
     ano: t.ano,
     transicao: tr,
     nota: {
-      valorServico: valorContrato,
+      valorServico: valorDoServico,
       cbs: r.vCBS,
       ibs: r.vIBS,
       ibsUf: r.vIBSUF,

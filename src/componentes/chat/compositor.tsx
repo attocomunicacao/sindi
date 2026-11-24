@@ -89,8 +89,8 @@ export function Compositor({
         )}
       </form>
       <p className="mt-2.5 text-center text-xs text-slate-500 baixo:mt-1.5">
-        A IA pode errar. Não envie dados pessoais nem confidenciais: as perguntas passam por serviços de IA externos
-        gratuitos, que podem usá-las para melhorar seus produtos.{textoDoSaldo(restantes)}
+        A IA pode errar. Não envie dados pessoais nem confidenciais; serviços de IA gratuitos podem usar as perguntas.
+        {textoDoSaldo(restantes)}
       </p>
     </div>
   );

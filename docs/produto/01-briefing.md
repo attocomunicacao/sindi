@@ -2,7 +2,7 @@
 
 Status: proposta para revisão. Data: 09/10/2026.
 
-Assistente público do SINDEPRESTEM para associados, presidência e equipe. Interface simples, sem login, sem anexos e sem armazenamento permanente de conversas. Português e inglês, com ajuste de tom. Figma e FigJam dispensados por solicitação do usuário.
+Assistente público do SINDEPRESTEM para associados, presidência e equipe. Interface simples, sem login, sem anexos e sem armazenamento de conversas no servidor (histórico opcional só no navegador de quem usa). Português e inglês, com ajuste de tom. Figma e FigJam dispensados por solicitação do usuário.
 
 Objetivo: facilitar acesso a informações institucionais e conteúdos públicos sobre terceirização, trabalho temporário e serviços do sindicato. Apoiar redação e tradução de textos relacionados ao setor.
 

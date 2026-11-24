@@ -1,5 +1,5 @@
 // Avalia o cérebro da SINDI: para cada pergunta de cerebro/avaliacao/perguntas-ouro.md, confere se a resposta direta ou as evidências
-// entregues ao modelo contêm o esperado. Uso: npm run cerebro:avaliar [-- --arquivo=perguntas-ouro-ampliado.md] [-- --modelo [--so-resposta]] [-- --verbose]
+// entregues ao modelo contêm o esperado. Uso: npm run cerebro:avaliar [-- --arquivo=perguntas-ouro-ampliado.md] [-- --modelo [--so-resposta]] [-- --como-no-chat] [-- --verbose]
 // Com --modelo, também chama o chat em execução (http://localhost:3000, ou a porta de PORT) e confere a resposta final gerada pelo modelo.
 import { avaliarCasos } from '@/lib/chat/avaliar-cerebro';
 import { carregarCasos } from '@/lib/cerebro/casos';
@@ -11,7 +11,7 @@ async function respostaFinal(pergunta: string) {
   const dados = await r.json() as { text?: string; error?: string }; return dados.text ?? dados.error ?? '';
 }
 const arquivo = process.argv.find(a => a.startsWith('--arquivo='))?.slice(10);
-const resultados = await avaliarCasos(carregarCasos(arquivo), modelo ? respostaFinal : undefined, process.argv.includes('--so-resposta'));
+const resultados = await avaliarCasos(carregarCasos(arquivo), modelo ? respostaFinal : undefined, process.argv.includes('--so-resposta'), process.argv.includes('--como-no-chat'));
 for (const r of resultados) {
   console.log(`${r.ok ? 'OK ' : 'FALHA'} [${r.origem}] ${r.pergunta}${r.ok ? '' : `\n      faltam: ${r.faltam.join(' | ') || '—'}${r.proibidos.length ? ` · proibidos presentes: ${r.proibidos.join(' | ')}` : ''}`}`);
   if (detalhado && !r.ok) console.log('      evidência:', r.evidencia);

@@ -96,6 +96,8 @@ export function documentosPeloGrafo(pergunta: string, limite = 4): Passagem[] {
           title: linha.title,
           content: texto.slice(inicio, inicio + 1200),
           fetchedAt: linha.published_at ?? linha.fetched_at,
+          origem: 'grafo',
+          no: n.id,
         } satisfies Passagem,
       ];
     });

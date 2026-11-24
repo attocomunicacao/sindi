@@ -1,5 +1,6 @@
 import { brl } from '@/lib/base/formato';
 import { FUNCOES } from '@/lib/orcamento/catalogo';
+import { AVISOS } from '@/lib/produtos/avisos';
 import { calcularOrcamento, type PostoEntrada } from '@/lib/orcamento/calculo';
 
 const norm = (texto: string) =>
@@ -139,9 +140,9 @@ export function orcamentoAnswer(pergunta: string): string | undefined {
   );
   const area = r.precoPorMetro !== null ? ` · ${brl(r.precoPorMetro)}/m²` : '';
   return [
-    `Estimativa mensal para ${r.funcionarios} funcionário(s): **${brl(r.valorContrato)}** (${brl(r.valorAnual)} em 12 meses)${area}.`,
+    `Custo mensal estimado para ${r.funcionarios} funcionário(s): **${brl(r.valorContrato)}** (${brl(r.valorAnual)} em 12 meses)${area}.`,
     linhas.join('\n'),
-    `Inclui salários, ${(r.taxaEncargos * 100).toLocaleString('pt-BR', { maximumFractionDigits: 2 })}% de encargos, benefícios, uniformes, EPIs, tributos, BDI e lucro, com base em tabela de referência de custos.`,
+    `Inclui salários, ${(r.taxaEncargos * 100).toLocaleString('pt-BR', { maximumFractionDigits: 2 })}% de encargos, benefícios, uniformes e EPIs, com base em tabela de referência de custos. Tributos, BDI e lucro não estão incluídos: quem usa os informa na ferramenta.`,
     `[Abra a ferramenta para ajustar os postos e baixar o orçamento e o relatório de custo em PDF](${linkFerramenta(interpretado)}).`,
     ...(interpretado.ajustados?.length
       ? [
@@ -149,5 +150,7 @@ export function orcamentoAnswer(pergunta: string): string | undefined {
         ]
       : []),
     'É uma estimativa, não uma proposta comercial; confirme a convenção coletiva aplicável à categoria.',
+    AVISOS.custoNaoPreco,
+    AVISOS.naoEConsultoria,
   ].join('\n\n');
 }

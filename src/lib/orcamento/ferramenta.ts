@@ -4,7 +4,7 @@ import { orcamentoAnswer } from '@/lib/orcamento/interpretar';
 
 /** Como o modelo apresenta o resultado do cálculo: números exatos da fonte, sem recalcular, e o aviso de que é estimativa. */
 export const ORIENTACAO_DO_ORCAMENTO =
-  'Apresente o resultado com os números exatos da fonte, sem arredondar nem recalcular. Diga que é uma estimativa e que a ferramenta permite ajustar os postos e baixar o orçamento em PDF.';
+  'Apresente o resultado com os números exatos da fonte, sem arredondar nem recalcular. Responda só o custo: diga que é uma estimativa de custo, que margem, BDI e tributos são informados por quem usa a ferramenta, e nunca sugira percentuais nem preço. Diga também que a ferramenta permite ajustar os postos e baixar o orçamento em PDF.';
 
 /**
  * Cálculo do orçamento de terceirização (uma conta sobre a tabela de referência) como trecho para o modelo: ele apresenta o resultado com palavras próprias,

@@ -8,7 +8,7 @@ A tabela de preços e a lógica vêm da planilha de referência (abas Resumo, In
 Custo por funcionário/mês = salário + adicional único, o maior entre periculosidade (30% do salário) e insalubridade (% do salário mínimo), pois não se acumulam (CLT, art. 193, § 2º) + adicional noturno (20% do salário-hora × horas noturnas, mais DSR 8/22) + horas extras (o salário-hora de ambos é salário + adicional aplicado, dividido pelo divisor da função)
 → **encargos sociais** (84,2359% da folha: grupos A 36,8%, B 26,91%, C 10,64%, D 9,89%, com base legal)
 → + benefícios (cesta básica, vale-refeição, vale-transporte líquido de 6%, assistência social familiar, seguro de vida) + PCMSO/PPR + uniformes + EPIs (+ insumos e equipamentos opcionais).
-Preço = custo ÷ (1 − (BDI 3% + lucro 3% + ISS + PIS + COFINS + CSLL + IRPJ)): tributos e margem incidem sobre o faturamento, como no Resumo da planilha.
+A SINDI mostra custo, não preço. BDI, lucro e tributos (ISS, PIS, COFINS, CSLL, IRPJ) são informados por quem usa e, em branco, valem zero (valor = custo). Informados, o valor é custo ÷ (1 − soma das taxas): tributos e margem incidem sobre o faturamento, como no Resumo da planilha. CBS/IBS e DAS continuam calculados pela lei.
 
 Verificação: com os dados do exemplo da planilha, encargos (84,2359%), folha, benefícios e PCMSO/PPR conferem exatamente; o total difere só pelos 3 ajustes abaixo (testado em `tests/lib/orcamento/orcamento.test.ts`).
 
@@ -24,7 +24,7 @@ Verificação: com os dados do exemplo da planilha, encargos (84,2359%), folha, 
 - Kits de EPI seguem a planilha, que soma três calçados por funcionário por mês para limpeza; vale revisar.
 
 ## Segurança e privacidade
-O cálculo roda no servidor com a tabela fixa (o navegador só envia função, quantidade, turno e opções). A API valida o corpo (zod), exige a mesma origem do chat, limita o tamanho (64 KB) e não grava nem registra dados. Os PDFs são gerados na hora (`pdf-lib`).
+O cálculo roda no navegador, ao vivo, com as mesmas bibliotecas do servidor e a tabela fixa; o servidor valida a entrada (os mesmos limites da tela) e recalcula para gerar os PDFs. A tributação pode ser as regras atuais, a Reforma Tributária (CBS/IBS) ou o Simples Nacional (DAS), com a memória de cálculo e os avisos no resultado. A API valida o corpo (zod), exige a mesma origem do chat, limita o tamanho (64 KB) e não grava nem registra dados. Os PDFs são gerados na hora (`pdf-lib`).
 
 ## Uso
 `/orcamento` (formulário com cálculo ao vivo); no chat, "preciso de um orçamento para 3 auxiliares de limpeza diurno e 3 noturno" devolve a estimativa e o link da ferramenta com os postos preenchidos.

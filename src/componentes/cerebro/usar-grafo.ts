@@ -2,7 +2,9 @@
 import { useCallback, useEffect, useMemo, useRef, useState, type RefObject } from 'react';
 import { useRouter } from 'next/navigation';
 import { grafoDaArquitetura } from '@/lib/grafo/arquitetura';
+import { nosParaAcender, type UsoDoCerebro } from '@/lib/chat/uso-do-cerebro';
 import type { Grafo, TipoDeNo } from '@/lib/grafo/tipos';
+import { CHAVE_DO_ULTIMO_USO, esquecerUltimoUso, lerUltimoUso } from '@/componentes/cerebro/ultimo-uso';
 import { desenharQuadro, estadoInicialDoGrafo, type EstadoDoGrafo } from '@/componentes/cerebro/desenho-do-grafo';
 import { ligarInteracao } from '@/componentes/cerebro/interacao-do-grafo';
 import {
@@ -12,10 +14,12 @@ import {
   conjuntoVisivel,
   criarSimulacao,
   dataDoGrafo,
+  documentosDaLista,
   ehGrafoGrande,
   enquadramento,
   ligacoesDaSimulacao,
   montarAdjacencia,
+  nosDaFisica,
   nosDaSimulacao,
   TIPOS,
   vizinhosDoNo,
@@ -37,6 +41,25 @@ type RefDoAcordar = RefObject<() => void>;
 
 // As funções abaixo mexem nos refs (estado de desenho, simulação), o que a regra de imutabilidade do React proíbe dentro de hooks que
 // recebem refs por parâmetro; por isso são funções comuns, chamadas de dentro dos efeitos de useGrafo.
+
+const NOME_DA_ORIGEM: Record<string, string> = {
+  cerebro: 'conhecimento da equipe',
+  biblioteca: 'biblioteca',
+  grafo: 'grafo de leis e projetos',
+  externa: 'fontes públicas',
+  documento: 'documentos oficiais',
+  ferramenta: 'ferramenta do site',
+  contato: 'contato do sindicato',
+};
+/** Frase curta do que a última resposta do chat usou (a área e de onde vieram as fontes), para o aviso acima do cérebro. */
+function descreverUso(uso: UsoDoCerebro, rede: Grafo | undefined) {
+  const area = uso.conector ? rede?.nos.find((n) => n.id === `conector:${uso.conector}`)?.rotulo : undefined;
+  const origens = uso.origens.map((o) => NOME_DA_ORIGEM[o] ?? o);
+  return [
+    area ? `área: ${area}` : 'sem área específica',
+    origens.length ? `fontes: ${origens.join(', ')}` : 'sem fontes (resposta por regra)',
+  ].join(' · ');
+}
 
 /** Baixa o grafo do cérebro; devolve o cancelamento para o efeito que a chamou. */
 function baixarGrafo(aoChegar: (rede: Grafo) => void, aoFalhar: (mensagem: string) => void) {
@@ -69,12 +92,23 @@ function refazerSimulacao({ dados, visivel, modo, local, estado, simulacao, acor
   const e = estado.current;
   e.modo = modo;
   const nos = nosDaSimulacao(dados, visivel.ids, modo, memoria.current);
-  const ligacoes = ligacoesDaSimulacao(visivel.arestas);
-  Object.assign(e, { nos, ligacoes, vizinhos: montarAdjacencia(visivel.arestas) });
+  // A física só move a rede pequena; os documentos acompanham a estante (seguirAsEstantes, a cada quadro) e suas ligações não entram na simulação.
+  const fisica = nosDaFisica(nos);
+  const idsDaFisica = new Set(fisica.map((n) => n.id));
+  const ligacoes = ligacoesDaSimulacao(visivel.arestas, idsDaFisica);
+  const todasAsLigacoes = ligacoesDaSimulacao(visivel.arestas);
+  Object.assign(e, {
+    nos,
+    ligacoes: todasAsLigacoes,
+    vizinhos: montarAdjacencia(visivel.arestas),
+    documentos: documentosDaLista(nos),
+    porId: new Map(nos.map((n) => [n.id, n])),
+    dica: undefined,
+  });
   simulacao.current?.stop();
-  const grande = ehGrafoGrande(nos, local);
+  const grande = ehGrafoGrande(fisica, local);
   e.grande = grande;
-  const sim = criarSimulacao(nos, ligacoes, grande, e.reduzir, () => acordar.current());
+  const sim = criarSimulacao(fisica, ligacoes, grande, e.reduzir, () => acordar.current());
   simulacao.current = sim;
   aplicarForcas(sim, e.ajustes);
   sim.alpha(local ? 0.9 : grande ? 0.05 : 0.25).restart();
@@ -104,7 +138,7 @@ function enquadrarNos(canvas: RefDoCanvas, estado: RefDoEstado, acordar: RefDoAc
   const c = canvas.current;
   const e = estado.current;
   if (!c || !e.nos.length) return;
-  e.alvo = enquadramento(e.nos, c.clientWidth, c.clientHeight);
+  e.alvo = enquadramento(e.nos, c.clientWidth, c.clientHeight, e.modo);
   if (imediato) e.vista = { ...e.alvo };
   acordar.current();
 }
@@ -155,6 +189,7 @@ export function useGrafo() {
   const estado = useRef(estadoInicialDoGrafo(AJUSTES_PADRAO));
   const acordar = useRef<() => void>(() => {});
   const memoria = useRef(new Map<string, NoSim>());
+  const [usoRecente, setUsoRecente] = useState<UsoDoCerebro>();
   useEffect(() => {
     estado.current.reduzir = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
     return baixarGrafo(setRede, setErro);
@@ -182,16 +217,49 @@ export function useGrafo() {
   }, [achados]);
   useEffect(() => {
     estado.current.selecionado = selecionado;
+    // Selecionar uma estante (ou um documento dela) abre a nuvem de documentos; nada selecionado, recolhe.
+    const aberta = selecionado?.tipo === 'estante' ? selecionado.id : selecionado?.paiRef?.id;
+    estado.current.expandidas = new Set(aberta ? [aberta] : []);
     acordar.current();
   }, [selecionado]);
 
   const enquadrar = useCallback((imediato = false) => enquadrarNos(canvas, estado, acordar, imediato), []);
+  // A última resposta do chat acende o caminho SINDI → área → estante/conhecimento (também quando o chat responde em outra aba).
+  useEffect(() => {
+    const ler = () => setUsoRecente(lerUltimoUso());
+    ler();
+    const aoMudar = (ev: StorageEvent) => {
+      if (ev.key === CHAVE_DO_ULTIMO_USO || ev.key === null) ler();
+    };
+    window.addEventListener('storage', aoMudar);
+    return () => window.removeEventListener('storage', aoMudar);
+  }, []);
+  useEffect(() => {
+    estado.current.ativos = modo === 'rede' && usoRecente ? new Set(nosParaAcender(usoRecente)) : new Set();
+    acordar.current();
+  }, [usoRecente, modo, rede]);
+
   useEffect(() => {
     const t = setTimeout(() => enquadrar(true), 30);
     return () => clearTimeout(t);
   }, [modo, rede, local, enquadrar]);
   useEffect(() => iniciarDesenho(canvas, estado, acordar), []);
+  // Parado, o canvas não redesenha sozinho: ao trocar o tema (data-theme no <html>) pedimos um quadro para ele pegar a paleta nova.
+  useEffect(() => {
+    const observador = new MutationObserver(() => acordar.current());
+    observador.observe(document.documentElement, { attributes: true, attributeFilter: ['data-theme'] });
+    return () => observador.disconnect();
+  }, []);
 
+  /** Leva a vista até o nó, com pelo menos o zoom de 1,4 (os documentos de uma estante só aparecem ao aproximar ou ao abri-la). */
+  const centrarNo = useCallback((no: NoSim) => {
+    const c = canvas.current;
+    const e = estado.current;
+    if (!c) return;
+    const k = Math.max(e.alvo.k, 1.4);
+    e.alvo = { k, x: c.clientWidth / 2 - (no.x ?? 0) * k, y: c.clientHeight / 2 - (no.y ?? 0) * k };
+    acordar.current();
+  }, []);
   useEffect(() => {
     const c = canvas.current;
     if (!c) return;
@@ -200,19 +268,16 @@ export function useGrafo() {
       simulacao,
       acordar,
       aoSelecionar: setSelecionado,
+      aoCentrar: centrarNo,
       aoAbrir: (endereco) => router.push(endereco),
     });
-  }, [router]);
+  }, [router, centrarNo]);
 
   const centrarEm = (id: string) => {
-    const c = canvas.current;
-    const e = estado.current;
-    const no = e.nos.find((n) => n.id === id);
-    if (!c || !no) return;
-    const k = Math.max(e.alvo.k, 1.4);
-    e.alvo = { k, x: c.clientWidth / 2 - (no.x ?? 0) * k, y: c.clientHeight / 2 - (no.y ?? 0) * k };
+    const no = estado.current.porId.get(id);
+    if (!no) return;
+    centrarNo(no);
     setSelecionado(no);
-    acordar.current();
   };
   const animar = () => {
     estado.current.revelados = 0;
@@ -246,11 +311,17 @@ export function useGrafo() {
       trocarModo,
       erro,
       totais,
+      usoRecente,
+      textoDoUsoRecente: usoRecente && modo === 'rede' ? descreverUso(usoRecente, rede) : '',
+      limparUsoRecente: () => {
+        esquecerUltimoUso();
+        setUsoRecente(undefined);
+      },
       selecionado,
       setSelecionado,
       local,
       setLocal,
-      vizinhos: selecionado && dados ? vizinhosDoNo(selecionado.id, dados, adjacencia) : [],
+      vizinhos: selecionado && dados ? vizinhosDoNo(selecionado.id, dados, adjacencia) : { lista: [], total: 0 },
       busca,
       setBusca,
       achados,

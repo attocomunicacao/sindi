@@ -29,7 +29,13 @@ export function FormularioOrcamento() {
           aoUsarExemplo={orcamento.usarExemplo}
         />
         <SecaoInsumos insumos={orcamento.insumos} />
-        <SecaoTributacao tributos={orcamento.tributos} iss={orcamento.iss} aoMudarIss={orcamento.setIss} />
+        <SecaoTributacao
+          tributos={orcamento.tributos}
+          iss={orcamento.iss}
+          aoMudarIss={orcamento.setIss}
+          margem={orcamento.margem}
+          aoMudarMargem={orcamento.setMargem}
+        />
       </div>
       <ResumoDoOrcamento
         resultado={orcamento.resultado}

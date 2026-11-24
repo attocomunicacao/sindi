@@ -50,7 +50,7 @@ export function FaixaDeIndicadores() {
   // Sempre presente e com altura fixa (uma linha), para o conteúdo não pular quando os dados chegam; em telas estreitas a linha rola na horizontal em vez de quebrar.
   return (
     <section aria-label="Indicadores econômicos" className="no-print h-12 border-b border-slate-200 bg-surface/70">
-      <div className="gutter relative mx-auto flex h-full max-w-6xl items-center gap-x-6 overflow-x-auto overscroll-x-contain [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+      <div className="gutter relative mx-auto flex h-full max-w-[120rem] items-center gap-x-6 overflow-x-auto overscroll-x-contain [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
         {itens.map((item) => (
           <a
             key={item.id}

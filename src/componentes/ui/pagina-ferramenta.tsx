@@ -37,15 +37,17 @@ export function PaginaFerramenta({
   children,
   largura,
   espaco,
-  respiro = 'py-12',
-  larguraDaDescricao = 'max-w-2xl',
+  respiro = 'py-16',
+  larguraDaDescricao = 'max-w-3xl',
 }: PropsDaPagina) {
   return (
     <Principal className={cn(largura, espaco, respiro, 'text-slate-700')}>
       <header>
         <BarraDeDestaque />
-        <h1 className="mt-5 text-3xl font-semibold tracking-tight text-slate-900">{titulo}</h1>
-        <p className={cn('mt-3 text-base leading-7 text-slate-600', larguraDaDescricao)}>{descricao}</p>
+        <h1 className="mt-5 text-4xl font-semibold tracking-tight text-slate-900 sm:text-5xl">
+          <span className="marca-texto">{titulo}</span>
+        </h1>
+        <p className={cn('mt-4 text-lg leading-8 text-slate-600', larguraDaDescricao)}>{descricao}</p>
       </header>
       {children}
     </Principal>

@@ -76,7 +76,7 @@ Variações: Como calculo o custo de contratar terceirizados? | Onde faço um or
 Use a ferramenta de [orçamento de terceirização](/orcamento) da SINDI ou peça no chat, por exemplo: "preciso de um orçamento para 3 auxiliares de limpeza diurno e 3 noturno". Você recebe a estimativa mensal e anual e baixa o orçamento e o relatório de custo em PDF.
 
 ## Os valores do orçamento são uma proposta?
-Não. É uma estimativa baseada em uma tabela de referência de custos (salários, encargos de 84,24% sobre a folha, benefícios, uniformes, EPIs, tributos, BDI e lucro). Confirme a convenção coletiva vigente da categoria e peça uma proposta comercial ao fornecedor antes de contratar.
+Não. É uma estimativa baseada em uma tabela de referência de custos (salários, encargos de 84,24% sobre a folha, benefícios, uniformes e EPIs; tributos, BDI e lucro não entram, pois são informados por quem usa). Confirme a convenção coletiva vigente da categoria e peça uma proposta comercial ao fornecedor antes de contratar.
 
 ## De onde vêm os indicadores e as notícias do painel?
 Variações: De onde a plataforma tira os números de inflação? | De onde vêm os dados do painel?
@@ -84,7 +84,7 @@ De fontes públicas oficiais: IBGE, Banco Central, Câmara dos Deputados, Senado
 
 ## A SINDI guarda minhas conversas?
 Variações: A conversa fica registrada em algum lugar? | A SINDI salva o que eu escrevo? | Minhas mensagens são gravadas?
-Não. A conversa não é gravada: ela fica apenas na sessão e é apagada ao recarregar a página. As respostas são geradas por um modelo de linguagem que roda neste computador, sem enviar conversas a serviços externos. Mesmo assim, não envie dados pessoais ou confidenciais.
+Não. A conversa não é gravada pela SINDI em servidor. Se o histórico estiver ligado, as conversas anteriores ficam apenas no navegador de quem usa, sem CPF, cartão ou senha, e podem ser apagadas a qualquer momento (há também a opção de pausar o histórico). A pergunta passa por serviços de IA externos, que podem usá-la para melhorar seus produtos: não envie dados pessoais ou confidenciais.
 
 ## A SINDI pode dar um parecer jurídico?
 Não. Ela explica conceitos e cita documentos oficiais, mas casos concretos (demissão, multa, ação trabalhista, aplicação de cláusula) devem ser tratados com o Setor Jurídico do SINDEPRESTEM ou com um advogado.

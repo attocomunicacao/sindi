@@ -1,4 +1,4 @@
-import './setup-dom';
+import '../apoio/setup-dom';
 import { test, afterEach } from 'node:test';
 import assert from 'node:assert/strict';
 import { cleanup, fireEvent, render, screen, within } from '@testing-library/react';

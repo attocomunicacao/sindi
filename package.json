@@ -8,7 +8,7 @@
     "start": "next start",
     "lint": "eslint .",
     "typecheck": "tsc --noEmit",
-    "test": "tsx --test tests/*.test.ts tests/*.test.tsx",
+    "test": "tsx --test \"tests/**/*.test.ts\" \"tests/**/*.test.tsx\"",
     "knowledge:sync": "tsx scripts/knowledge-sync.ts",
     "grafo:gerar": "tsx scripts/cerebro/gerar-grafo.ts",
     "knowledge:watch": "tsx scripts/knowledge-sync.ts --watch",
@@ -19,11 +19,11 @@
     "cerebro:indexar": "tsx scripts/cerebro/indexar-cerebro.ts",
     "cerebro:comparar": "tsx scripts/cerebro/comparar-busca.ts",
     "avaliar:treino": "tsx scripts/avaliacao/avaliar-treino.ts",
-    "test:coverage": "tsx --test --experimental-test-coverage tests/*.test.ts tests/*.test.tsx",
+    "test:coverage": "tsx --test --experimental-test-coverage \"tests/**/*.test.ts\" \"tests/**/*.test.tsx\"",
     "check": "npm run lint && npm run typecheck && npm test && npm run build",
     "verificar:funcional": "tsx scripts/operacao/verificar-funcional.ts",
     "test:e2e": "npm run build && playwright test",
-    "test:ci": "tsx --test --experimental-test-coverage --test-coverage-lines=80 --test-coverage-include=\"src/**\" tests/*.test.ts tests/*.test.tsx"
+    "test:ci": "tsx --test --experimental-test-coverage --test-coverage-lines=80 --test-coverage-include=\"src/**\" \"tests/**/*.test.ts\" \"tests/**/*.test.tsx\""
   },
   "license": "UNLICENSED",
   "type": "module",

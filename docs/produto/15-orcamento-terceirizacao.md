@@ -10,7 +10,7 @@ Custo por funcionário/mês = salário + adicional único, o maior entre pericul
 → + benefícios (cesta básica, vale-refeição, vale-transporte líquido de 6%, assistência social familiar, seguro de vida) + PCMSO/PPR + uniformes + EPIs (+ insumos e equipamentos opcionais).
 Preço = custo ÷ (1 − (BDI 3% + lucro 3% + ISS + PIS + COFINS + CSLL + IRPJ)): tributos e margem incidem sobre o faturamento, como no Resumo da planilha.
 
-Verificação: com os dados do exemplo da planilha, encargos (84,2359%), folha, benefícios e PCMSO/PPR conferem exatamente; o total difere só pelos 3 ajustes abaixo (testado em `tests/orcamento.test.ts`).
+Verificação: com os dados do exemplo da planilha, encargos (84,2359%), folha, benefícios e PCMSO/PPR conferem exatamente; o total difere só pelos 3 ajustes abaixo (testado em `tests/lib/orcamento/orcamento.test.ts`).
 
 ## Ajustes em relação à planilha (também listados no relatório de custo)
 1. Kit de uniforme da função "auxiliar de limpeza com periculosidade" e do operador de máquina: na planilha a quantidade estava zerada.

@@ -208,7 +208,7 @@ test('repasse da Vercel: caminho que trocaria de host (barra invertida, tab, que
   const salvo = { ...process.env }; const fetchOriginal = globalThis.fetch;
   try {
     process.env.SINDI_TUNEL_URL = 'https://abc-def.trycloudflare.com'; process.env.SINDI_REPASSE_SEGREDO = 's'.repeat(64);
-    const { default: repasse } = await import('../deployment/vercel-proxy/api/repasse.js') as { default: (r: Request) => Promise<Response> };
+    const { default: repasse } = await import('../../../deployment/vercel-proxy/api/repasse.js') as { default: (r: Request) => Promise<Response> };
     const chamados: { url: string; ip: string | null }[] = [];
     globalThis.fetch = (async (url: string, init?: RequestInit) => { chamados.push({ url: String(url), ip: new Headers(init?.headers).get('x-sindi-ip') }); return new Response('ok'); }) as typeof fetch;
     for (const ataque of ['%5Cevil.com', '%09/evil.com', '%0A/evil.com', '%2F%2Fevil.com', '..%5C..%5Cevil.com']) {

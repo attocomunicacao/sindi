@@ -63,7 +63,7 @@ Scripts em `scripts/` não carregam o `.env.local` sozinhos: `npx tsx --env-file
 ## 4. Adicionar uma ferramenta
 
 Uma ferramenta é uma capacidade do site (calculadora, consulta, gerador) com página, rotas de API e, opcionalmente, uma entrada no chat. O orçamento é o modelo a seguir.
-Siga esta ordem; o teste `tests/ferramentas.test.ts` confere os itens 2, 3, 5 e 6 por você.
+Siga esta ordem; o teste `tests/ferramentas/ferramentas.test.ts` confere os itens 2, 3, 5 e 6 por você.
 
 1. **A lógica, pura e testável** em `src/lib/<ferramenta>/`: funções que recebem dados e devolvem resultado, mais o schema zod da entrada. Sem acesso a rede dentro do cálculo.
 2. **As rotas** em `src/app/api/<ferramenta>/<acao>/route.ts`, sempre com a guarda de `src/lib/http/guarda.ts`:
@@ -75,7 +75,7 @@ Siga esta ordem; o teste `tests/ferramentas.test.ts` confere os itens 2, 3, 5 e 
    O resultado vira fonte do modelo e **precisa conter, no texto, todo número que a resposta puder citar** (a verificação de fatos barra o que não estiver lá).
 5. **O registro**: inclua a ferramenta em `FERRAMENTAS` (`src/lib/ferramentas/registro.ts`) com `id`, `pagina`, `api`, `env` e `testes`.
 6. **Variáveis de ambiente**: documente em `env.example` (o teste confere). Chave de terceiros só no servidor, nunca `NEXT_PUBLIC`.
-7. **Testes**: a lógica, as rotas (origem, tipo, tamanho, validação, limite) e a entrada no chat. Para as rotas, copie `tests/orcamento-rotas.test.ts`.
+7. **Testes**: a lógica, as rotas (origem, tipo, tamanho, validação, limite) e a entrada no chat. Para as rotas, copie `tests/app/orcamento-rotas.test.ts`.
 8. **O que a SINDI sabe sobre a ferramenta**: atualize `cerebro/conhecimento/ferramentas-da-sindi.md` e rode `npm run avaliar:treino` lendo as respostas (o critério automático não vê fato trocado).
 9. **Verificação funcional**: `npm run verificar:funcional` com o servidor rodando. A ferramenta registrada entra no relatório sozinha (página e rotas).
 10. **Documentação**: uma linha no `README.md`, se a ferramenta aparece para o usuário.
@@ -95,9 +95,9 @@ Siga esta ordem; o teste `tests/ferramentas.test.ts` confere os itens 2, 3, 5 e 
 
 ### Escrever testes
 
-- **Lógica e rotas**: `tests/<assunto>.test.ts`, com `node:test`. Rotas se chamam direto (`POST(new Request(...))`); copie `tests/orcamento-rotas.test.ts`. Trocar `globalThis.fetch` simula o Gemini e a rede; restaure no `finally`.
-- **Interface**: `tests/<assunto>.test.tsx` com Testing Library. Importe `./setup-dom` **primeiro** (cria o navegador jsdom); `definirAbaOculta` simula a aba em segundo plano. Veja `tests/interface-orcamento.test.tsx`.
-- **Coletores de dados**: `tests/rede-simulada.ts` (`simularRede` com respostas gravadas e `comBanco` com SQLite temporário, sem esperas). Cada coletor leva uma resposta boa, uma vazia, uma malformada e uma com erro HTTP. Chamar uma URL que nenhuma rota cobre falha o teste.
+- **Lógica e rotas**: `tests/lib/<pasta>/<assunto>.test.ts` (espelha `src/`), com `node:test`. Rotas se chamam direto (`POST(new Request(...))`); copie `tests/app/orcamento-rotas.test.ts`. Trocar `globalThis.fetch` simula o Gemini e a rede; restaure no `finally`.
+- **Interface**: `tests/componentes/<assunto>.test.tsx` com Testing Library. Importe `../apoio/setup-dom` **primeiro** (cria o navegador jsdom); `definirAbaOculta` simula a aba em segundo plano. Veja `tests/componentes/interface-orcamento.test.tsx`.
+- **Coletores de dados**: `tests/apoio/rede-simulada.ts` (`simularRede` com respostas gravadas e `comBanco` com SQLite temporário, sem esperas). Cada coletor leva uma resposta boa, uma vazia, uma malformada e uma com erro HTTP. Chamar uma URL que nenhuma rota cobre falha o teste.
 - **Ponta a ponta e acessibilidade**: `e2e/*.spec.ts` (Playwright, Chromium, desktop e celular) contra `next start` com banco vazio; `npm run test:e2e` faz o build e roda. O chat de IA é simulado no navegador (`e2e/ajuda.ts`, `simularChat`), então nada gasta o limite do Gemini. `e2e/integridade-acessibilidade.spec.ts` carrega cada página sem erro de console nem violação da CSP e roda o axe (WCAG 2.1 AA) em tema claro e escuro; página nova entra em `PAGINAS` de `e2e/ajuda.ts`. Violação grave ou crítica reprova.
 - **Segurança de ataque**: `tests/ataques*.test.ts*` (corpos hostis, injeção de prompt, SSRF, XSS, fuzz). Ao criar uma rota ou um lugar que recebe texto, acrescente o caso hostil ali.
 - **Antes de confiar num teste novo**, quebre o código de propósito e confirme que ele falha (foi assim que os testes de interface foram validados).
@@ -120,6 +120,6 @@ Siga esta ordem; o teste `tests/ferramentas.test.ts` confere os itens 2, 3, 5 e 
 - **Leitor de PDF (`pdf-parse`) toma posse do buffer**: depois da leitura o `Uint8Array` fica inutilizável; passe uma cópia se precisar reaproveitá-lo.
 - **Limites por IP dependem do cabeçalho do IP** (`SINDI_IP_HEADER`). Atrás de Vercel + túnel, confirme qual cabeçalho traz o visitante; sem ele todos caem no mesmo grupo.
 - **Avaliação gasta os limites gratuitos dos provedores**; indexação gasta o do Gemini (100 textos por minuto).
-- **Novo provedor de IA**: se for compatível com a API da OpenAI, basta uma entrada em `src/lib/ia/provedores.ts` (base, chave, modelos) e as variáveis em `env.example`; limites conhecidos em `PADROES` de `src/lib/ia/saude.ts`; teste em `tests/ia-cascata.test.ts`.
+- **Novo provedor de IA**: se for compatível com a API da OpenAI, basta uma entrada em `src/lib/ia/provedores.ts` (base, chave, modelos) e as variáveis em `env.example`; limites conhecidos em `PADROES` de `src/lib/ia/saude.ts`; teste em `tests/lib/ia/cascata.test.ts`.
 - **`.env.local` é privado**: não leia, não imprima, não versione.
 - **TypeScript**: `noUncheckedIndexedAccess` não está ligado (217 pontos a corrigir hoje); as demais verificações estritas estão.

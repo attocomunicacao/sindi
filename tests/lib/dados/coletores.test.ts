@@ -1,6 +1,6 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { comBanco, simularRede, type Rota } from './rede-simulada';
+import { comBanco, simularRede, type Rota } from '../../apoio/rede-simulada';
 import { parseDate } from '@/lib/dados/html';
 import { bcb } from '@/lib/dados/coletores/bcb';
 import { ibge } from '@/lib/dados/coletores/ibge';

@@ -6,7 +6,7 @@ import { lerNFSe } from '@/lib/danfse/leitura';
 import { POST as danfse } from '@/app/api/danfse/route';
 import { reiniciarLimitesNaMemoria } from '@/lib/infra/limite-por-minuto';
 
-const XML = readFileSync(new URL('./fixtures/nfse-exemplo.xml', import.meta.url), 'utf8');
+const XML = readFileSync(new URL('../fixtures/nfse-exemplo.xml', import.meta.url), 'utf8');
 const nota = (miolo: string) => `<NFSe><infNFSe Id="NFS1">${miolo}</infNFSe></NFSe>`;
 
 test('XML hostil: bilhão de risadas e XXE são recusados antes de qualquer expansão', () => {

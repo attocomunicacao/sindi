@@ -110,7 +110,7 @@
 | P3 | Higiene | Parcial: limite por minuto não zera mais tudo; docs, AGENTS.md, CLAUDE.md, README e guia atualizados. **Não feito**: conexão SQLite reaproveitada, `readPainelEmCache` no chat, stopwords únicas, utilitário de cache por mtime, remoção de código morto, quebra das linhas longas |
 
 ### Revisão de segurança (guardião) e correções
-- **Alta**: o `caminho` do repasse permitia trocar de host (`\`, tab, quebra) e vazar o segredo. Corrigido com lista de caracteres permitidos e conferência de origem; teste em `tests/ia-cascata.test.ts`.
+- **Alta**: o `caminho` do repasse permitia trocar de host (`\`, tab, quebra) e vazar o segredo. Corrigido com lista de caracteres permitidos e conferência de origem; teste em `tests/lib/ia/cascata.test.ts`.
 - **Média**: o hook de segredos tinha desvios (`node --env-file=... -e`, curingas, concatenação). Corrigido: lista fechada de comandos permitidos.
 - **Baixa**: `SINDI_CHAT_POR_MINUTO` inválido desligava o limite (corrigido); variantes Unicode dos marcadores (corrigido).
 - **Baixa, aceita**: o segredo do repasse aparece na linha de comando do `vercel deploy --env` durante a publicação (risco local da máquina; muda a cada publicação).

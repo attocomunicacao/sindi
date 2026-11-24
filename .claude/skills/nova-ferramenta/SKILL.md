@@ -13,7 +13,7 @@ Siga `docs/desenvolvimento/guia-do-desenvolvedor.md` §4, nesta ordem:
 4. (Opcional) entrada no chat: `chat.executar(pergunta, { idioma, conector })` devolvendo texto com **todo número** que a resposta possa citar.
 5. Registro em `FERRAMENTAS` (`src/lib/ferramentas/registro.ts`) se for ferramenta.
 6. Variáveis novas documentadas em `env.example`; segredo só no servidor.
-7. Testes: lógica, rotas (copie `tests/orcamento-rotas.test.ts`), interface (`tests/interface-*.test.tsx`, importe `./setup-dom` primeiro), caso hostil em `tests/ataques*.test.ts`.
+7. Testes: lógica, rotas (copie `tests/app/orcamento-rotas.test.ts`), interface (`tests/componentes/interface-*.test.tsx`, importe `../apoio/setup-dom` primeiro), caso hostil em `tests/seguranca/ataques*.test.ts`.
 8. Página em `PAGINAS` de `e2e/ajuda.ts`; `npm run test:e2e`.
 9. `cerebro/conhecimento/ferramentas-da-sindi.md` se a SINDI deve saber da ferramenta.
 10. `npm run verificar:funcional` com o servidor rodando; uma linha no README se for visível ao usuário.

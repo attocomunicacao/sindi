@@ -5,7 +5,7 @@ import { PDFDocument } from 'pdf-lib';
 import { POST as danfse } from '@/app/api/danfse/route';
 import { reiniciarLimitesNaMemoria } from '@/lib/infra/limite-por-minuto';
 
-const XML = readFileSync(new URL('./fixtures/nfse-exemplo.xml', import.meta.url), 'utf8');
+const XML = readFileSync(new URL('../fixtures/nfse-exemplo.xml', import.meta.url), 'utf8');
 const requisicao = (init: { origem?: string | null; tipo?: string | null; corpo?: BodyInit; ip?: string } = {}) => {
   const headers = new Headers();
   if (init.origem !== null) headers.set('origin', init.origem ?? 'http://localhost');

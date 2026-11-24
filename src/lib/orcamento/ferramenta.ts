@@ -19,7 +19,7 @@ export const ferramentaOrcamento: Ferramenta = {
   id: 'orcamento',
   pagina: 'orcamento',
   api: ['/api/orcamento/calcular', '/api/orcamento/catalogo', '/api/orcamento/pdf'],
-  testes: ['tests/orcamento.test.ts', 'tests/orcamento-rotas.test.ts'],
+  testes: ['tests/lib/orcamento/orcamento.test.ts', 'tests/app/orcamento-rotas.test.ts'],
   chat: {
     executar(pergunta, { idioma }) {
       const passagem = calculoDoOrcamento(pergunta, idioma);

@@ -2,7 +2,7 @@ import type { Passagem } from '@/lib/base/tipos';
 import { ferramentaOrcamento } from '@/lib/orcamento/ferramenta';
 import type { ContextoDaFerramenta, Ferramenta } from '@/lib/ferramentas/tipos';
 
-/** Todas as ferramentas do site. Acrescentar uma é incluí-la aqui; o teste tests/ferramentas.test.ts confere páginas, rotas, variáveis de ambiente e testes declarados. */
+/** Todas as ferramentas do site. Acrescentar uma é incluí-la aqui; o teste tests/ferramentas/ferramentas.test.ts confere páginas, rotas, variáveis de ambiente e testes declarados. */
 export const FERRAMENTAS: Ferramenta[] = [ferramentaOrcamento];
 
 /**

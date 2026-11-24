@@ -1,4 +1,4 @@
-import { definirAbaOculta } from './setup-dom';
+import { definirAbaOculta } from '../apoio/setup-dom';
 import { test, afterEach } from 'node:test';
 import assert from 'node:assert/strict';
 import { cleanup, fireEvent, render, screen, waitFor } from '@testing-library/react';

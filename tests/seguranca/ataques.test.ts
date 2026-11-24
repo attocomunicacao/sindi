@@ -23,7 +23,7 @@ import { ipDoPedido } from '@/lib/http/ip';
 import { reiniciarLimitesNaMemoria } from '@/lib/infra/limite-por-minuto';
 import { limparRespostasGuardadas } from '@/lib/infra/cache-respostas';
 import { proxy } from '@/proxy';
-import config from '../next.config';
+import config from '../../next.config';
 
 // ------------------------------------------------------------------------------------------------ ambiente
 const CHAVE = 'AIzaSyEXEMPLO_chave_secreta_0123456789abcdefg';

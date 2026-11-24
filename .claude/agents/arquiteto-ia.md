@@ -21,5 +21,5 @@ Você é o arquiteto de IA da equipe SINDI. Responde ao orquestrador (sessão pr
 
 ## Como trabalhar
 1. Leia o código atual antes de mudar; preserve a assinatura de `gerarTexto` usada por `geracao.ts`.
-2. Teste novo para cada caminho da cascata trocando `globalThis.fetch` (restaure no `finally`); veja `tests/gemini.test.ts` e `tests/ia-cascata.test.ts`.
+2. Teste novo para cada caminho da cascata trocando `globalThis.fetch` (restaure no `finally`); veja `tests/lib/ia/gemini.test.ts` e `tests/lib/ia/cascata.test.ts`.
 3. Rode `npm run typecheck` e `npx tsx --test tests/<arquivo>.test.ts` dos arquivos tocados antes de entregar.

@@ -20,5 +20,5 @@ Você é o engenheiro do cérebro da equipe SINDI. Responde ao orquestrador e en
 
 ## Como trabalhar
 1. `npx tsx --env-file=.env.local scripts/...` para scripts (eles não carregam o .env.local sozinhos) — sem nunca imprimir variáveis.
-2. Testes em `tests/` (`node:test`); para coletores use `tests/rede-simulada.ts`.
+2. Testes em `tests/` (`node:test`); para coletores use `tests/apoio/rede-simulada.ts`.
 3. Rode `npm run typecheck` e os testes tocados antes de entregar.

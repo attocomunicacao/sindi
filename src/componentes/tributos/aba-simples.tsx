@@ -33,6 +33,119 @@ function Marcacao({
   );
 }
 
+type EntradaDoSimples = {
+  receita: string;
+  fator: string;
+  comRedistribuicao: ParDeTextos;
+  semRedistribuicao: ParDeTextos;
+  par: ReturnType<typeof escolherParAliquotas>;
+  regular: boolean;
+};
+
+/** Valida o que foi digitado e calcula; devolve a falha em texto quando falta ou sobra algo. */
+function calcularSimples({ receita, fator, comRedistribuicao, semRedistribuicao, par, regular }: EntradaDoSimples) {
+  const receitaBruta = lerNumero(receita);
+  if (receitaBruta === undefined) return { falha: 'Informe a receita bruta do item em reais.' };
+  const fracao = lerNumero(fator);
+  if (fracao === undefined || fracao > 1) return { falha: 'O fator da receita deve estar entre 0 e 1.' };
+  const usado = par.par === 'sem-redistribuicao' ? semRedistribuicao : comRedistribuicao;
+  const pCBSSN = lerNumero(usado.cbs);
+  const pIBSSN = lerNumero(usado.ibs);
+  if (!regular && (pCBSSN === undefined || pIBSSN === undefined)) {
+    return {
+      falha: `Informe a CBS e o IBS efetivos do PGDAS-D (par ${par.par === 'sem-redistribuicao' ? 'sem' : 'com'} redistribuição do ISS).`,
+    };
+  }
+  return tentar(() =>
+    calcularCbsIbsSimples({
+      receita: receitaBruta,
+      fatorReceita: fracao,
+      pCBSSN: pCBSSN ?? 0,
+      pIBSSN: pIBSSN ?? 0,
+      optaRegimeRegular: regular,
+    }),
+  );
+}
+
+/** As situações do ISS na operação, que definem o par de alíquotas, e o par escolhido. */
+function SituacaoDoIss({
+  fatos,
+  aoMarcar,
+  par,
+}: {
+  fatos: Fatos;
+  aoMarcar: (chave: keyof Fatos) => (marcada: boolean) => void;
+  par: EntradaDoSimples['par'];
+}) {
+  return (
+    <fieldset className="space-y-2">
+      <legend className="text-xs font-medium text-slate-600">
+        Situação do ISS na operação (define o par de alíquotas)
+      </legend>
+      <div className="flex flex-wrap gap-x-5 gap-y-2">
+        <Marcacao marcada={fatos.retido} aoMudar={aoMarcar('retido')}>
+          ISS retido pelo tomador
+        </Marcacao>
+        <Marcacao marcada={fatos.sublimite} aoMudar={aoMarcar('sublimite')}>
+          ISS fora do Simples (sublimite)
+        </Marcacao>
+        <Marcacao marcada={fatos.semIss} aoMudar={aoMarcar('semIss')}>
+          Sem ISS (imunidade, exportação, não incidência)
+        </Marcacao>
+        <Marcacao marcada={fatos.isencao} aoMudar={aoMarcar('isencao')}>
+          Isenção municipal
+        </Marcacao>
+      </div>
+      <p className="text-xs text-slate-600">
+        Par escolhido: <strong>{NOME_DO_PAR[par.par]}</strong>. {par.motivo}
+      </p>
+    </fieldset>
+  );
+}
+
+type PropsDasAliquotas = {
+  comRedistribuicao: ParDeTextos;
+  semRedistribuicao: ParDeTextos;
+  aoMudarCom: (par: ParDeTextos) => void;
+  aoMudarSem: (par: ParDeTextos) => void;
+};
+
+/** As quatro alíquotas efetivas que o contribuinte copia do PGDAS-D. */
+function AliquotasDoPgdas({ comRedistribuicao, semRedistribuicao, aoMudarCom, aoMudarSem }: PropsDasAliquotas) {
+  return (
+    <div className="grid gap-3 sm:grid-cols-4">
+      <CampoDecimal
+        id="c-ccom"
+        rotulo="CBS com redistribuição (%)"
+        value={comRedistribuicao.cbs}
+        aoMudar={(v) => aoMudarCom({ ...comRedistribuicao, cbs: v })}
+        placeholder="do PGDAS-D"
+      />
+      <CampoDecimal
+        id="c-icom"
+        rotulo="IBS com redistribuição (%)"
+        value={comRedistribuicao.ibs}
+        aoMudar={(v) => aoMudarCom({ ...comRedistribuicao, ibs: v })}
+        placeholder="do PGDAS-D"
+      />
+      <CampoDecimal
+        id="c-csem"
+        rotulo="CBS sem redistribuição (%)"
+        value={semRedistribuicao.cbs}
+        aoMudar={(v) => aoMudarSem({ ...semRedistribuicao, cbs: v })}
+        placeholder="do PGDAS-D"
+      />
+      <CampoDecimal
+        id="c-isem"
+        rotulo="IBS sem redistribuição (%)"
+        value={semRedistribuicao.ibs}
+        aoMudar={(v) => aoMudarSem({ ...semRedistribuicao, ibs: v })}
+        placeholder="do PGDAS-D"
+      />
+    </div>
+  );
+}
+
 /** Aba "Simples Nacional — CBS/IBS": a situação do ISS na operação escolhe o par de alíquotas do PGDAS-D. */
 export function AbaSimples() {
   const [anexo, setAnexo] = useState<Anexo>('IV');
@@ -55,29 +168,10 @@ export function AbaSimples() {
     [anexo, fatos],
   );
 
-  const resultado = useMemo(() => {
-    const receitaBruta = lerNumero(receita);
-    if (receitaBruta === undefined) return { falha: 'Informe a receita bruta do item em reais.' };
-    const fracao = lerNumero(fator);
-    if (fracao === undefined || fracao > 1) return { falha: 'O fator da receita deve estar entre 0 e 1.' };
-    const usado = par.par === 'sem-redistribuicao' ? semRedistribuicao : comRedistribuicao;
-    const pCBSSN = lerNumero(usado.cbs);
-    const pIBSSN = lerNumero(usado.ibs);
-    if (!regular && (pCBSSN === undefined || pIBSSN === undefined)) {
-      return {
-        falha: `Informe a CBS e o IBS efetivos do PGDAS-D (par ${par.par === 'sem-redistribuicao' ? 'sem' : 'com'} redistribuição do ISS).`,
-      };
-    }
-    return tentar(() =>
-      calcularCbsIbsSimples({
-        receita: receitaBruta,
-        fatorReceita: fracao,
-        pCBSSN: pCBSSN ?? 0,
-        pIBSSN: pIBSSN ?? 0,
-        optaRegimeRegular: regular,
-      }),
-    );
-  }, [receita, fator, comRedistribuicao, semRedistribuicao, par, regular]);
+  const resultado = useMemo(
+    () => calcularSimples({ receita, fator, comRedistribuicao, semRedistribuicao, par, regular }),
+    [receita, fator, comRedistribuicao, semRedistribuicao, par, regular],
+  );
 
   const marcar = (chave: keyof Fatos) => (marcada: boolean) => setFatos({ ...fatos, [chave]: marcada });
   return (
@@ -87,58 +181,13 @@ export function AbaSimples() {
         <CampoDecimal id="c-rec" rotulo="Receita bruta do item (R$)" value={receita} aoMudar={setReceita} />
         <CampoDecimal id="c-fator" rotulo="Fração tributada (0 a 1)" value={fator} aoMudar={setFator} />
       </div>
-      <fieldset className="space-y-2">
-        <legend className="text-xs font-medium text-slate-600">
-          Situação do ISS na operação (define o par de alíquotas)
-        </legend>
-        <div className="flex flex-wrap gap-x-5 gap-y-2">
-          <Marcacao marcada={fatos.retido} aoMudar={marcar('retido')}>
-            ISS retido pelo tomador
-          </Marcacao>
-          <Marcacao marcada={fatos.sublimite} aoMudar={marcar('sublimite')}>
-            ISS fora do Simples (sublimite)
-          </Marcacao>
-          <Marcacao marcada={fatos.semIss} aoMudar={marcar('semIss')}>
-            Sem ISS (imunidade, exportação, não incidência)
-          </Marcacao>
-          <Marcacao marcada={fatos.isencao} aoMudar={marcar('isencao')}>
-            Isenção municipal
-          </Marcacao>
-        </div>
-        <p className="text-xs text-slate-600">
-          Par escolhido: <strong>{NOME_DO_PAR[par.par]}</strong>. {par.motivo}
-        </p>
-      </fieldset>
-      <div className="grid gap-3 sm:grid-cols-4">
-        <CampoDecimal
-          id="c-ccom"
-          rotulo="CBS com redistribuição (%)"
-          value={comRedistribuicao.cbs}
-          aoMudar={(v) => setComRedistribuicao({ ...comRedistribuicao, cbs: v })}
-          placeholder="do PGDAS-D"
-        />
-        <CampoDecimal
-          id="c-icom"
-          rotulo="IBS com redistribuição (%)"
-          value={comRedistribuicao.ibs}
-          aoMudar={(v) => setComRedistribuicao({ ...comRedistribuicao, ibs: v })}
-          placeholder="do PGDAS-D"
-        />
-        <CampoDecimal
-          id="c-csem"
-          rotulo="CBS sem redistribuição (%)"
-          value={semRedistribuicao.cbs}
-          aoMudar={(v) => setSemRedistribuicao({ ...semRedistribuicao, cbs: v })}
-          placeholder="do PGDAS-D"
-        />
-        <CampoDecimal
-          id="c-isem"
-          rotulo="IBS sem redistribuição (%)"
-          value={semRedistribuicao.ibs}
-          aoMudar={(v) => setSemRedistribuicao({ ...semRedistribuicao, ibs: v })}
-          placeholder="do PGDAS-D"
-        />
-      </div>
+      <SituacaoDoIss fatos={fatos} aoMarcar={marcar} par={par} />
+      <AliquotasDoPgdas
+        comRedistribuicao={comRedistribuicao}
+        semRedistribuicao={semRedistribuicao}
+        aoMudarCom={setComRedistribuicao}
+        aoMudarSem={setSemRedistribuicao}
+      />
       <label className="flex items-center gap-2 text-sm text-slate-700">
         <input type="checkbox" checked={regular} onChange={(e) => setRegular(e.target.checked)} /> Optante pelo regime
         regular de IBS/CBS (receita apurada &quot;por fora&quot; do Simples)

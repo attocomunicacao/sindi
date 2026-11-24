@@ -5,10 +5,13 @@ import { FormularioDeBusca } from '@/componentes/biblioteca/formulario-de-busca'
 import { data, endereco } from '@/componentes/biblioteca/formatacao';
 import { BarraDeDestaque } from '@/componentes/ui/pagina-ferramenta';
 import { numeroBR } from '@/lib/base/formato';
-import { ALAS, estantePorId, type Ala } from '@/lib/biblioteca/estantes';
+import { estantePorId } from '@/lib/biblioteca/estantes';
 import { buscarNaBiblioteca, resumoDaBiblioteca } from '@/lib/biblioteca/consulta';
 import { statusDoConhecimento } from '@/lib/recuperacao/legado/status';
 import { Pendente } from '@/componentes/layout/pendente';
+import { ListaDeEstantes } from '@/componentes/biblioteca/lista-de-estantes';
+import { PassosDaSindi } from '@/componentes/biblioteca/passos-da-sindi';
+import { SituacaoDaColeta } from '@/componentes/biblioteca/situacao-da-coleta';
 
 export const metadata = {
   title: 'Biblioteca | SINDI',
@@ -17,13 +20,6 @@ export const metadata = {
 };
 type Consulta = { q?: string | string[]; estante?: string | string[] };
 const texto = (v?: string | string[]) => (Array.isArray(v) ? v[0] : v)?.trim().slice(0, 120) || undefined;
-
-const PASSOS = [
-  ['Compreensão', 'Identifica o assunto e o contexto da conversa, e recusa o que foge do setor.'],
-  ['Consulta', 'Busca por palavras e por significado nas estantes e seleciona os trechos pertinentes.'],
-  ['Redação', 'O modelo explica, com palavras próprias, o que os trechos dizem para o caso apresentado.'],
-  ['Verificação', 'Valores, contatos e leis ausentes das fontes derrubam a resposta; as fontes usadas são citadas.'],
-] as const;
 
 export default async function BibliotecaPage({ searchParams }: { searchParams: Promise<Consulta> }) {
   const parametros = await searchParams;
@@ -44,11 +40,6 @@ function Titulo({ children }: { children: React.ReactNode }) {
 async function Inicio() {
   const resumo = resumoDaBiblioteca();
   const status = await statusDoConhecimento();
-  const alas = (Object.keys(ALAS) as Ala[]).map((ala) => ({
-    ala,
-    estantes: resumo.estantes.filter((e) => e.estante.ala === ala),
-  }));
-  let ordem = 0;
   return (
     <div className="mx-auto max-w-6xl gutter py-12 sm:py-16">
       <header>
@@ -70,131 +61,9 @@ async function Inicio() {
           </p>
         )}
       </header>
-
-      <div className="mt-14 space-y-12">
-        {alas.map(({ ala, estantes }) => (
-          <section key={ala} aria-labelledby={`ala-${ala}`}>
-            <div className="flex flex-wrap items-baseline justify-between gap-x-6 gap-y-1 border-b-2 border-slate-800 pb-2">
-              <h2 id={`ala-${ala}`} className="text-lg font-semibold text-slate-900">
-                {ALAS[ala].nome}
-              </h2>
-              <p className="text-sm text-slate-500">{ALAS[ala].descricao}</p>
-            </div>
-            <ul className="divide-y divide-slate-200">
-              {estantes.map(({ estante, total, atualizado }) => {
-                ordem += 1;
-                return (
-                  <li key={estante.id}>
-                    <Link
-                      href={`/base/${estante.id}`}
-                      className="group grid grid-cols-[2rem_1fr] items-baseline gap-x-4 py-4 xs:grid-cols-[2rem_1fr_auto] hover:bg-slate-100/60 focus-visible:outline-2 focus-visible:outline-amber-400 sm:grid-cols-[2.5rem_1fr_auto]"
-                    >
-                      <span className="text-sm tabular-nums text-slate-500">{String(ordem).padStart(2, '0')}</span>
-                      <span className="min-w-0">
-                        <span className="block text-base font-medium text-slate-900 group-hover:underline group-hover:decoration-amber-400 group-hover:decoration-2 group-hover:underline-offset-4">
-                          {estante.nome}
-                        </span>
-                        <span className="mt-0.5 block text-sm leading-6 text-slate-500">{estante.descricao}</span>
-                      </span>
-                      <span className="col-start-2 mt-1 flex items-baseline gap-1.5 text-sm tabular-nums text-slate-500 xs:col-start-auto xs:mt-0 xs:block xs:text-right">
-                        <span className="block font-semibold text-slate-900">{numeroBR(total)}</span>
-                        <span className="block text-xs">
-                          {estante.especial === 'cerebro'
-                            ? total === 1
-                              ? 'seção'
-                              : 'seções'
-                            : estante.especial === 'indicadores'
-                              ? 'indicadores'
-                              : total === 1
-                                ? 'documento'
-                                : 'documentos'}
-                          {atualizado ? ` · ${data(atualizado)}` : ''}
-                        </span>
-                      </span>
-                      <Pendente />
-                    </Link>
-                  </li>
-                );
-              })}
-            </ul>
-          </section>
-        ))}
-      </div>
-
-      <section aria-labelledby="como-funciona" className="mt-16">
-        <div className="border-b-2 border-slate-800 pb-2">
-          <h2 id="como-funciona" className="text-lg font-semibold text-slate-900">
-            Como a SINDI usa o acervo
-          </h2>
-        </div>
-        <ol className="divide-y divide-slate-200">
-          {PASSOS.map(([titulo, descricao], i) => (
-            <li key={titulo} className="grid grid-cols-[2rem_1fr] gap-x-4 py-4 sm:grid-cols-[2.5rem_9rem_1fr]">
-              <span className="text-sm tabular-nums text-slate-500">{String(i + 1).padStart(2, '0')}</span>
-              <h3 className="text-sm font-semibold text-slate-900">{titulo}</h3>
-              <p className="col-start-2 text-sm leading-6 text-slate-600 sm:col-start-auto">{descricao}</p>
-            </li>
-          ))}
-        </ol>
-        <p className="mt-4 text-sm leading-6 text-slate-500">
-          O acervo não é parecer jurídico nem determina a vigência de normas. PDFs digitalizados sem texto ficam
-          listados, mas sem conteúdo para consulta pela SINDI.
-        </p>
-      </section>
-
-      <section aria-labelledby="coleta" className="mt-12">
-        <details className="group border-y border-slate-200 py-4">
-          <summary id="coleta" className="cursor-pointer text-sm font-semibold text-slate-900 marker:text-slate-400">
-            Situação da coleta do site do SINDEPRESTEM
-          </summary>
-          <div className="mt-4 space-y-3 text-sm leading-6 text-slate-600">
-            {status.available ? (
-              <>
-                <dl className="grid grid-cols-2 gap-4 sm:grid-cols-4">
-                  {[
-                    ['Documentos do site', status.documents],
-                    ['URLs verificadas', status.checked],
-                    ['URLs no sitemap', status.discovered],
-                    ['Pendências', status.failureCount],
-                  ].map(([rotulo, valor]) => (
-                    <div key={String(rotulo)}>
-                      <dt className="text-xs text-slate-500">{rotulo}</dt>
-                      <dd className="text-xl font-semibold tabular-nums text-slate-900">
-                        {numeroBR(Number(valor ?? 0))}
-                      </dd>
-                    </div>
-                  ))}
-                </dl>
-                <p>
-                  Última varredura iniciada em {data(status.startedAt, true)}; conclusão em{' '}
-                  {data(status.finishedAt, true)}.{' '}
-                  {status.phase === 'running'
-                    ? `Varredura em andamento (último sinal ${data(status.heartbeatAt, true)}).`
-                    : 'Varredura encerrada.'}
-                </p>
-                <p>
-                  {status.cloudConfigured
-                    ? `${numeroBR(status.uploaded ?? 0)} documentos confirmados no Supabase nesta varredura.`
-                    : 'Espelho local ativo; o envio ao Supabase depende da chave de escrita no coletor.'}{' '}
-                  {numeroBR(status.externalCount ?? 0)} links externos foram identificados e não contam como textos
-                  lidos.
-                </p>
-                {status.incomplete && (
-                  <p>
-                    Esta coleta ainda está incompleta; falhas e conteúdos não extraídos ficam registrados para revisão.
-                  </p>
-                )}
-              </>
-            ) : (
-              <p>A primeira coleta do site ainda não gerou relatório.</p>
-            )}
-            <p>
-              O coletor consulta os sitemaps a cada 15 minutos; notícias antigas são revisadas diariamente ou quando o
-              sitemap indica mudança. Isso não é atualização instantânea.
-            </p>
-          </div>
-        </details>
-      </section>
+      <ListaDeEstantes estantes={resumo.estantes} />
+      <PassosDaSindi />
+      <SituacaoDaColeta status={status} />
     </div>
   );
 }

@@ -57,21 +57,14 @@ function erroHttp(status: number, espera: number | undefined) {
   return new LlmError('Provedor indisponível.', 502, 'indisponivel');
 }
 
-async function gerarCompat(
+function montarCorpo(
   cfg: ConfigCompat,
+  modelo: string,
   mensagens: Mensagem[],
-  signal: AbortSignal,
-  onDelta: ((t: string) => void) | undefined,
   opcoes: OpcoesDeGeracao,
-  nivel: Nivel,
-): Promise<Resultado> {
-  const base = cfg.base();
-  const chave = cfg.chave();
-  if (!base || (!cfg.local && !chave)) throw new LlmError('Provedor não configurado.', 503, 'configuracao');
-  const modelo = cfg.modelos(nivel);
-  if (!NOME_DE_MODELO.test(modelo)) throw new LlmError('Nome de modelo inválido.', 503, 'configuracao');
-  const streaming = Boolean(onDelta);
-  const corpo = {
+  streaming: boolean,
+) {
+  return {
     model: modelo,
     messages: mensagens.map((m) => ({ role: m.role, content: m.content })),
     temperature: opcoes.temperature ?? 0.2,
@@ -81,6 +74,16 @@ async function gerarCompat(
     ...(streaming && cfg.usoNoFluxo ? { stream_options: { include_usage: true } } : {}),
     ...cfg.extras?.(modelo),
   };
+}
+
+/** Faz o POST e devolve a resposta HTTP já conferida; qualquer falha vira `LlmError` para a cascata decidir. */
+async function chamar(
+  cfg: ConfigCompat,
+  base: string,
+  chave: string | undefined,
+  corpo: object,
+  signal: AbortSignal,
+): Promise<Response> {
   const sinal = AbortSignal.any([signal, AbortSignal.timeout(cfg.tempoMs?.() ?? tempoLimiteMs())]);
   let response: Response;
   try {
@@ -104,10 +107,12 @@ async function gerarCompat(
     await response.body?.cancel().catch(() => {});
     throw erroHttp(response.status, esperaDoCabecalho(response.headers.get('retry-after')));
   }
+  return response;
+}
 
-  let texto = '';
-  let fim: string | undefined;
-  let uso: Pedaco['usage'];
+/** Junta os pedaços da resposta (fluxo ou corpo único) e guarda o motivo de parada e o uso de tokens. */
+function criarAcumulador(streaming: boolean, onDelta: ((t: string) => void) | undefined) {
+  const estado: { texto: string; fim?: string; uso?: Pedaco['usage'] } = { texto: '' };
   const absorver = (p: Pedaco) => {
     // Erro no meio do fluxo (OpenRouter manda um pedaço com `error` e finish_reason "error" depois do HTTP 200).
     if (p.error || p.choices?.[0]?.finish_reason === 'error') {
@@ -119,30 +124,22 @@ async function gerarCompat(
     const escolha = p.choices?.[0];
     const parte = streaming ? escolha?.delta?.content : escolha?.message?.content;
     if (typeof parte === 'string' && parte) {
-      texto += parte;
+      estado.texto += parte;
       if (streaming) onDelta!(parte);
     }
-    fim = escolha?.finish_reason ?? fim;
-    uso = p.usage ?? uso;
+    estado.fim = escolha?.finish_reason ?? estado.fim;
+    estado.uso = p.usage ?? estado.uso;
   };
-  if (streaming) {
-    if (!response.body) throw new LlmError('Provedor devolveu resposta incompleta.', 502);
-    await lerSse(
-      response.body,
-      (dados) => {
-        if (dados === '[DONE]') return 'fim';
-        let p: Pedaco;
-        try {
-          p = JSON.parse(dados);
-        } catch {
-          throw new LlmError('Provedor interrompeu a resposta.', 502);
-        }
-        absorver(p);
-        return undefined;
-      },
-      cfg.inatividadeMs?.(),
-    );
-  } else {
+  return { estado, absorver };
+}
+
+async function lerCorpo(
+  cfg: ConfigCompat,
+  response: Response,
+  streaming: boolean,
+  absorver: (p: Pedaco) => void,
+): Promise<void> {
+  if (!streaming) {
     let p: Pedaco;
     try {
       p = (await response.json()) as Pedaco;
@@ -150,7 +147,27 @@ async function gerarCompat(
       throw new LlmError('Provedor devolveu resposta inválida.', 502);
     }
     absorver(p);
+    return;
   }
+  if (!response.body) throw new LlmError('Provedor devolveu resposta incompleta.', 502);
+  await lerSse(
+    response.body,
+    (dados) => {
+      if (dados === '[DONE]') return 'fim';
+      let p: Pedaco;
+      try {
+        p = JSON.parse(dados);
+      } catch {
+        throw new LlmError('Provedor interrompeu a resposta.', 502);
+      }
+      absorver(p);
+      return undefined;
+    },
+    cfg.inatividadeMs?.(),
+  );
+}
+
+function montarResultado(modelo: string, { texto, fim, uso }: ReturnType<typeof criarAcumulador>['estado']): Resultado {
   if (fim === 'content_filter' && !texto.trim())
     throw new LlmError('Não foi possível responder a esta pergunta. Tente reformulá-la.', 422, 'bloqueio');
   if (!texto.trim()) throw new LlmError('Provedor devolveu resposta vazia.', 502);
@@ -167,6 +184,27 @@ async function gerarCompat(
         contagem(uso?.total_tokens) ?? (entrada !== undefined && saida !== undefined ? entrada + saida : undefined),
     },
   };
+}
+
+async function gerarCompat(
+  cfg: ConfigCompat,
+  mensagens: Mensagem[],
+  signal: AbortSignal,
+  onDelta: ((t: string) => void) | undefined,
+  opcoes: OpcoesDeGeracao,
+  nivel: Nivel,
+): Promise<Resultado> {
+  const base = cfg.base();
+  const chave = cfg.chave();
+  if (!base || (!cfg.local && !chave)) throw new LlmError('Provedor não configurado.', 503, 'configuracao');
+  const modelo = cfg.modelos(nivel);
+  if (!NOME_DE_MODELO.test(modelo)) throw new LlmError('Nome de modelo inválido.', 503, 'configuracao');
+  const streaming = Boolean(onDelta);
+  const corpo = montarCorpo(cfg, modelo, mensagens, opcoes, streaming);
+  const response = await chamar(cfg, base, chave, corpo, signal);
+  const { estado, absorver } = criarAcumulador(streaming, onDelta);
+  await lerCorpo(cfg, response, streaming, absorver);
+  return montarResultado(modelo, estado);
 }
 
 export const provedorCompat = (cfg: ConfigCompat): Provedor => ({

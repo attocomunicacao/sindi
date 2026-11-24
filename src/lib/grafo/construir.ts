@@ -42,54 +42,74 @@ type Linha = {
 };
 const LIMITE_DE_TEXTO = 40_000;
 
-export function construirGrafo(opcoes: { banco?: string; iteracoes?: number } = {}): Grafo {
-  const nos = new Map<string, Omit<No, 'x' | 'y' | 'grau'>>();
+type DadosDoNo = Omit<No, 'x' | 'y' | 'grau'>;
+/** Os nós e as arestas em construção, com as duas operações que toda etapa usa: criar um nó (uma vez por id) e ligar dois nós (uma vez por par e tipo). */
+type Montador = {
+  nos: Map<string, DadosDoNo>;
+  arestas: Aresta[];
+  no: (id: string, tipo: TipoDeNo, rotulo: string, grupo: string, extra?: Partial<No>) => string;
+  liga: (de: string, para: string, tipo: TipoDeAresta, peso?: number) => void;
+};
+type Citacao = { rotulo: string; tipo: TipoDeNo; docs: Set<string>; proprio?: string };
+type Conector = ReturnType<typeof conectores>[number];
+
+function criarMontador(): Montador {
+  const nos = new Map<string, DadosDoNo>();
   const arestas: Aresta[] = [];
   const vistas = new Set<string>();
-  const no = (id: string, tipo: TipoDeNo, rotulo: string, grupo: string, extra: Partial<No> = {}) => {
+  const no: Montador['no'] = (id, tipo, rotulo, grupo, extra = {}) => {
     if (!nos.has(id))
       nos.set(id, { id, tipo, rotulo: rotulo.replace(/\s+/g, ' ').trim().slice(0, 140), grupo, ...extra });
     return id;
   };
-  const liga = (de: string, para: string, tipo: TipoDeAresta, peso = 1) => {
+  const liga: Montador['liga'] = (de, para, tipo, peso = 1) => {
     if (de === para || !nos.has(de) || !nos.has(para)) return;
     const chave = de < para ? `${de}|${para}|${tipo}` : `${para}|${de}|${tipo}`;
     if (vistas.has(chave)) return;
     vistas.add(chave);
     arestas.push({ de, para, tipo, peso });
   };
+  return { nos, arestas, no, liga };
+}
 
-  // Núcleo, especialistas e estantes.
+/** Núcleo, especialistas (conectores) e estantes que cada um consulta. */
+function ligarNucleo({ no, liga }: Montador, lista: Conector[]) {
   const nucleo = no('sindi', 'nucleo', 'SINDI', 'nucleo', { href: '/' });
   for (const e of ESTANTES) no(`estante:${e.id}`, 'estante', e.nome, e.ala, { href: `/base/${e.id}` });
-  const lista = conectores();
   for (const c of lista) {
     no(`conector:${c.id}`, 'conector', c.titulo, 'conector');
     liga(nucleo, `conector:${c.id}`, 'especialista', 3);
     for (const e of c.estantes) liga(`conector:${c.id}`, `estante:${e}`, 'consulta', 2);
   }
+}
 
-  // Conhecimento escrito pela equipe e resumos automáticos (um nó por arquivo do cérebro).
-  const { trechos } = carregarArquivos();
+function agruparPorArquivo(trechos: TrechoDoCerebro[]): Map<string, TrechoDoCerebro[]> {
   const porArquivo = new Map<string, TrechoDoCerebro[]>();
   for (const t of trechos) porArquivo.set(t.arquivo, [...(porArquivo.get(t.arquivo) ?? []), t]);
-  for (const [arquivo, lista2] of porArquivo) {
+  return porArquivo;
+}
+
+/** Conhecimento escrito pela equipe e resumos automáticos (um nó por arquivo do cérebro), ligados aos especialistas com gatilhos em comum. */
+function ligarConhecimento({ no, liga }: Montador, porArquivo: Map<string, TrechoDoCerebro[]>, lista: Conector[]) {
+  for (const [arquivo, trechosDoArquivo] of porArquivo) {
     const id = no(
       `conhecimento:${arquivo}`,
       'conhecimento',
-      lista2[0].titulo,
+      trechosDoArquivo[0].titulo,
       arquivo.startsWith('auto/') ? 'auto' : 'curado',
       { href: '/base/cerebro' },
     );
     liga(id, 'estante:cerebro', 'guarda', 1);
-    const gatilhos = new Set(lista2.flatMap((t) => t.gatilhos.map(normalizar)));
+    const gatilhos = new Set(trechosDoArquivo.flatMap((t) => t.gatilhos.map(normalizar)));
     for (const c of lista) {
       const comuns = c.gatilhos.filter((g) => gatilhos.has(g)).length;
       if (comuns) liga(`conector:${c.id}`, id, 'gatilho', Math.min(3, comuns));
     }
   }
+}
 
-  // Parecidos em significado (vetores da busca semântica, agregados por arquivo).
+/** Parecidos em significado (vetores da busca semântica, agregados por arquivo): fica o maior cosseno de cada par de arquivos. */
+function ligarParecidos({ liga }: Montador, trechos: TrechoDoCerebro[]) {
   try {
     const indice = JSON.parse(readFileSync(arquivoDeVetores(), 'utf8')) as {
       vetores: Record<string, { vetor: number[] }>;
@@ -116,66 +136,83 @@ export function construirGrafo(opcoes: { banco?: string; iteracoes?: number } = 
   } catch {
     /* sem índice de vetores: o grafo sai sem as ligações por significado */
   }
+}
 
-  // Documentos da biblioteca, entidades e links.
-  const banco = opcoes.banco === undefined ? caminhoDoBanco() : opcoes.banco;
-  const porUrl = new Map<string, string>();
-  const citacoes = new Map<string, { rotulo: string; tipo: TipoDeNo; docs: Set<string>; proprio?: string }>();
-  const linksDoSite: [string, string[]][] = [];
-  if (banco && existsSync(banco)) {
-    const db = new DatabaseSync(banco, { readOnly: true });
-    try {
-      const linhas = db
-        .prepare(
-          `SELECT rowid, url, source, title, published_at, meta, substr(content, 1, ${LIMITE_DE_TEXTO}) AS trecho FROM documents`,
-        )
-        .all() as Linha[];
-      for (const l of linhas) {
-        let meta: Record<string, unknown> = {};
-        try {
-          meta = l.meta ? JSON.parse(l.meta) : {};
-        } catch {
-          /* meta inválida: segue sem ela */
-        }
-        if (meta.listing) continue; // páginas de listagem do site não são documentos
-        const estante = estanteDoDocumento({
-          source: l.source,
-          section: meta.section as string | undefined,
-          kind: meta.kind as string | undefined,
-          url: l.url,
-        });
-        const id = no(`doc:${refDoDocumento(l.url)}:${l.rowid}`, 'documento', l.title || l.url, l.source, {
-          href: `/base/documento/${l.rowid}?r=${refDoDocumento(l.url)}`,
-          data: l.published_at ?? undefined,
-        });
-        porUrl.set(l.url.split('#')[0].replace(/\/+$/, ''), id);
-        porUrl.set(l.url, id);
-        liga(id, `estante:${estante}`, 'guarda', 0.3);
-        if (Array.isArray(meta.links)) linksDoSite.push([id, meta.links as string[]]);
-        for (const e of extrairEntidades(`${l.title}\n${l.trecho}`)) {
-          const c = citacoes.get(e.id) ?? { rotulo: e.rotulo, tipo: e.tipo as TipoDeNo, docs: new Set<string>() };
-          c.docs.add(id);
-          // O próprio projeto de lei (Câmara/Senado) é o documento da entidade.
-          if (
-            e.tipo === 'proposicao' &&
-            (l.source === 'camara' || l.source === 'senado') &&
-            normalizar(l.title).includes(normalizar(e.rotulo))
-          )
-            c.proprio = id;
-          citacoes.set(e.id, c);
-        }
-      }
-    } finally {
-      db.close();
-    }
+function lerMeta(texto: string | null): Record<string, unknown> {
+  try {
+    return texto ? JSON.parse(texto) : {};
+  } catch {
+    return {}; // meta inválida: segue sem ela
   }
+}
+
+/** Registra as entidades (lei, NR, projeto) citadas por um documento; o próprio projeto de lei (Câmara/Senado) é o documento da entidade. */
+function registrarCitacoes(citacoes: Map<string, Citacao>, l: Linha, idDoDocumento: string) {
+  for (const e of extrairEntidades(`${l.title}\n${l.trecho}`)) {
+    const c = citacoes.get(e.id) ?? { rotulo: e.rotulo, tipo: e.tipo as TipoDeNo, docs: new Set<string>() };
+    c.docs.add(idDoDocumento);
+    if (
+      e.tipo === 'proposicao' &&
+      (l.source === 'camara' || l.source === 'senado') &&
+      normalizar(l.title).includes(normalizar(e.rotulo))
+    )
+      c.proprio = idDoDocumento;
+    citacoes.set(e.id, c);
+  }
+}
+
+/** Documentos da biblioteca (um nó cada, ligado à estante), com o que as etapas seguintes precisam: URL → nó, entidades citadas e links do site. */
+function lerDocumentos({ no, liga }: Montador, banco: string | undefined) {
+  const porUrl = new Map<string, string>();
+  const citacoes = new Map<string, Citacao>();
+  const linksDoSite: [string, string[]][] = [];
+  if (!banco || !existsSync(banco)) return { porUrl, citacoes, linksDoSite };
+  const db = new DatabaseSync(banco, { readOnly: true });
+  try {
+    const linhas = db
+      .prepare(
+        `SELECT rowid, url, source, title, published_at, meta, substr(content, 1, ${LIMITE_DE_TEXTO}) AS trecho FROM documents`,
+      )
+      .all() as Linha[];
+    for (const l of linhas) {
+      const meta = lerMeta(l.meta);
+      if (meta.listing) continue; // páginas de listagem do site não são documentos
+      const estante = estanteDoDocumento({
+        source: l.source,
+        section: meta.section as string | undefined,
+        kind: meta.kind as string | undefined,
+        url: l.url,
+      });
+      const id = no(`doc:${refDoDocumento(l.url)}:${l.rowid}`, 'documento', l.title || l.url, l.source, {
+        href: `/base/documento/${l.rowid}?r=${refDoDocumento(l.url)}`,
+        data: l.published_at ?? undefined,
+      });
+      porUrl.set(l.url.split('#')[0].replace(/\/+$/, ''), id);
+      porUrl.set(l.url, id);
+      liga(id, `estante:${estante}`, 'guarda', 0.3);
+      if (Array.isArray(meta.links)) linksDoSite.push([id, meta.links as string[]]);
+      registrarCitacoes(citacoes, l, id);
+    }
+  } finally {
+    db.close();
+  }
+  return { porUrl, citacoes, linksDoSite };
+}
+
+/** Entidade citada por um documento só vira nó se outro também a citar ou se for o próprio projeto. */
+function ligarEntidades({ no, liga }: Montador, citacoes: Map<string, Citacao>) {
   for (const [id, c] of citacoes) {
     if (c.docs.size < 2 && !c.proprio) continue;
     no(`ent:${id}`, c.tipo, c.rotulo, c.tipo);
     for (const d of c.docs) liga(d, `ent:${id}`, 'cita', d === c.proprio ? 2 : 1);
   }
-  // Links do site: os do menu e do rodapé aparecem em quase toda página (medido: 47 mil de 56 mil ligações apontavam para "Home", "Contato"...).
-  // São navegação, não relação entre conteúdos: alvo linkado por mais de 5% das páginas (mínimo 20) fica de fora, e cada página leva no máximo 15 links.
+}
+
+/**
+ * Links do site: os do menu e do rodapé aparecem em quase toda página (medido: 47 mil de 56 mil ligações apontavam para "Home", "Contato"...).
+ * São navegação, não relação entre conteúdos: alvo linkado por mais de 5% das páginas (mínimo 20) fica de fora, e cada página leva no máximo 15 links.
+ */
+function ligarLinksDoSite({ liga }: Montador, linksDoSite: [string, string[]][], porUrl: Map<string, string>) {
   const resolvidos = linksDoSite.map(
     ([de, links]) =>
       [
@@ -193,16 +230,40 @@ export function construirGrafo(opcoes: { banco?: string; iteracoes?: number } = 
   for (const [de, alvos] of resolvidos)
     for (const para of alvos.filter((a) => (entrada.get(a) ?? 0) <= tetoDeNavegacao).slice(0, 15))
       liga(de, para, 'liga', 0.5);
-  // Resumos automáticos citam documentos por link Markdown.
-  for (const [arquivo, lista2] of porArquivo) {
+}
+
+/** Resumos automáticos citam documentos por link Markdown. */
+function ligarResumosAosDocumentos(
+  { liga }: Montador,
+  porArquivo: Map<string, TrechoDoCerebro[]>,
+  porUrl: Map<string, string>,
+) {
+  for (const [arquivo, trechosDoArquivo] of porArquivo) {
     if (!arquivo.startsWith('auto/')) continue;
-    for (const t of lista2)
+    for (const t of trechosDoArquivo)
       for (const m of t.texto.matchAll(/\]\((https?:\/\/[^)\s]+)\)/g)) {
         const para = porUrl.get(m[1].split('#')[0].replace(/\/+$/, '')) ?? porUrl.get(m[1]);
         if (para) liga(`conhecimento:${arquivo}`, para, 'cita', 1);
       }
   }
-  return dispor([...nos.values()], arestas, opcoes.iteracoes ?? 260);
+}
+
+export function construirGrafo(opcoes: { banco?: string; iteracoes?: number } = {}): Grafo {
+  const m = criarMontador();
+  const lista = conectores();
+  ligarNucleo(m, lista);
+  const { trechos } = carregarArquivos();
+  const porArquivo = agruparPorArquivo(trechos);
+  ligarConhecimento(m, porArquivo, lista);
+  ligarParecidos(m, trechos);
+  const { porUrl, citacoes, linksDoSite } = lerDocumentos(
+    m,
+    opcoes.banco === undefined ? caminhoDoBanco() : opcoes.banco,
+  );
+  ligarEntidades(m, citacoes);
+  ligarLinksDoSite(m, linksDoSite, porUrl);
+  ligarResumosAosDocumentos(m, porArquivo, porUrl);
+  return dispor([...m.nos.values()], m.arestas, opcoes.iteracoes ?? 260);
 }
 
 let soDoCerebro: { em: number; grafo: Grafo } | undefined;

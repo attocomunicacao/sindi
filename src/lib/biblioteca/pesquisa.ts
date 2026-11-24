@@ -1,3 +1,4 @@
+import type { DatabaseSync } from 'node:sqlite';
 import { dataBR, mesAno } from '@/lib/base/formato';
 import { PRESIDENTE, RODAPE_INSTITUCIONAL } from '@/lib/base/constantes';
 import { comBancoSomenteLeitura, consultaPorPrefixos, caminhoDoBanco } from '@/lib/dados/db';
@@ -128,6 +129,91 @@ type Linha = {
 
 /** `antigos: false` dispensa textos com mais de três anos (quando o conhecimento escrito pela equipe já responde, notícia antiga só acrescenta ruído). */
 export type OpcoesDaPesquisa = { limite?: number; minimo?: number; arquivo?: string; agora?: Date; antigos?: boolean };
+
+type Candidato = Linha & { estante: string; pontos: number };
+/** O que a conferência de cada linha do índice precisa saber da pergunta. */
+type ContextoDaBusca = {
+  termos: string[];
+  pesos: number[];
+  ancoras: string[];
+  citaNr: RegExp | undefined;
+  consulta: string;
+  minimo: number;
+  agora: Date;
+};
+
+/** Candidatos de uma estante: o índice de texto traz as linhas e só ficam as que a pergunta realmente cobre; devolve já com pontuação. */
+function candidatosDaEstante(db: DatabaseSync, estante: (typeof ESTANTES)[number], c: ContextoDaBusca): Candidato[] {
+  // Notícias e artigos: só as publicações (com data), nunca as páginas de listagem.
+  const publicacao =
+    estante.id === 'noticias' || estante.id === 'artigos'
+      ? "AND d.url LIKE '%/post/%' AND d.published_at IS NOT NULL"
+      : '';
+  // A busca no índice é resolvida primeiro e sozinha (MATERIALIZED): com o filtro da estante na mesma consulta, o SQLite chega a percorrer os documentos
+  // e repetir a busca para cada um (medido: 18 s contra 0,05 s).
+  const linhas = db
+    .prepare(
+      `WITH achados AS MATERIALIZED (SELECT rowid AS id, bm25(documents_fts, 6.0, 1.0) AS rank FROM documents_fts WHERE documents_fts MATCH ?)
+        SELECT d.title, d.url, d.content, d.published_at, d.fetched_at, a.rank FROM achados a JOIN documents d ON d.rowid = a.id WHERE ${estante.onde} ${publicacao} ORDER BY a.rank LIMIT 30`,
+    )
+    .all(c.consulta) as Linha[];
+  const candidatos: Candidato[] = [];
+  linhas.forEach((l, posicao) => {
+    const noTitulo = cobertura(c.termos, l.title, c.pesos);
+    const geral = coberturaLocal(c.termos, l.title, l.content, c.pesos);
+    if (c.citaNr && !c.citaNr.test(normalizar(`${l.title} ${l.content}`))) return;
+    const titulo = normalizar(l.title);
+    if (c.ancoras.length && !c.ancoras.some((a) => titulo.includes(a)) && !(c.citaNr && c.citaNr.test(titulo))) return;
+    // Com um ou dois termos, todos precisam aparecer; com mais, a maior parte do peso.
+    if (c.termos.length && geral < (c.termos.length <= 2 ? 0.999 : c.minimo)) return;
+    const idade = l.published_at ? (c.agora.getTime() - Date.parse(l.published_at)) / (365 * 864e5) : 1.5;
+    // Texto recente pesa mais: em três anos uma notícia deixa de descrever "o cenário atual".
+    candidatos.push({
+      ...l,
+      estante: estante.id,
+      pontos:
+        geral * 10 +
+        noTitulo * 6 +
+        Math.max(-2, 2.5 - idade * 1.5) +
+        (estante.id === 'artigos' ? 0.5 : 0) -
+        posicao * 0.05,
+    });
+  });
+  return candidatos;
+}
+
+/** Dos candidatos ordenados por pontuação, tira os repetidos (mesmo título) e monta a passagem com os trechos que casam com a pergunta. */
+function escolherPassagens(
+  candidatos: Candidato[],
+  termos: string[],
+  nr: number | undefined,
+  { limite, agora, antigos }: { limite: number; agora: Date; antigos: boolean },
+): Passagem[] {
+  const vistos = new Set<string>();
+  const escolhidos: Passagem[] = [];
+  // Havendo texto dos últimos três anos sobre o assunto, os mais antigos ficam de fora: notícia velha não descreve a situação atual.
+  const recente = (c: Linha) => !c.published_at || agora.getTime() - Date.parse(c.published_at) <= 3 * 365 * 864e5;
+  const ordenados = candidatos.sort((a, b) => b.pontos - a.pontos);
+  for (const c of ordenados.some(recente) || !antigos ? ordenados.filter(recente) : ordenados.slice(0, 1)) {
+    const titulo = c.title
+      .replace(/^Artigo\s*[-–:]\s*/i, '')
+      .replace(/\s+/g, ' ')
+      .trim();
+    if (vistos.has(normalizar(titulo))) continue;
+    vistos.add(normalizar(titulo));
+    const data = dataBr(c.published_at);
+    escolhidos.push({
+      url: c.url.split('#')[0],
+      title: titulo,
+      fetchedAt: c.fetched_at,
+      pinned: true,
+      content: `${ROTULO[c.estante] ?? 'Documento da biblioteca'}${data ? ` em ${data}` : ''}. ${trechosRelevantes(limparParaTrecho(c.content), [...termos.map(radical), ...(nr === undefined ? [] : [`nr-${nr}`, `nr ${nr}`])], 650, 320).replace(/\s+/g, ' ')}`,
+    });
+    if (escolhidos.length === limite) break;
+  }
+  return escolhidos;
+}
+
 export function pesquisarNaBiblioteca(
   pergunta: string,
   estantes: string[],
@@ -152,66 +238,9 @@ export function pesquisarNaBiblioteca(
       const distintivo = Math.min(PESO_DISTINTIVO, Math.max(...pesos, 0) * 0.6);
       const ancoras = termos.filter((_, i) => pesos[i] >= distintivo).map(radical);
       if (termos.length && !ancoras.length && nr === undefined) return [];
-      const candidatos: (Linha & { estante: string; pontos: number })[] = [];
-      for (const estante of alvos) {
-        // Notícias e artigos: só as publicações (com data), nunca as páginas de listagem.
-        const publicacao =
-          estante.id === 'noticias' || estante.id === 'artigos'
-            ? "AND d.url LIKE '%/post/%' AND d.published_at IS NOT NULL"
-            : '';
-        // A busca no índice é resolvida primeiro e sozinha (MATERIALIZED): com o filtro da estante na mesma consulta, o SQLite chega a percorrer os documentos
-        // e repetir a busca para cada um (medido: 18 s contra 0,05 s).
-        const linhas = db
-          .prepare(
-            `WITH achados AS MATERIALIZED (SELECT rowid AS id, bm25(documents_fts, 6.0, 1.0) AS rank FROM documents_fts WHERE documents_fts MATCH ?)
-        SELECT d.title, d.url, d.content, d.published_at, d.fetched_at, a.rank FROM achados a JOIN documents d ON d.rowid = a.id WHERE ${estante.onde} ${publicacao} ORDER BY a.rank LIMIT 30`,
-          )
-          .all(consulta) as Linha[];
-        linhas.forEach((l, posicao) => {
-          const noTitulo = cobertura(termos, l.title, pesos);
-          const geral = coberturaLocal(termos, l.title, l.content, pesos);
-          if (citaNr && !citaNr.test(normalizar(`${l.title} ${l.content}`))) return;
-          const titulo = normalizar(l.title);
-          if (ancoras.length && !ancoras.some((a) => titulo.includes(a)) && !(citaNr && citaNr.test(titulo))) return;
-          // Com um ou dois termos, todos precisam aparecer; com mais, a maior parte do peso.
-          if (termos.length && geral < (termos.length <= 2 ? 0.999 : minimo)) return;
-          const idade = l.published_at ? (agora.getTime() - Date.parse(l.published_at)) / (365 * 864e5) : 1.5;
-          // Texto recente pesa mais: em três anos uma notícia deixa de descrever "o cenário atual".
-          candidatos.push({
-            ...l,
-            estante: estante.id,
-            pontos:
-              geral * 10 +
-              noTitulo * 6 +
-              Math.max(-2, 2.5 - idade * 1.5) +
-              (estante.id === 'artigos' ? 0.5 : 0) -
-              posicao * 0.05,
-          });
-        });
-      }
-      const vistos = new Set<string>();
-      const escolhidos: Passagem[] = [];
-      // Havendo texto dos últimos três anos sobre o assunto, os mais antigos ficam de fora: notícia velha não descreve a situação atual.
-      const recente = (c: Linha) => !c.published_at || agora.getTime() - Date.parse(c.published_at) <= 3 * 365 * 864e5;
-      const ordenados = candidatos.sort((a, b) => b.pontos - a.pontos);
-      for (const c of ordenados.some(recente) || !antigos ? ordenados.filter(recente) : ordenados.slice(0, 1)) {
-        const titulo = c.title
-          .replace(/^Artigo\s*[-–:]\s*/i, '')
-          .replace(/\s+/g, ' ')
-          .trim();
-        if (vistos.has(normalizar(titulo))) continue;
-        vistos.add(normalizar(titulo));
-        const data = dataBr(c.published_at);
-        escolhidos.push({
-          url: c.url.split('#')[0],
-          title: titulo,
-          fetchedAt: c.fetched_at,
-          pinned: true,
-          content: `${ROTULO[c.estante] ?? 'Documento da biblioteca'}${data ? ` em ${data}` : ''}. ${trechosRelevantes(limparParaTrecho(c.content), [...termos.map(radical), ...(nr === undefined ? [] : [`nr-${nr}`, `nr ${nr}`])], 650, 320).replace(/\s+/g, ' ')}`,
-        });
-        if (escolhidos.length === limite) break;
-      }
-      return escolhidos;
+      const contexto: ContextoDaBusca = { termos, pesos, ancoras, citaNr, consulta, minimo, agora };
+      const candidatos = alvos.flatMap((estante) => candidatosDaEstante(db, estante, contexto));
+      return escolherPassagens(candidatos, termos, nr, { limite, agora, antigos });
     },
     [] as Passagem[],
   );
@@ -222,6 +251,88 @@ const numero = (valor: number, unidade: string) =>
     'pt-BR',
     /%/.test(unidade) ? { minimumFractionDigits: 2, maximumFractionDigits: 2 } : { maximumFractionDigits: 0 },
   );
+type PainelLido = ReturnType<typeof lerPainel>;
+
+/** Indicadores oficiais mais recentes (sem os três que só entram quando a pergunta os cita). */
+function blocoDeIndicadores(painel: PainelLido, q: string, agora: string): Passagem {
+  return {
+    url: '/painel',
+    title: 'Indicadores oficiais mais recentes',
+    fetchedAt: painel.updatedAt ?? agora,
+    pinned: true,
+    // Sem a variação mensal do IPCA, o saldo de São Paulo e o volume de serviços (ficam no painel): menos linhas para ler e para escrever.
+    content: painel.indicators
+      .filter(
+        (i) =>
+          !['ibge.ipca-mensal', 'caged.saldo-sp', 'ibge.servicos'].includes(i.id) ||
+          new RegExp(
+            i.id === 'caged.saldo-sp'
+              ? 'sao paulo|paulista'
+              : i.id === 'ibge.servicos'
+                ? 'volume de servicos|pms'
+                : 'ipca mensal|no mes',
+          ).test(q),
+      )
+      .slice(0, 7)
+      .map((i) => `- ${fraseDoIndicador(i)}`)
+      .join('\n'),
+  };
+}
+
+/** Evolução mês a mês do saldo de vagas; vazio quando a série guardada pela coleta tem menos de dois meses. */
+function blocoDaSerie(painel: PainelLido, q: string, agora: string): Passagem | undefined {
+  const id = /servico/.test(q)
+    ? 'caged.saldo-servicos'
+    : /temporari/.test(q)
+      ? 'caged.saldo-temporario'
+      : /sao paulo|\bsp\b|estado/.test(q)
+        ? 'caged.saldo-sp'
+        : 'caged.saldo';
+  const serie = (painel.series[id] ?? []).slice(-12);
+  const rotulo = painel.indicators.find((i) => i.id === id)?.label ?? 'Saldo do Novo CAGED';
+  if (serie.length <= 1) return undefined;
+  return {
+    url: '/painel',
+    title: `${rotulo}, mês a mês`,
+    fetchedAt: painel.updatedAt ?? agora,
+    pinned: true,
+    content:
+      serie
+        .map(
+          (s) => `${mesAno(s.period)}: ${s.value < 0 ? 'fechou' : 'abriu'} ${numero(Math.abs(s.value), 'vagas')} vagas`,
+        )
+        .join('; ') + `. A coleta guarda ${serie.length} meses desta série; não há dados de meses anteriores.`,
+  };
+}
+
+function blocoDePublicacoes(painel: PainelLido, agora: string): Passagem {
+  return {
+    url: 'https://www.sindeprestem.com.br/noticias',
+    title: 'Publicações recentes do SINDEPRESTEM',
+    fetchedAt: agora,
+    pinned: true,
+    content: [...painel.sindicato.artigos.slice(0, 1), ...painel.sindicato.noticias.slice(0, 4)]
+      .map((n) => `- ${dataBr(n.publishedAt) ?? 's/d'}: ${n.title.replace(/\s+/g, ' ').slice(0, 130)}`)
+      .join('\n'),
+  };
+}
+
+function blocoDeProjetos(painel: PainelLido, agora: string, quantos: number): Passagem {
+  return {
+    url: '/painel',
+    title: 'Projetos em tramitação no Congresso (em discussão, não são lei)',
+    fetchedAt: agora,
+    pinned: true,
+    content: painel.bills
+      .slice(0, quantos)
+      .map(
+        (b) =>
+          `- ${b.title}: ${b.summary.slice(0, 110)}${b.situacao ? ` Situação: ${b.situacao}.` : ''}${b.movedAt ? ` Última movimentação: ${dataBr(b.movedAt)}.` : ''}`,
+      )
+      .join('\n'),
+  };
+}
+
 /**
  * Material de um relatório setorial (SINDI Relatórios): os indicadores oficiais mais recentes, as últimas publicações do SINDEPRESTEM e os projetos em tramitação
  * com movimentação recente, cada bloco com a data de referência. O modelo redige o resumo; os números vêm todos daqui, com a fonte.
@@ -235,78 +346,13 @@ export function materialDoRelatorio(pergunta: string, arquivo = caminhoDoBanco()
   // Pergunta sobre leis e projetos: os projetos vêm primeiro e em maior número, e os indicadores econômicos ficam de fora.
   const legislativo =
     /projeto|tramita|congresso|legislac|regulatori|\bleis?\b/.test(q) && !/indicador|emprego|mercado|economi/.test(q);
-  if (painel.indicators.length && !legislativo)
-    blocos.push({
-      url: '/painel',
-      title: 'Indicadores oficiais mais recentes',
-      fetchedAt: painel.updatedAt ?? agora,
-      pinned: true,
-      // Sem a variação mensal do IPCA, o saldo de São Paulo e o volume de serviços (ficam no painel): menos linhas para ler e para escrever.
-      content: painel.indicators
-        .filter(
-          (i) =>
-            !['ibge.ipca-mensal', 'caged.saldo-sp', 'ibge.servicos'].includes(i.id) ||
-            new RegExp(
-              i.id === 'caged.saldo-sp'
-                ? 'sao paulo|paulista'
-                : i.id === 'ibge.servicos'
-                  ? 'volume de servicos|pms'
-                  : 'ipca mensal|no mes',
-            ).test(q),
-        )
-        .slice(0, 7)
-        .map((i) => `- ${fraseDoIndicador(i)}`)
-        .join('\n'),
-    });
+  if (painel.indicators.length && !legislativo) blocos.push(blocoDeIndicadores(painel, q, agora));
   // Evolução mês a mês só quando pedida: é o único indicador com série guardada pela coleta.
   if (/12 meses|mes a mes|evolucao|compar|historico|ultimos meses/.test(q)) {
-    const id = /servico/.test(q)
-      ? 'caged.saldo-servicos'
-      : /temporari/.test(q)
-        ? 'caged.saldo-temporario'
-        : /sao paulo|\bsp\b|estado/.test(q)
-          ? 'caged.saldo-sp'
-          : 'caged.saldo';
-    const serie = (painel.series[id] ?? []).slice(-12);
-    const rotulo = painel.indicators.find((i) => i.id === id)?.label ?? 'Saldo do Novo CAGED';
-    if (serie.length > 1)
-      blocos.push({
-        url: '/painel',
-        title: `${rotulo}, mês a mês`,
-        fetchedAt: painel.updatedAt ?? agora,
-        pinned: true,
-        content:
-          serie
-            .map(
-              (s) =>
-                `${mesAno(s.period)}: ${s.value < 0 ? 'fechou' : 'abriu'} ${numero(Math.abs(s.value), 'vagas')} vagas`,
-            )
-            .join('; ') + `. A coleta guarda ${serie.length} meses desta série; não há dados de meses anteriores.`,
-      });
+    const serie = blocoDaSerie(painel, q, agora);
+    if (serie) blocos.push(serie);
   }
-  if (painel.sindicato.noticias.length)
-    blocos.push({
-      url: 'https://www.sindeprestem.com.br/noticias',
-      title: 'Publicações recentes do SINDEPRESTEM',
-      fetchedAt: agora,
-      pinned: true,
-      content: [...painel.sindicato.artigos.slice(0, 1), ...painel.sindicato.noticias.slice(0, 4)]
-        .map((n) => `- ${dataBr(n.publishedAt) ?? 's/d'}: ${n.title.replace(/\s+/g, ' ').slice(0, 130)}`)
-        .join('\n'),
-    });
-  if (painel.bills.length)
-    blocos.push({
-      url: '/painel',
-      title: 'Projetos em tramitação no Congresso (em discussão, não são lei)',
-      fetchedAt: agora,
-      pinned: true,
-      content: painel.bills
-        .slice(0, legislativo ? 5 : 3)
-        .map(
-          (b) =>
-            `- ${b.title}: ${b.summary.slice(0, 110)}${b.situacao ? ` Situação: ${b.situacao}.` : ''}${b.movedAt ? ` Última movimentação: ${dataBr(b.movedAt)}.` : ''}`,
-        )
-        .join('\n'),
-    });
+  if (painel.sindicato.noticias.length) blocos.push(blocoDePublicacoes(painel, agora));
+  if (painel.bills.length) blocos.push(blocoDeProjetos(painel, agora, legislativo ? 5 : 3));
   return legislativo ? blocos.reverse() : blocos;
 }

@@ -1,5 +1,5 @@
 'use client';
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useState, type Dispatch, type SetStateAction } from 'react';
 import { calcularOrcamento, type OrcamentoEntrada } from '@/lib/orcamento/calculo';
 import { resumoDoOrcamento } from '@/lib/orcamento/resumo';
 import { baixarArquivo } from '@/lib/base/baixar-arquivo';
@@ -26,6 +26,32 @@ function calcular(entrada: object) {
   } catch {
     return null;
   }
+}
+
+/** Pede o PDF ao servidor e o entrega como download; a recusa do servidor vira a mensagem de erro. */
+async function baixarPdf(tipo: TipoDoPdf, corpo: object) {
+  const resposta = await fetch(`/api/orcamento/pdf?tipo=${tipo}`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(corpo),
+  });
+  if (!resposta.ok) throw new Error((await resposta.json()).error || 'Não foi possível gerar o PDF.');
+  baixarArquivo(await resposta.blob(), NOME_DO_ARQUIVO[tipo]);
+}
+
+/** Ações sobre a lista de postos: editar, incluir (sugerindo uma função ainda não usada), remover e carregar o exemplo. */
+function useEdicaoDosPostos(setPostos: Dispatch<SetStateAction<Posto[]>>) {
+  const atualizarPosto = (chave: number, mudanca: Partial<Posto>) =>
+    setPostos((lista) => lista.map((p) => (p.chave === chave ? { ...p, ...mudanca } : p)));
+  const adicionarPosto = () =>
+    setPostos((lista) => {
+      const funcaoLivre = CATALOGO.funcoes.find((f) => !lista.some((p) => p.funcaoId === f.id)) ?? CATALOGO.funcoes[0];
+      return [...lista, novoPosto(funcaoLivre.id)];
+    });
+  const removerPosto = (chave: number) => setPostos((lista) => lista.filter((p) => p.chave !== chave));
+  const usarExemplo = () =>
+    setPostos([novoPosto('auxiliar-de-limpeza', 3, 'diurno'), novoPosto('auxiliar-de-limpeza', 3, 'noturno')]);
+  return { atualizarPosto, adicionarPosto, removerPosto, usarExemplo };
 }
 
 /** Estado do formulário de orçamento, o cálculo ao vivo e o download dos PDFs. */
@@ -62,38 +88,18 @@ export function useOrcamento() {
   const resultado = useMemo(() => (calculo ? resumoDoOrcamento(calculo) : null), [calculo]);
   const repetido = useMemo(() => temPostoRepetido(postos), [postos]);
 
-  const atualizarPosto = (chave: number, mudanca: Partial<Posto>) =>
-    setPostos((lista) => lista.map((p) => (p.chave === chave ? { ...p, ...mudanca } : p)));
-  const adicionarPosto = () =>
-    setPostos((lista) => {
-      const funcaoLivre = CATALOGO.funcoes.find((f) => !lista.some((p) => p.funcaoId === f.id)) ?? CATALOGO.funcoes[0];
-      return [...lista, novoPosto(funcaoLivre.id)];
-    });
-  const removerPosto = (chave: number) => setPostos((lista) => lista.filter((p) => p.chave !== chave));
-  const usarExemplo = () =>
-    setPostos([novoPosto('auxiliar-de-limpeza', 3, 'diurno'), novoPosto('auxiliar-de-limpeza', 3, 'noturno')]);
+  const edicao = useEdicaoDosPostos(setPostos);
   const mudarCliente = (campo: keyof typeof CLIENTE_VAZIO, valor: string) =>
     setCliente((atual) => ({ ...atual, [campo]: valor }));
 
   const baixar = (tipo: TipoDoPdf) => {
     if (repetido) return;
-    void pdf.executar(tipo, async () => {
-      const resposta = await fetch(`/api/orcamento/pdf?tipo=${tipo}`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ ...corpo, ...(tributacao ? { tributacao } : {}), cliente }),
-      });
-      if (!resposta.ok) throw new Error((await resposta.json()).error || 'Não foi possível gerar o PDF.');
-      baixarArquivo(await resposta.blob(), NOME_DO_ARQUIVO[tipo]);
-    });
+    void pdf.executar(tipo, () => baixarPdf(tipo, { ...corpo, ...(tributacao ? { tributacao } : {}), cliente }));
   };
 
   return {
     postos,
-    atualizarPosto,
-    adicionarPosto,
-    removerPosto,
-    usarExemplo,
+    ...edicao,
     cliente,
     mudarCliente,
     metros,

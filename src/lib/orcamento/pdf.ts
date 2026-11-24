@@ -180,9 +180,7 @@ const parc = (rotulo: string, v: number, total: number): string[] => [
   percentual(total ? v / total : 0),
 ];
 
-/** Relatório de custo: memória de cálculo por posto, estrutura consolidada, encargos com base legal e parâmetros usados. */
-export async function gerarRelatorioCustoPdf(entrada: OrcamentoEntrada, r: Resultado, cliente: Cliente = {}) {
-  const doc = await Documento.criar('Relatório de custo — composição detalhada', RODAPE);
+function cabecalhoDoRelatorioDeCusto(doc: Documento, entrada: OrcamentoEntrada, r: Resultado, cliente: Cliente) {
   doc.capa(
     'Relatório de custo',
     'Composição detalhada da mão de obra terceirizada',
@@ -199,7 +197,9 @@ export async function gerarRelatorioCustoPdf(entrada: OrcamentoEntrada, r: Resul
     { rotulo: 'Valor mensal do contrato', valor: moeda(r.valorContrato), principal: true },
     { rotulo: 'Funcionários', valor: numero(r.funcionarios) },
   ]);
+}
 
+function secaoResumoDosPostos(doc: Documento, r: Resultado) {
   doc.titulo2('1. Resumo dos postos');
   const linhas = r.postos.map((p) => [
     nomePosto(p),
@@ -220,7 +220,9 @@ export async function gerarRelatorioCustoPdf(entrada: OrcamentoEntrada, r: Resul
     ],
     linhas,
   );
+}
 
+function secaoMemoriaPorFuncionario(doc: Documento, r: Resultado) {
   doc.titulo2('2. Memória de cálculo por funcionário');
   for (const p of r.postos) {
     const f = p.porFuncionario;
@@ -264,7 +266,9 @@ export async function gerarRelatorioCustoPdf(entrada: OrcamentoEntrada, r: Resul
       { destaque, negrito },
     );
   }
+}
 
+function secaoEstruturaConsolidada(doc: Documento, r: Resultado) {
   doc.titulo2('3. Estrutura consolidada do contrato (mensal)');
   const t = r.valorContrato;
   const rows: string[][] = [];
@@ -348,7 +352,9 @@ export async function gerarRelatorioCustoPdf(entrada: OrcamentoEntrada, r: Resul
     `Preço = custo total ÷ (1 − ${percentual(r.tributos.somaTaxas)}): os tributos, o BDI e o lucro incidem sobre o valor faturado, como na planilha de referência.`,
     { tamanho: 8, cor: COR.suave },
   );
+}
 
+function secaoInsumos(doc: Documento, r: Resultado) {
   if (r.insumos.length) {
     doc.titulo2('4. Insumos, equipamentos e serviços');
     doc.tabela(
@@ -366,7 +372,9 @@ export async function gerarRelatorioCustoPdf(entrada: OrcamentoEntrada, r: Resul
       ]),
     );
   }
+}
 
+function secaoEncargos(doc: Documento, r: Resultado) {
   doc.titulo2(`${r.insumos.length ? 5 : 4}. Encargos sociais e trabalhistas`);
   for (const grupo of r.encargos.grupos) {
     doc.tabela(
@@ -386,8 +394,9 @@ export async function gerarRelatorioCustoPdf(entrada: OrcamentoEntrada, r: Resul
     `Total de encargos: ${percentual(r.encargos.total, 4)} sobre a folha de pagamento. Dias úteis trabalhados por ano: ${numero(r.encargos.dias.uteisAno, 2)}.`,
     { negrito: true, tamanho: 9 },
   );
+}
 
-  if (r.tributacao) blocoTributacao(doc, r, true);
+function secaoParametros(doc: Documento, r: Resultado) {
   const p = tabela.parametros;
   doc.titulo2(`${r.insumos.length ? 6 : 5}. Parâmetros utilizados`);
   doc.tabela(
@@ -419,6 +428,9 @@ export async function gerarRelatorioCustoPdf(entrada: OrcamentoEntrada, r: Resul
           ],
     ],
   );
+}
+
+function secaoObservacoesDaTabela(doc: Documento, r: Resultado) {
   doc.titulo2('Observações sobre a tabela de referência');
   doc.marcadores(
     [
@@ -429,5 +441,19 @@ export async function gerarRelatorioCustoPdf(entrada: OrcamentoEntrada, r: Resul
     ],
     8.5,
   );
+}
+
+/** Relatório de custo: memória de cálculo por posto, estrutura consolidada, encargos com base legal e parâmetros usados. */
+export async function gerarRelatorioCustoPdf(entrada: OrcamentoEntrada, r: Resultado, cliente: Cliente = {}) {
+  const doc = await Documento.criar('Relatório de custo — composição detalhada', RODAPE);
+  cabecalhoDoRelatorioDeCusto(doc, entrada, r, cliente);
+  secaoResumoDosPostos(doc, r);
+  secaoMemoriaPorFuncionario(doc, r);
+  secaoEstruturaConsolidada(doc, r);
+  secaoInsumos(doc, r);
+  secaoEncargos(doc, r);
+  if (r.tributacao) blocoTributacao(doc, r, true);
+  secaoParametros(doc, r);
+  secaoObservacoesDaTabela(doc, r);
   return doc.bytes();
 }

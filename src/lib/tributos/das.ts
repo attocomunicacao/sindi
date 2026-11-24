@@ -103,16 +103,18 @@ export function faixaDaReceita(rbt12: number): number {
   return FAIXAS_LIMITE.findIndex((limite) => rbt12 <= limite) + 1;
 }
 
-export function calcularDas(e: EntradaDas): ResultadoDas {
+function validarEntradaDas(e: EntradaDas): number {
   if (!ANEXOS.includes(e.anexo)) throw new ErroTributario('Anexo inválido (III, IV ou V).');
   const faixa = faixaDaReceita(e.rbt12);
   if (e.folha12 !== undefined && (!Number.isFinite(e.folha12) || e.folha12 < 0 || e.folha12 > 1e12))
     throw new ErroTributario('Folha dos últimos 12 meses inválida.');
   if (e.receitaMes !== undefined && (!Number.isFinite(e.receitaMes) || e.receitaMes < 0 || e.receitaMes > 1e12))
     throw new ErroTributario('Receita do mês inválida.');
-  const avisos: string[] = [];
-  const memoria: string[] = [];
-  // Fator R: folha12 ÷ RBT12 ≥ 28% troca o Anexo V pelo III.
+  return faixa;
+}
+
+/** Fator R: folha12 ÷ RBT12 ≥ 28% troca o Anexo V pelo III. */
+function aplicarFatorR(e: EntradaDas, avisos: string[], memoria: string[]) {
   const razao = e.folha12 !== undefined ? dec(e.folha12).div(e.rbt12) : null;
   const trocou = e.anexo === 'V' && razao !== null && razao.gte(FATOR_R_MINIMO);
   const aplicado: Anexo = trocou ? 'III' : e.anexo;
@@ -126,20 +128,15 @@ export function calcularDas(e: EntradaDas): ResultadoDas {
         `Fator R = ${brl(e.folha12!)} ÷ ${brl(e.rbt12)} = ${pontos(num(razao.mul(100)))}: ${trocou ? 'igual ou acima de 28%, tributa pelo Anexo III em vez do V' : 'abaixo de 28%, permanece no Anexo V'}.`,
       );
   }
-  const linha = TABELAS[aplicado][faixa - 1];
-  // Alíquota efetiva = (RBT12 × alíquota nominal − parcela a deduzir) ÷ RBT12, sem arredondar: a alíquota é publicada pelo PGDAS-D com mais casas que o valor.
-  const rbt = dec(e.rbt12);
-  const efetiva: Dec = rbt.mul(linha.aliquota).div(100).minus(linha.deduzir).div(rbt).mul(100);
-  memoria.push(
-    `Anexo ${aplicado}, ${faixa}ª faixa (RBT12 ${brl(e.rbt12)}): alíquota nominal ${pontos(linha.aliquota)}, parcela a deduzir ${brl(linha.deduzir)}.`,
-    `Alíquota efetiva = (${brl(e.rbt12)} × ${pontos(linha.aliquota)} − ${brl(linha.deduzir)}) ÷ ${brl(e.rbt12)} = ${pontos(num(efetiva), 4, 6)}.`,
-  );
+  return { razao, trocou, aplicado };
+}
 
+/** Percentual do DAS de cada tributo; se o ISS passaria de 5% da receita, ele é travado e o excesso vai aos federais (art. 18, § 1º-B). */
+function repartirPartilha(linha: Faixa, faixa: number, aplicado: Anexo, efetiva: Dec, memoria: string[]) {
   const [irpj, csll, cofins, pis, cpp, iss] = linha.partilha;
   const issForaDoDas = faixa === 6;
   let pcts: number[] = [irpj, csll, cofins, pis, cpp, iss];
   let issLimitado = false;
-  // Limite do ISS: se a alíquota efetiva do ISS passaria de 5%, ele fica em 5% e o excesso vai aos tributos federais (art. 18, § 1º-B).
   const issEfetivo = efetiva.mul(iss).div(100);
   if (!issForaDoDas && issEfetivo.gt(LIMITE_ISS_PONTOS)) {
     issLimitado = true;
@@ -154,6 +151,44 @@ export function calcularDas(e: EntradaDas): ResultadoDas {
       `O ISS passaria de ${pontos(LIMITE_ISS_PONTOS, 0, 0)}: fica em ${pontos(LIMITE_ISS_PONTOS, 0, 0)} da receita e o excedente da alíquota efetiva é repartido entre os tributos federais${excedente ? ' pela tabela do excedente da 5ª faixa' : ' na proporção da partilha'}.`,
     );
   }
+  return { pcts, issLimitado, issForaDoDas };
+}
+
+/** Avisos sobre CPP, vedação de cessão de mão de obra, partilha de 2027 e conferência das tabelas. */
+function avisosFinais(aplicado: Anexo, ano: number | undefined, avisos: string[]) {
+  if (aplicado === 'IV')
+    avisos.push(
+      'Anexo IV: a contribuição previdenciária patronal (CPP) não está no DAS. Recolhe-se à parte 20% sobre a folha mais RAT/FAP, sem contribuições a terceiros (Sistema S) — LC 123, art. 18, § 5º-C.',
+    );
+  else avisos.push('Anexos III e V: a CPP patronal está dentro do DAS; não há contribuição a terceiros.');
+  if (aplicado !== 'IV')
+    avisos.push(
+      'A cessão ou locação de mão de obra é vedada no Simples Nacional (LC 123, art. 17, XII), exceto as atividades do art. 18, § 5º-C (vigilância, limpeza, conservação e construção, no Anexo IV) — § 5º-H.',
+    );
+  if (ano !== undefined && ano >= 2027)
+    avisos.push(
+      'Partilha de 2027 em diante (LC 214/2025) ainda não implementada: o DAS mostrado segue as tabelas atuais.',
+    );
+  avisos.push(
+    'Tabelas conferidas só em resumo: CONFERIR com a LC 123/2006 e a Resolução do CGSN antes de uso comercial.',
+  );
+}
+
+export function calcularDas(e: EntradaDas): ResultadoDas {
+  const faixa = validarEntradaDas(e);
+  const avisos: string[] = [];
+  const memoria: string[] = [];
+  const { razao, trocou, aplicado } = aplicarFatorR(e, avisos, memoria);
+  const linha = TABELAS[aplicado][faixa - 1];
+  // Alíquota efetiva = (RBT12 × alíquota nominal − parcela a deduzir) ÷ RBT12, sem arredondar: a alíquota é publicada pelo PGDAS-D com mais casas que o valor.
+  const rbt = dec(e.rbt12);
+  const efetiva: Dec = rbt.mul(linha.aliquota).div(100).minus(linha.deduzir).div(rbt).mul(100);
+  memoria.push(
+    `Anexo ${aplicado}, ${faixa}ª faixa (RBT12 ${brl(e.rbt12)}): alíquota nominal ${pontos(linha.aliquota)}, parcela a deduzir ${brl(linha.deduzir)}.`,
+    `Alíquota efetiva = (${brl(e.rbt12)} × ${pontos(linha.aliquota)} − ${brl(linha.deduzir)}) ÷ ${brl(e.rbt12)} = ${pontos(num(efetiva), 4, 6)}.`,
+  );
+
+  const { pcts, issLimitado, issForaDoDas } = repartirPartilha(linha, faixa, aplicado, efetiva, memoria);
   if (issForaDoDas)
     avisos.push(
       '6ª faixa (RBT12 acima de R$ 3.600.000,00): o ISS é recolhido fora do DAS, ao município, pela alíquota própria.',
@@ -172,23 +207,7 @@ export function calcularDas(e: EntradaDas): ResultadoDas {
       `DAS do mês = ${brl(e.receitaMes)} × ${pontos(num(efetiva), 4, 6)} = ${brl(valorDas)} (HALF_EVEN, 2 casas).`,
     );
   }
-  const cppForaDoDas = aplicado === 'IV';
-  if (cppForaDoDas)
-    avisos.push(
-      'Anexo IV: a contribuição previdenciária patronal (CPP) não está no DAS. Recolhe-se à parte 20% sobre a folha mais RAT/FAP, sem contribuições a terceiros (Sistema S) — LC 123, art. 18, § 5º-C.',
-    );
-  else avisos.push('Anexos III e V: a CPP patronal está dentro do DAS; não há contribuição a terceiros.');
-  if (aplicado !== 'IV')
-    avisos.push(
-      'A cessão ou locação de mão de obra é vedada no Simples Nacional (LC 123, art. 17, XII), exceto as atividades do art. 18, § 5º-C (vigilância, limpeza, conservação e construção, no Anexo IV) — § 5º-H.',
-    );
-  if (e.ano !== undefined && e.ano >= 2027)
-    avisos.push(
-      'Partilha de 2027 em diante (LC 214/2025) ainda não implementada: o DAS mostrado segue as tabelas atuais.',
-    );
-  avisos.push(
-    'Tabelas conferidas só em resumo: CONFERIR com a LC 123/2006 e a Resolução do CGSN antes de uso comercial.',
-  );
+  avisosFinais(aplicado, e.ano, avisos);
   return {
     anexoEscolhido: e.anexo,
     anexoAplicado: aplicado,
@@ -201,7 +220,7 @@ export function calcularDas(e: EntradaDas): ResultadoDas {
     partilha,
     issLimitado,
     issForaDoDas,
-    cppForaDoDas,
+    cppForaDoDas: aplicado === 'IV',
     receitaMes: e.receitaMes,
     valorDas,
     memoria,

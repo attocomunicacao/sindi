@@ -3,7 +3,8 @@ import path from 'node:path';
 import { due, setState, upsertDocument, type Db } from '../db';
 import { getText, politeFetch } from '../http';
 import { pdfToText } from '../legal';
-import { SITE, categoryOf, cleanPdfText, documentEntries, entryTitle, kindOf, isMonthOnly, lawIdentifier, sectionFor, titleFromPdfText, yearOf, type Section } from '../sindicato';
+import { SITE } from '@/lib/base/constantes';
+import { categoryOf, cleanPdfText, documentEntries, entryTitle, kindOf, isMonthOnly, lawIdentifier, sectionFor, titleFromPdfText, yearOf, type Section } from '../sindicato';
 import type { KnowledgeSnapshot } from '../../knowledge/core';
 import type { Collector } from './types';
 

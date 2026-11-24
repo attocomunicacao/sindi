@@ -2,7 +2,8 @@ import { linkSeguro } from '@/lib/url-segura';
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import { ArrowUpRight } from 'lucide-react';
-import { CartaoDoItem, Etiqueta, Filtro, FormBusca, Migalhas, Paginacao, data, endereco, numero } from '@/components/biblioteca';
+import { CartaoDoItem, Etiqueta, Filtro, FormBusca, Migalhas, Paginacao, data, endereco } from '@/components/biblioteca';
+import { numeroBR } from '@/lib/base/formato';
 import { estantePorId } from '@/lib/biblioteca/estantes';
 import { cerebroPorArquivo, indicadores, listarEstante } from '@/lib/biblioteca/consulta';
 import { Pendente } from '@/components/pendente';
@@ -43,9 +44,9 @@ function Documentos({ estanteId, q, pagina, facetasAtivas, rotuloUnidade }: { es
     {lista.facetas.map(faceta => <div key={faceta.id} className="mt-5 flex flex-wrap items-baseline gap-x-5 gap-y-2">
       <p className="w-full text-xs font-semibold uppercase tracking-wider text-slate-500 sm:w-auto">{faceta.rotulo}</p>
       <Filtro href={endereco(base, { ...comum, [faceta.id]: undefined })} ativo={!facetasAtivas[faceta.id]}>Todos</Filtro>
-      {faceta.opcoes.map(o => <Filtro key={o.valor} href={endereco(base, { ...comum, [faceta.id]: o.valor })} ativo={facetasAtivas[faceta.id] === o.valor}>{o.valor} <span className="text-slate-500">({numero(o.n)})</span></Filtro>)}
+      {faceta.opcoes.map(o => <Filtro key={o.valor} href={endereco(base, { ...comum, [faceta.id]: o.valor })} ativo={facetasAtivas[faceta.id] === o.valor}>{o.valor} <span className="text-slate-500">({numeroBR(o.n)})</span></Filtro>)}
     </div>)}
-    <p className="mt-6 text-sm text-slate-500" aria-live="polite">{numero(lista.total)} {lista.total === 1 ? rotuloUnidade.replace(/s$/, '') : rotuloUnidade}{q || Object.keys(facetasAtivas).length ? ' com os filtros escolhidos' : ''}.</p>
+    <p className="mt-6 text-sm text-slate-500" aria-live="polite">{numeroBR(lista.total)} {lista.total === 1 ? rotuloUnidade.replace(/s$/, '') : rotuloUnidade}{q || Object.keys(facetasAtivas).length ? ' com os filtros escolhidos' : ''}.</p>
     {lista.itens.length ? <ul className="mt-3 divide-y divide-slate-200 border-t-2 border-slate-800">{lista.itens.map(item => <CartaoDoItem key={item.id} item={item} />)}</ul>
       : <p className="mt-3 border-l-2 border-amber-400 pl-3 text-sm text-slate-600">{q || Object.keys(facetasAtivas).length ? <>Nada encontrado com estes filtros. <Link href={base} className="underline">Limpar filtros<Pendente /></Link>.</> : 'Esta estante ainda não tem documentos coletados neste ambiente.'}</p>}
     <Paginacao pagina={lista.pagina} paginas={lista.paginas} base={base} parametros={comum} />

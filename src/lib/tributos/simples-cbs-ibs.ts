@@ -1,5 +1,5 @@
 import { aliquotaNfse, arred2, ErroTributario, num, somar } from './decimal';
-import { brl, pontos } from './formato';
+import { brl, pontos } from '@/lib/base/formato';
 
 /**
  * CBS e IBS dentro do Simples Nacional. Reimplementa a lógica da Calculadora RTC da Receita Federal

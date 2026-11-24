@@ -1,6 +1,6 @@
 import type { Conector } from '@/lib/cerebro/conectores';
 import { mensagemDoPedido } from '@/lib/cerebro/instrucoes';
-import type { Passage } from '@/lib/knowledge/core';
+import type { Passagem } from '@/lib/base/tipos';
 
 // Orientações ao modelo, limpeza do texto que ele escreve e montagem do pedido de cada pergunta. Sem rede nem estado: tudo aqui é função pura e testável.
 
@@ -36,13 +36,13 @@ export function limparResposta(texto: string, manterColchetes = true) {
 export type Uso = { inputTokens?: number; outputTokens?: number; totalTokens?: number };
 export const somar = (a: Uso | undefined, b: Uso): Uso => ({ inputTokens: (a?.inputTokens ?? 0) + (b.inputTokens ?? 0), outputTokens: (a?.outputTokens ?? 0) + (b.outputTokens ?? 0), totalTokens: (a?.totalTokens ?? 0) + (b.totalTokens ?? 0) });
 
-export type ContextoDoPedido = { writing: boolean; lista: boolean; relatorio: boolean; conector: Conector | undefined; choices: Passage[]; pergunta: string };
+export type ContextoDoPedido = { writing: boolean; lista: boolean; relatorio: boolean; conector: Conector | undefined; choices: Passagem[]; pergunta: string };
 /**
  * Monta o pedido de cada tentativa: a orientação (a da ferramenta, quando a fonte vem de uma; a da situação; a do conector; ou a genérica), o limite de palavras e as
  * fontes com orçamento de caracteres. `choices` são as fontes escolhidas para a pergunta: só para elas valem a orientação do conector e a de lista.
  */
 export function construirPedido({ writing, lista, relatorio, conector, choices, pergunta }: ContextoDoPedido) {
-  return (nota: string, fontes: Passage[]) => {
+  return (nota: string, fontes: Passagem[]) => {
     const ferramenta = fontes[0]?.ferramenta;
     const orientacao = writing && !nota.includes('SITUAÇÃO') ? REDACAO : nota.includes('SITUAÇÃO') ? SITUACAO : ferramenta ? ferramenta.orientacao : lista && fontes === choices ? LISTA : !fontes.length ? (conector?.modo === 'orientacao' ? `${conector.instrucao} ${SEM_FONTES}` : SEM_FONTES) : conector && fontes === choices ? conector.instrucao : COM_FONTES;
     const palavras = nota.includes('SITUAÇÃO') ? 40 : lista ? 50 : relatorio ? 80 : conector?.palavras ?? 55;

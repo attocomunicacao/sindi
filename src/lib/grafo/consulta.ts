@@ -3,7 +3,7 @@ import path from 'node:path';
 import { DatabaseSync } from 'node:sqlite';
 import { limpar, refDoDocumento } from '../biblioteca/consulta';
 import { dataDir, dbPath } from '../dados/db';
-import type { Passage } from '../knowledge/core';
+import type { Passagem } from '@/lib/base/tipos';
 import { extrairEntidades } from './entidades';
 import type { Grafo, No } from './tipos';
 
@@ -44,7 +44,7 @@ export function documentosDasEntidades(pergunta: string, limite = 4): No[] {
 }
 
 /** Trecho de cada documento ligado, em volta da primeira menção à entidade (o modelo lê pouco: até 1.200 caracteres por fonte). */
-export function documentosPeloGrafo(pergunta: string, limite = 4): Passage[] {
+export function documentosPeloGrafo(pergunta: string, limite = 4): Passagem[] {
   const nos = documentosDasEntidades(pergunta, limite); if (!nos.length || !existsSync(dbPath())) return [];
   const entidades = extrairEntidades(pergunta, 4);
   const db = new DatabaseSync(dbPath(), { readOnly: true });
@@ -59,7 +59,7 @@ export function documentosPeloGrafo(pergunta: string, limite = 4): Passage[] {
       const numero = entidades.map(e => e.rotulo.match(/\d[\d.]*\/\d{4}|\d+/)?.[0]).find(Boolean)?.replace(/\./g, '');
       const posicao = numero ? texto.replace(/(\d)\.(\d{3})/g, '$1$2').indexOf(numero) : -1;
       const inicio = Math.max(0, (posicao >= 0 ? posicao : 0) - 300);
-      return [{ url: linha.url.split('#')[0], title: linha.title, content: texto.slice(inicio, inicio + 1200), fetchedAt: linha.published_at ?? linha.fetched_at } satisfies Passage];
+      return [{ url: linha.url.split('#')[0], title: linha.title, content: texto.slice(inicio, inicio + 1200), fetchedAt: linha.published_at ?? linha.fetched_at } satisfies Passagem];
     });
   } catch { return []; } finally { db.close(); }
 }

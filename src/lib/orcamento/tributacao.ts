@@ -1,5 +1,5 @@
 import { calcularDas, type Anexo, type ResultadoDas } from '../tributos/das';
-import { brl, pontos } from '../tributos/formato';
+import { brl, pontos } from '@/lib/base/formato';
 import { calcularCbsIbsServico, transicaoDoAno, type AliquotasCbsIbs, type Transicao } from '../tributos/regime-regular';
 import { calcularCbsIbsSimples, type ResultadoSimplesCbsIbs } from '../tributos/simples-cbs-ibs';
 

@@ -1,9 +1,9 @@
+import { SITE } from '@/lib/base/constantes';
 // Gera os arquivos autogerados do cérebro da SINDI (cerebro/auto/*.md) a partir dos dados coletados.
 // Os arquivos curados, na pasta cerebro/, nunca são alterados por esta geração.
 import type { Db } from '../dados/db';
 import { contactFromSource } from '../knowledge/retrieve';
 
-const SITE = 'https://www.sindeprestem.com.br';
 /** Presidente da entidade (gestão 2026–2029). Está aqui, num só lugar, para ser atualizado quando a gestão mudar; o texto gerado cita o nome. */
 export const PRESIDENTE = 'Vander Morales';
 /** Convenções "vigentes" e "recentes" são as do ano anterior em diante: a regra acompanha o calendário em vez de um ano fixo no código. */

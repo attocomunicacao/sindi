@@ -2,16 +2,16 @@
 import { linkSeguro } from '@/lib/url-segura';
 import { useEffect, useState } from 'react';
 import { ArrowDown, ArrowUp, Minus } from 'lucide-react';
-import { isPercent } from '@/lib/dados/format';
+import { ehPercentual, numeroDoIndicador, numeroCompacto } from '@/lib/base/formato';
 import { montarDashboard } from '@/lib/dados/dashboard';
 import { DEFASADA_HORAS, fontesDefasadas } from '@/lib/dados/frescor';
 import { PainelIndicadores } from '@/components/painel-indicadores';
 import type { Painel, PainelIndicator } from '@/lib/dados/painel';
 
 const SOURCE_NAMES: Record<string, string> = { bcb: 'Banco Central', ibge: 'IBGE', camara: 'Câmara', senado: 'Senado', tst: 'TST', wec: 'WEC', sindeprestem: 'SINDEPRESTEM', mte: 'Ministério do Trabalho', caged: 'Novo CAGED', constituicao: 'Constituição', regimentos: 'Regimentos' };
-const number = (value: number, unit = '%') => value.toLocaleString('pt-BR', isPercent(unit) ? { minimumFractionDigits: 2, maximumFractionDigits: 2 } : { maximumFractionDigits: 0 });
+const number = (value: number, unit = '%') => numeroDoIndicador(value, unit);
 /** Faixa compacta: percentuais com duas casas, contagens abreviadas (165,8 mil). */
-const short = (item: PainelIndicator) => isPercent(item.unit) ? `${number(item.value)}%` : item.value.toLocaleString('pt-BR', { notation: 'compact', maximumFractionDigits: 1 });
+const short = (item: PainelIndicator) => ehPercentual(item.unit) ? `${number(item.value)}%` : numeroCompacto(item.value);
 const date = (value?: string | null) => value ? new Date(value).toLocaleDateString('pt-BR', { timeZone: 'America/Sao_Paulo' }) : '—';
 const dateTime = (value?: string | null) => value ? new Date(value).toLocaleString('pt-BR', { timeZone: 'America/Sao_Paulo', dateStyle: 'short', timeStyle: 'short' }) : '—';
 
@@ -41,7 +41,7 @@ function Variacao({ item }: { item: PainelIndicator }) {
   if (item.previous === null) return null;
   const delta = item.value - item.previous;
   const Icon = delta === 0 ? Minus : delta > 0 ? ArrowUp : ArrowDown;
-  const curto = delta === 0 ? 'estável' : `${number(Math.abs(delta), item.unit)}${isPercent(item.unit) ? ' p.p.' : ''}`;
+  const curto = delta === 0 ? 'estável' : `${number(Math.abs(delta), item.unit)}${ehPercentual(item.unit) ? ' p.p.' : ''}`;
   const frase = delta === 0 ? 'estável' : `${delta > 0 ? 'alta' : 'queda'} de ${curto}`;
   return <span className="inline-flex items-center gap-1 text-sm text-slate-600"><Icon size={14} aria-hidden />{curto}<span className="sr-only"> ({frase} em relação ao período anterior)</span></span>;
 }

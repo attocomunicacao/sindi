@@ -1,7 +1,7 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { SUGESTOES, sortearSugestoes } from '../src/lib/sugestoes';
-import { isPercent } from '../src/lib/dados/format';
+import { ehPercentual } from '@/lib/base/formato';
 import { moeda, seguro } from '../src/lib/orcamento/pdf-base';
 
 test('sugestões: sorteia a quantidade pedida, sem repetir entre si nem as anteriores', () => {
@@ -23,9 +23,9 @@ test('sugestões: todas são perguntas ou pedidos não vazios e únicos', () => 
 });
 
 test('format: só unidades que começam com % mostram duas casas', () => {
-  assert.equal(isPercent('% ao ano'), true);
-  assert.equal(isPercent('  % em 12 meses'), true);
-  assert.equal(isPercent('vagas no mês'), false);
+  assert.equal(ehPercentual('% ao ano'), true);
+  assert.equal(ehPercentual('  % em 12 meses'), true);
+  assert.equal(ehPercentual('vagas no mês'), false);
 });
 
 test('pdf-base: seguro troca o que a fonte padrão não desenha e mantém acentos', () => {

@@ -1,6 +1,7 @@
+import type { Mensagem } from '@/lib/base/tipos';
 import { readFileSync, statSync } from 'node:fs';
 import path from 'node:path';
-import type { Passage } from '../knowledge/core';
+import type { Passagem } from '@/lib/base/tipos';
 import { pastaCerebro, regrasDoCerebro } from './carregar';
 
 /**
@@ -10,15 +11,14 @@ import { pastaCerebro, regrasDoCerebro } from './carregar';
  * Regras e exemplos são idênticos em todas as conversas e vêm primeiro: o prefixo é igual e fica estável (o que ajuda o cache do provedor), então só as fontes e a
  * pergunta mudam a cada resposta; por isso nada que mude por pergunta pode vir antes deles.
  */
-export type Mensagem = { role: 'system' | 'user' | 'assistant'; content: string };
 
 const RESERVA = 'Você é a SINDI, assistente virtual (IA) do SINDEPRESTEM, o sindicato patronal das empresas de terceirização e trabalho temporário do Estado de São Paulo. Responda em português do Brasil, em frases curtas, só com o que está nas FONTES da mensagem. Se as FONTES não respondem, diga que não conseguiu confirmar e indique o contato do SINDEPRESTEM. Nunca invente números, leis, nomes ou contatos. Não dê parecer jurídico.';
 /** Regras-base enviadas como mensagem de sistema. Sem o arquivo de regras, vale um texto de reserva com as mesmas proteções. */
 export const sistema = (pasta = pastaCerebro()) => regrasDoCerebro(pasta) || RESERVA;
 
-export type Pedido = { orientacao: string; palavras: number; nota?: string; fontes: Passage[]; pergunta: string; orcamento?: number };
+export type Pedido = { orientacao: string; palavras: number; nota?: string; fontes: Passagem[]; pergunta: string; orcamento?: number };
 /** Texto das fontes dentro de um orçamento de caracteres (o que o modelo lê a cada pergunta), dividido por igual: o que uma fonte curta não usa fica para as seguintes. */
-export function textoDasFontes(fontes: Passage[], orcamento = 1900): string {
+export function textoDasFontes(fontes: Passagem[], orcamento = 1900): string {
   let restante = orcamento;
   return fontes.map((p, i) => {
     const trecho = p.content.slice(0, Math.max(250, Math.floor(restante / (fontes.length - i)))); restante -= trecho.length;

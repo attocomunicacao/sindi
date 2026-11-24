@@ -1,13 +1,13 @@
 import { PDFDocument, StandardFonts, rgb, type PDFFont, type PDFPage, type RGB } from 'pdf-lib';
+import { brl, numeroComCasas, pontos } from '@/lib/base/formato';
 
 export const A4 = { width: 595.28, height: 841.89 };
 export const MARGEM = 42;
 export const COR = { texto: rgb(0.1, 0.13, 0.18), suave: rgb(0.4, 0.45, 0.52), linha: rgb(0.85, 0.87, 0.9), fundo: rgb(0.96, 0.97, 0.98), marca: rgb(0, 0.15, 0.29), destaque: rgb(0.92, 0.72, 0.18), branco: rgb(1, 1, 1) };
 
-const brl = new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' });
-export const moeda = (valor: number) => brl.format(Math.abs(valor) < 0.005 ? 0 : valor);
-export const percentual = (valor: number, casas = 2) => `${(valor * 100).toLocaleString('pt-BR', { minimumFractionDigits: casas, maximumFractionDigits: casas })}%`;
-export const numero = (valor: number, casas = 0) => valor.toLocaleString('pt-BR', { minimumFractionDigits: casas, maximumFractionDigits: casas });
+export const moeda = (valor: number) => brl(Math.abs(valor) < 0.005 ? 0 : valor);
+export const percentual = (valor: number, casas = 2) => pontos(valor * 100, casas, casas);
+export const numero = numeroComCasas;
 
 // Caracteres disponíveis na codificação WinAnsi das fontes padrão do PDF (Windows-1252).
 const EXTRAS_1252 = new Set('€‚ƒ„…†‡ˆ‰Š‹ŒŽ‘’“”•–—˜™š›œžŸ');

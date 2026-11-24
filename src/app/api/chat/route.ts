@@ -1,6 +1,7 @@
 import { historicoParaOModelo, recentMessages } from '@/lib/chat';
 import { guardarResposta } from '@/lib/cache-respostas';
-import { sistema, exemplos, type Mensagem } from '@/lib/cerebro/instrucoes';
+import { sistema, exemplos } from '@/lib/cerebro/instrucoes';
+import type { Mensagem } from '@/lib/base/tipos';
 import { escreverComVerificacao, tentativasDeResposta } from '@/lib/chat/geracao';
 import { construirPedido, PEDE_MODELO } from '@/lib/chat/prompt';
 import { chaveDaGeracao, conferirCotaAntes, gastarCota, reaproveitarOuAbrir } from '@/lib/chat/respostas';

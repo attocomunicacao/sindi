@@ -1,5 +1,5 @@
 import { arred2, dec, ErroTributario, num, publicarAliquota, somar } from './decimal';
-import { brl, pontos } from './formato';
+import { brl, pontos } from '@/lib/base/formato';
 import { servicoPorId, SERVICO_PADRAO, type ServicoTributavel } from './servicos';
 
 /**

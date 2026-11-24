@@ -1,5 +1,6 @@
 import Anthropic from '@anthropic-ai/sdk';
-import { contagem, LlmError, type Mensagem, type Nivel, type OpcoesDeGeracao, type Provedor, type Resultado } from './tipos';
+import type { Mensagem } from '@/lib/base/tipos';
+import { contagem, LlmError, type Nivel, type OpcoesDeGeracao, type Provedor, type Resultado } from './tipos';
 
 /**
  * Claude (Anthropic), pela SDK oficial. **Pago e desligado por padrão**: só entra na cascata com `ANTHROPIC_API_KEY` no servidor, o que só deve acontecer

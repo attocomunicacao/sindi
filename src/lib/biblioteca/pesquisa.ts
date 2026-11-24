@@ -2,7 +2,8 @@ import { DatabaseSync } from 'node:sqlite';
 import { existsSync } from 'node:fs';
 import { dbPath } from '../dados/db';
 import { fraseDoIndicador, nrNumber, readPainel, trechosRelevantes } from '../dados/painel';
-import { normalize, type Passage } from '../knowledge/core';
+import type { Passagem } from '@/lib/base/tipos';
+import { normalize } from '../knowledge/core';
 import { ESTANTES } from './estantes';
 
 /**
@@ -74,7 +75,7 @@ type Linha = { title: string; url: string; content: string; published_at: string
 
 /** `antigos: false` dispensa textos com mais de três anos (quando o conhecimento escrito pela equipe já responde, notícia antiga só acrescenta ruído). */
 export type OpcoesDaPesquisa = { limite?: number; minimo?: number; arquivo?: string; agora?: Date; antigos?: boolean };
-export function pesquisarNaBiblioteca(pergunta: string, estantes: string[], { limite = 2, minimo = 0.6, arquivo = dbPath(), agora = new Date(), antigos = true }: OpcoesDaPesquisa = {}): Passage[] {
+export function pesquisarNaBiblioteca(pergunta: string, estantes: string[], { limite = 2, minimo = 0.6, arquivo = dbPath(), agora = new Date(), antigos = true }: OpcoesDaPesquisa = {}): Passagem[] {
   const termos = termosDaPesquisa(pergunta);
   // "NR-1" não sobrevive como termo (duas letras e um número): vira uma expressão obrigatória no índice e no texto.
   const nr = nrNumber(pergunta); const citaNr = nr === undefined ? undefined : new RegExp(`\\bnr[- ]?0?${nr}\\b`);
@@ -112,7 +113,7 @@ export function pesquisarNaBiblioteca(pergunta: string, estantes: string[], { li
         candidatos.push({ ...l, estante: estante.id, pontos: geral * 10 + noTitulo * 6 + Math.max(-2, 2.5 - idade * 1.5) + (estante.id === 'artigos' ? 0.5 : 0) - posicao * 0.05 });
       });
     }
-    const vistos = new Set<string>(); const escolhidos: Passage[] = [];
+    const vistos = new Set<string>(); const escolhidos: Passagem[] = [];
     // Havendo texto dos últimos três anos sobre o assunto, os mais antigos ficam de fora: notícia velha não descreve a situação atual.
     const recente = (c: Linha) => !c.published_at || agora.getTime() - Date.parse(c.published_at) <= 3 * 365 * 864e5;
     const ordenados = candidatos.sort((a, b) => b.pontos - a.pontos);
@@ -134,9 +135,9 @@ const mesBr = (periodo: string) => { const m = periodo.match(/^(\d{4})-?(\d{2})/
  * Material de um relatório setorial (SINDI Relatórios): os indicadores oficiais mais recentes, as últimas publicações do SINDEPRESTEM e os projetos em tramitação
  * com movimentação recente, cada bloco com a data de referência. O modelo redige o resumo; os números vêm todos daqui, com a fonte.
  */
-export function materialDoRelatorio(pergunta: string, arquivo = dbPath()): Passage[] {
+export function materialDoRelatorio(pergunta: string, arquivo = dbPath()): Passagem[] {
   const painel = readPainel(arquivo); if (!painel.available) return [];
-  const q = normalize(pergunta); const agora = new Date().toISOString(); const blocos: Passage[] = [];
+  const q = normalize(pergunta); const agora = new Date().toISOString(); const blocos: Passagem[] = [];
   // Pergunta sobre leis e projetos: os projetos vêm primeiro e em maior número, e os indicadores econômicos ficam de fora.
   const legislativo = /projeto|tramita|congresso|legislac|regulatori|\bleis?\b/.test(q) && !/indicador|emprego|mercado|economi/.test(q);
   if (painel.indicators.length && !legislativo) blocos.push({ url: '/painel', title: 'Indicadores oficiais mais recentes', fetchedAt: painel.updatedAt ?? agora, pinned: true,

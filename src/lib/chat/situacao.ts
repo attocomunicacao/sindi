@@ -1,6 +1,6 @@
 import { casoJuridicoIndividual, contemDadosSensiveis, foraDoEscopo, lacunaConhecida, obrigacaoLegalDeContratacao, redigirDadosSensiveis, semFonteSemChute, sourceChoices, trechoDeContato, type Situacao } from '@/lib/knowledge/grounded';
 import { sufficientEvidence } from '@/lib/knowledge/core';
-import type { Passage } from '@/lib/knowledge/core';
+import type { Passagem } from '@/lib/base/tipos';
 import { retrieveKnowledge } from '@/lib/knowledge/retrieve';
 import { escolherConector, type Conector } from '@/lib/cerebro/conectores';
 import { MAXIMO_DE_FONTES, WRITING } from './prompt';
@@ -13,7 +13,7 @@ async function referenceWithinBudget(question: string, language: string, conecto
   try {
     return await Promise.race([
       retrieveKnowledge(question, language, conector),
-      new Promise<{ passages: Passage[]; semResposta: undefined; lista: false; relatorio: false }>(resolve => { timer = setTimeout(() => resolve({ passages: [], semResposta: undefined, lista: false, relatorio: false }), 6500); }),
+      new Promise<{ passages: Passagem[]; semResposta: undefined; lista: false; relatorio: false }>(resolve => { timer = setTimeout(() => resolve({ passages: [], semResposta: undefined, lista: false, relatorio: false }), 6500); }),
     ]);
   } finally { if (timer) clearTimeout(timer); }
 }
@@ -23,7 +23,7 @@ const GREETING = /^(olá|ola|oi|hello|hi|bom dia|boa tarde|boa noite)(?:[,!?.\s]
 export async function decidirSituacao({ mensagens, language }: { mensagens: { role: string; content: string }[]; language: string }) {
   const question = mensagens.at(-1)!.content;
   const writing = WRITING.test(question);
-  let situacao: Situacao | undefined; let choices: Passage[] = []; let lista = false; let relatorio = false;
+  let situacao: Situacao | undefined; let choices: Passagem[] = []; let lista = false; let relatorio = false;
   // As perguntas anteriores entram na busca (inclusive na por significado, que vai ao provedor de IA): dados pessoais e segredos já ditos saem delas.
   const anteriores = mensagens.filter(m => m.role === 'user').slice(-3, -1).map(m => redigirDadosSensiveis(m.content));
   const conector = escolherConector(question, anteriores);

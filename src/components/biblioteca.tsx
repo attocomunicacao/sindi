@@ -4,7 +4,6 @@ import { ArrowUpRight, ChevronLeft, ChevronRight, Search } from 'lucide-react';
 import type { Item, Parte } from '@/lib/biblioteca/consulta';
 import { Pendente } from '@/components/pendente';
 
-export const numero = (n: number) => n.toLocaleString('pt-BR');
 export function data(valor?: string, comHora = false) {
   if (!valor) return '—';
   const d = new Date(valor); if (Number.isNaN(d.getTime())) return '—';

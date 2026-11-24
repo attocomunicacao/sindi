@@ -6,6 +6,7 @@ import { createInterface } from 'node:readline';
 import { promisify } from 'node:util';
 import { dataDir, getSeries, getState, setSeries, setState, setIndicator, upsertDocument, type Db } from '../db';
 import type { Collector } from './types';
+import { numeroBR } from '@/lib/base/formato';
 
 const run = promisify(execFile);
 export const CAGED_FTP = 'ftp://ftp.mtps.gov.br/pdet/microdados/NOVO%20CAGED/';
@@ -91,7 +92,7 @@ export const caged: Collector = {
       const aggregate = await aggregateMonth(year, month); fetched++;
       for (const [key, id] of SERIES) setSeries(db, id, month, net(aggregate[key]));
       setSeries(db, 'caged.saldo-temporario-sp', month, net(aggregate.temporarioSp)); setSeries(db, 'caged.saldo-servicos-sp', month, net(aggregate.servicosSp));
-      const fmt = (n: number) => n.toLocaleString('pt-BR');
+      const fmt = numeroBR;
       const line = (name: string, t: Totals) => `${name}: ${fmt(t.admissions)} admissões, ${fmt(t.dismissals)} desligamentos, saldo ${fmt(net(t))}.`;
       const content = [`Novo CAGED — competência ${monthLabel(month)} (arquivo CAGEDMOV, base do número divulgado pelo Ministério no mês; declarações fora do prazo e exclusões posteriores não são aplicadas).`,
         line('Brasil', aggregate.brasil), line('São Paulo', aggregate.sp), line('Serviços administrativos e complementares (seção N), Brasil', aggregate.servicos), line('Serviços administrativos e complementares (seção N), São Paulo', aggregate.servicosSp),

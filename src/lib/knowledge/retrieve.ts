@@ -1,6 +1,8 @@
+import { SITE } from '@/lib/base/constantes';
 import { readFile } from 'node:fs/promises';
 import path from 'node:path';
-import { normalize, contextText, queryTerms, searchSnapshot, sufficientEvidence, SITE, type KnowledgeSnapshot, type Passage } from './core';
+import { normalize, contextText, queryTerms, searchSnapshot, sufficientEvidence, type KnowledgeSnapshot } from './core';
+import type { Passagem } from '@/lib/base/tipos';
 import { supabaseRequest } from './supabase';
 import { executarFerramentas } from '../ferramentas/registro';
 import { pedidoDeAjuda } from './grounded';
@@ -45,14 +47,14 @@ export async function retrieveKnowledge(question: string, language = 'pt', conec
     if (atuacao.length) return { context: contextText(atuacao), sufficient: true, passages: atuacao, semResposta: undefined, lista: false, relatorio: false };
   }
   const documentos = trechosDeDocumentos(question, queryTerms(question), language);
-  if (documentos.passages.length) return { context: contextText(documentos.passages), sufficient: true, passages: documentos.passages as Passage[], semResposta: undefined, lista: documentos.lista === true, relatorio: false };
+  if (documentos.passages.length) return { context: contextText(documentos.passages), sufficient: true, passages: documentos.passages as Passagem[], semResposta: undefined, lista: documentos.lista === true, relatorio: false };
   // Contribuição por faixa (capital social ou número de colaboradores citado): só a linha da tabela que se aplica, e os vencimentos.
   const faixas = faixasDeContribuicao(question);
   if (faixas.length) return { context: contextText(faixas), sufficient: true, passages: faixas, semResposta: undefined, lista: false, relatorio: false };
   const termos = termosDaPesquisa(question); const pesos = pesosDosTermos(termos);
   // A relevância de um trecho do cérebro conta também as "Variações:" da seção (formas de perguntar), que não vão ao modelo.
   const cerebro = (await buscarHibrido(question, 3)).map(({ trecho }) => ({ relevancia: cobertura(termos, `${trecho.titulo} ${trecho.secao} ${trecho.texto}`, pesos), curado: trecho.tipo === 'curado',
-    passagem: { url: trecho.fonte ?? SITE, title: `${trecho.titulo} — ${trecho.secao}`, content: trecho.texto.replace(/^Varia[cç][oõ]es:.*$/im, '').trim(), fetchedAt: trecho.atualizado ?? new Date().toISOString(), pinned: true } as Passage }));
+    passagem: { url: trecho.fonte ?? SITE, title: `${trecho.titulo} — ${trecho.secao}`, content: trecho.texto.replace(/^Varia[cç][oõ]es:.*$/im, '').trim(), fetchedAt: trecho.atualizado ?? new Date().toISOString(), pinned: true } as Passagem }));
   // Pedidos de redação e de método ("redija…", "como organizar…") se resolvem com o conhecimento escrito pela equipe; notícias antigas só desviariam a resposta.
   // Conector sem estantes (perguntas sobre a própria SINDI) também não pesquisa a biblioteca.
   // Orquestra: o especialista da área e, se a pergunta cair entre duas áreas, um de apoio (src/lib/agentes/orquestrador.ts).
@@ -64,7 +66,7 @@ export async function retrieveKnowledge(question: string, language = 'pt', conec
     .filter(p => !biblioteca.some(b => b.url === p.url) && cobertura(termos, `${p.title} ${p.content}`, pesos) >= 0.5);
   // Fontes externas coletadas (Câmara, Senado, TST, WEC, IBGE) entram quando a pergunta as menciona.
   const external = EXTERNAL_INTENT.test(question) ? searchExternal(queryTerms(question), 2).map(p => ({ ...p, pinned: true })) : [];
-  let passages: Passage[];
+  let passages: Passagem[];
   if (biblioteca.length || external.length || doGrafo.length) {
     // Com um documento da biblioteca que cobre a pergunta, um acerto fraco do cérebro só atrapalha: ficam os trechos do cérebro que também cobrem os termos.
     // O conhecimento escrito e revisado pela equipe leva vantagem sobre notícia quando os dois cobrem a pergunta.
@@ -80,8 +82,8 @@ export async function retrieveKnowledge(question: string, language = 'pt', conec
   return { context: contextText(passages), sufficient: sufficientEvidence(passages, question), passages, semResposta: documentos.semResposta, lista: false, relatorio: false };
 }
 /** Busca no espelho do site (Supabase ou cópia local), com prazo próprio. Só é usada quando a coleta local em SQLite não existe. */
-async function espelhoDoSite(question: string): Promise<Passage[]> {
-  const buscaGeral = async (): Promise<Passage[]> => {
+async function espelhoDoSite(question: string): Promise<Passagem[]> {
+  const buscaGeral = async (): Promise<Passagem[]> => {
     if (process.env.SUPABASE_URL && (process.env.SUPABASE_PUBLISHABLE_KEY || process.env.SUPABASE_SECRET_KEY)) {
       try {
         const rows = await supabaseRequest('rpc/search_sindi_knowledge', { terms: queryTerms(question), result_limit: 8, question: normalize(question) });
@@ -92,13 +94,13 @@ async function espelhoDoSite(question: string): Promise<Passage[]> {
     return localSearch(question);
   };
   let temporizador: ReturnType<typeof setTimeout> | undefined;
-  const passages = await Promise.race([buscaGeral(), new Promise<Passage[]>(resolve => { temporizador = setTimeout(() => resolve([]), 3200); })]);
+  const passages = await Promise.race([buscaGeral(), new Promise<Passagem[]>(resolve => { temporizador = setTimeout(() => resolve([]), 3200); })]);
   if (temporizador) clearTimeout(temporizador);
   const asksNews = /news|latest|recent|noticia|novidade/.test(normalize(question));
   // Listing and pagination pages only add noise unless the user asks for news.
   return asksNews ? passages : passages.filter(p => !noisePage(p.url));
 }
-async function localSearch(question: string): Promise<Passage[]> {
+async function localSearch(question: string): Promise<Passagem[]> {
   try {
     const snapshot: KnowledgeSnapshot = JSON.parse(await readFile(path.join(process.cwd(), '.data/knowledge/current.json'), 'utf8'));
     return searchSnapshot(snapshot, question, 8);

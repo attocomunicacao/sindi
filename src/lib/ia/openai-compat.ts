@@ -1,4 +1,5 @@
-import { contagem, esperaDoCabecalho, inteiro, LlmError, NOME_DE_MODELO, type Mensagem, type Nivel, type OpcoesDeGeracao, type Provedor, type Resultado } from './tipos';
+import { contagem, esperaDoCabecalho, inteiro, LlmError, NOME_DE_MODELO, type Nivel, type OpcoesDeGeracao, type Provedor, type Resultado } from './tipos';
+import type { Mensagem } from '@/lib/base/tipos';
 import { lerSse } from './sse';
 
 /**

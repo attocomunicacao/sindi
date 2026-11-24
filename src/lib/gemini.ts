@@ -5,12 +5,12 @@
  * - `GEMINI_MODEL`: modelo das respostas com fatos.
  * - `GEMINI_MODEL_RAPIDO`: opcional, para saudação, recusa e encaminhamento. Vazio usa só o principal.
  */
-import { contagem, inteiro, LlmError, NOME_DE_MODELO, type Mensagem, type Nivel, type OpcoesDeGeracao, type Provedor, type Resultado } from './ia/tipos';
+import { contagem, inteiro, LlmError, NOME_DE_MODELO, type Nivel, type OpcoesDeGeracao, type Provedor, type Resultado } from './ia/tipos';
+import type { Mensagem } from '@/lib/base/tipos';
 import { lerSse } from './ia/sse';
 import { entrarNaVez, sairDaVez } from './ia/vez';
 
 export { LlmError } from './ia/tipos';
-type Message = Mensagem;
 export const MODELO_PADRAO = 'gemini-3.5-flash-lite';
 export const modeloPrincipal = () => process.env.GEMINI_MODEL || MODELO_PADRAO;
 export const modeloRapido = () => process.env.GEMINI_MODEL_RAPIDO ?? '';
@@ -38,7 +38,7 @@ export function mensagemDeLimite(corpo?: string) {
 }
 
 /** Papéis do Gemini: `system` vira `systemInstruction`; `assistant` vira `model`; turnos seguidos do mesmo papel são unidos. */
-export function montarCorpo(messages: Message[], opcoes: OpcoesDeGeracao = {}) {
+export function montarCorpo(messages: Mensagem[], opcoes: OpcoesDeGeracao = {}) {
   const sistema = messages.filter(m => m.role === 'system').map(m => m.content).join('\n\n');
   const contents: { role: 'user' | 'model'; parts: { text: string }[] }[] = [];
   for (const m of messages.filter(m => m.role !== 'system')) {
@@ -70,7 +70,7 @@ function erroHttp(status: number, corpo: string) {
 }
 
 /** Uma chamada ao Gemini, sem fila (a fila é da cascata). O tempo limite conta a partir daqui. */
-export async function gerarNoGemini(messages: Message[], signal: AbortSignal, onDelta?: (text: string) => void, opcoes?: OpcoesDeGeracao, modelo?: string): Promise<Resultado> {
+export async function gerarNoGemini(messages: Mensagem[], signal: AbortSignal, onDelta?: (text: string) => void, opcoes?: OpcoesDeGeracao, modelo?: string): Promise<Resultado> {
   if (!chaveConfigurada()) throw new LlmError('O serviço de IA ainda não foi configurado (GEMINI_API_KEY).', 503, 'configuracao');
   const nome = modelo || modeloPrincipal();
   if (!/^[a-z0-9][a-z0-9._-]*$/i.test(nome) || !NOME_DE_MODELO.test(nome)) throw new LlmError('Nome de modelo inválido.', 503, 'configuracao');
@@ -108,7 +108,7 @@ export const provedorGemini: Provedor = {
 };
 
 /** Chamada direta ao Gemini com fila (sem cascata). Mantida para scripts e testes do provedor; o chat usa `gerarTexto` de src/lib/ia/cascata.ts. */
-export async function gerarTexto(messages: Message[], signal: AbortSignal, onDelta?: (text: string) => void, opcoes?: OpcoesDeGeracao, modelo?: string) {
+export async function gerarTexto(messages: Mensagem[], signal: AbortSignal, onDelta?: (text: string) => void, opcoes?: OpcoesDeGeracao, modelo?: string) {
   if (!chaveConfigurada()) throw new LlmError('O serviço de IA ainda não foi configurado (GEMINI_API_KEY).', 503, 'configuracao');
   await entrarNaVez(signal);
   try { return await gerarNoGemini(messages, signal, onDelta, opcoes, modelo); } finally { sairDaVez(); }

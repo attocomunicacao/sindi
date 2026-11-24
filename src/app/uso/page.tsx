@@ -2,10 +2,11 @@
 import { useEffect, useState } from 'react';
 import { RefreshCw, BarChart3 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { numeroBR } from '@/lib/base/formato';
 import type { UsageDay, UsoDoProvedor } from '@/lib/usage';
 const NOMES: Record<string, string> = { gemini: 'Gemini (Google)', groq: 'Groq', openrouter: 'OpenRouter', mistral: 'Mistral', cloudflare: 'Cloudflare Workers AI', anthropic: 'Claude (Anthropic)', ollama: 'Modelo local (Ollama)' };
 type Payload = { days: UsageDay[]; storage: string; available: boolean };
-const number = (n: number) => n.toLocaleString('pt-BR');
+const number = numeroBR;
 const compacto = (n: number) => n.toLocaleString('pt-BR', { notation: 'compact', maximumFractionDigits: n < 10000 ? 1 : 0 });
 const diaMes = (data: string) => data.split('-').reverse().slice(0, 2).join('/');
 

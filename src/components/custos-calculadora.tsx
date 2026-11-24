@@ -3,10 +3,10 @@ import { useEffect, useMemo, useState } from 'react';
 import { Building2, Calculator, Users } from 'lucide-react';
 import { CENARIO_EXTERNO, CENARIO_INTERNO, estimar, mediaReal, type Cenario } from '@/lib/custos/calculo';
 import { DATA_DOS_PRECOS, MODELOS } from '@/lib/custos/precos';
+import { brl, numeroBR } from '@/lib/base/formato';
 
 const usd = (v: number) => v.toLocaleString('pt-BR', { style: 'currency', currency: 'USD', minimumFractionDigits: v < 1 ? 3 : 2, maximumFractionDigits: v < 1 ? 3 : 2 });
-const brl = (v: number) => v.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
-const num = (v: number) => Math.round(v).toLocaleString('pt-BR');
+const num = (v: number) => numeroBR(Math.round(v));
 const milhoes = (v: number) => `${(v / 1e6).toLocaleString('pt-BR', { maximumFractionDigits: 2 })} mi`;
 const campo = 'w-full rounded-lg border border-slate-200 bg-surface px-3 py-2 text-sm text-slate-900 tabular-nums focus-visible:border-amber-400 focus-visible:outline-none';
 const rotulo = 'mb-1 block text-xs font-medium text-slate-600';

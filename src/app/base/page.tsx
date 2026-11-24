@@ -1,5 +1,6 @@
 import Link from 'next/link';
-import { CartaoDoItem, Filtro, FormBusca, data, endereco, numero } from '@/components/biblioteca';
+import { CartaoDoItem, Filtro, FormBusca, data, endereco } from '@/components/biblioteca';
+import { numeroBR } from '@/lib/base/formato';
 import { ALAS, estantePorId, type Ala } from '@/lib/biblioteca/estantes';
 import { buscarNaBiblioteca, resumoDaBiblioteca } from '@/lib/biblioteca/consulta';
 import { knowledgeStatus } from '@/lib/knowledge/status';
@@ -35,7 +36,7 @@ async function Inicio() {
       <Titulo>Biblioteca</Titulo>
       <p className="mt-3 max-w-2xl text-base leading-7 text-slate-600">Acervo consultado pela SINDI antes de cada resposta, com a fonte sempre indicada.</p>
       <div className="mt-8"><FormBusca acao="/base" placeholder="Buscar por tema, norma, categoria ou palavra" /></div>
-      <p className="mt-5 text-sm text-slate-500">{numero(resumo.documentos)} documentos · {resumo.estantes.length} estantes · última coleta em {data(resumo.atualizado)}</p>
+      <p className="mt-5 text-sm text-slate-500">{numeroBR(resumo.documentos)} documentos · {resumo.estantes.length} estantes · última coleta em {data(resumo.atualizado)}</p>
       {!resumo.disponivel && <p role="status" className="mt-5 max-w-2xl border-l-2 border-amber-400 pl-3 text-sm text-slate-600">A coleta de documentos ainda não está disponível neste ambiente. Apenas o conhecimento escrito pela equipe aparece nas estantes.</p>}
     </header>
 
@@ -53,7 +54,7 @@ async function Inicio() {
                 <span className="block text-base font-medium text-slate-900 group-hover:underline group-hover:decoration-amber-400 group-hover:decoration-2 group-hover:underline-offset-4">{estante.nome}</span>
                 <span className="mt-0.5 block text-sm leading-6 text-slate-500">{estante.descricao}</span>
               </span>
-              <span className="col-start-2 mt-1 flex items-baseline gap-1.5 text-sm tabular-nums text-slate-500 xs:col-start-auto xs:mt-0 xs:block xs:text-right"><span className="block font-semibold text-slate-900">{numero(total)}</span><span className="block text-xs">{estante.especial === 'cerebro' ? (total === 1 ? 'seção' : 'seções') : estante.especial === 'indicadores' ? 'indicadores' : (total === 1 ? 'documento' : 'documentos')}{atualizado ? ` · ${data(atualizado)}` : ''}</span></span>
+              <span className="col-start-2 mt-1 flex items-baseline gap-1.5 text-sm tabular-nums text-slate-500 xs:col-start-auto xs:mt-0 xs:block xs:text-right"><span className="block font-semibold text-slate-900">{numeroBR(total)}</span><span className="block text-xs">{estante.especial === 'cerebro' ? (total === 1 ? 'seção' : 'seções') : estante.especial === 'indicadores' ? 'indicadores' : (total === 1 ? 'documento' : 'documentos')}{atualizado ? ` · ${data(atualizado)}` : ''}</span></span>
             <Pendente /></Link>
           </li>; })}
         </ul>
@@ -78,10 +79,10 @@ async function Inicio() {
         <div className="mt-4 space-y-3 text-sm leading-6 text-slate-600">
           {status.available ? <>
             <dl className="grid grid-cols-2 gap-4 sm:grid-cols-4">
-              {[['Documentos do site', status.documents], ['URLs verificadas', status.checked], ['URLs no sitemap', status.discovered], ['Pendências', status.failureCount]].map(([rotulo, valor]) => <div key={String(rotulo)}><dt className="text-xs text-slate-500">{rotulo}</dt><dd className="text-xl font-semibold tabular-nums text-slate-900">{numero(Number(valor ?? 0))}</dd></div>)}
+              {[['Documentos do site', status.documents], ['URLs verificadas', status.checked], ['URLs no sitemap', status.discovered], ['Pendências', status.failureCount]].map(([rotulo, valor]) => <div key={String(rotulo)}><dt className="text-xs text-slate-500">{rotulo}</dt><dd className="text-xl font-semibold tabular-nums text-slate-900">{numeroBR(Number(valor ?? 0))}</dd></div>)}
             </dl>
             <p>Última varredura iniciada em {data(status.startedAt, true)}; conclusão em {data(status.finishedAt, true)}. {status.phase === 'running' ? `Varredura em andamento (último sinal ${data(status.heartbeatAt, true)}).` : 'Varredura encerrada.'}</p>
-            <p>{status.cloudConfigured ? `${numero(status.uploaded ?? 0)} documentos confirmados no Supabase nesta varredura.` : 'Espelho local ativo; o envio ao Supabase depende da chave de escrita no coletor.'} {numero(status.externalCount ?? 0)} links externos foram identificados e não contam como textos lidos.</p>
+            <p>{status.cloudConfigured ? `${numeroBR(status.uploaded ?? 0)} documentos confirmados no Supabase nesta varredura.` : 'Espelho local ativo; o envio ao Supabase depende da chave de escrita no coletor.'} {numeroBR(status.externalCount ?? 0)} links externos foram identificados e não contam como textos lidos.</p>
             {status.incomplete && <p>Esta coleta ainda está incompleta; falhas e conteúdos não extraídos ficam registrados para revisão.</p>}
           </> : <p>A primeira coleta do site ainda não gerou relatório.</p>}
           <p>O coletor consulta os sitemaps a cada 15 minutos; notícias antigas são revisadas diariamente ou quando o sitemap indica mudança. Isso não é atualização instantânea.</p>

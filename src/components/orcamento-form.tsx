@@ -8,12 +8,12 @@ import { resumoDoOrcamento } from '@/lib/orcamento/resumo';
 import type { TributacaoEntrada } from '@/lib/orcamento/tributacao';
 import { ALIQUOTAS_ESTIMADAS, ANOS, ROTULO_ESTIMATIVA } from '@/lib/tributos/regime-regular';
 import type { Anexo } from '@/lib/tributos/das';
-import { lerNumero } from '@/lib/tributos/formato';
+import { brl, lerNumero, pontos } from '@/lib/base/formato';
 
 type FuncaoCat = CatalogoPublico['funcoes'][number];
 type Posto = { chave: number; funcaoId: string; quantidade: number; turno: 'diurno' | 'noturno'; periculosidade: boolean; insalubridade: 0 | 0.1 | 0.2 | 0.4; horasNoturnas: string };
 type Insumo = { categoria: string; id: string; quantidade: number };
-const brl = (v: number) => v.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
+
 const campo = 'w-full rounded-lg border border-slate-200 bg-surface px-3 py-2 text-sm text-slate-900 focus-visible:border-amber-400 focus-visible:outline-none';
 const rotulo = 'mb-1 block text-xs font-medium text-slate-600';
 const titulo = 'flex flex-wrap items-baseline gap-x-3 border-b-2 border-slate-800 pb-2 text-lg font-semibold text-slate-900';
@@ -21,7 +21,7 @@ const numeroDaSecao = 'text-sm font-normal tabular-nums text-slate-500';
 const opcional = 'text-sm font-normal text-slate-500';
 // O catálogo e o cálculo vêm das mesmas bibliotecas do servidor: o resultado aparece na hora, sem ida à rede, e o PDF (gerado no servidor) usa a mesma conta.
 const CATALOGO = catalogoPublico();
-const pct = (v: number, casas = 2) => `${v.toLocaleString('pt-BR', { minimumFractionDigits: casas, maximumFractionDigits: casas })}%`;
+const pct = (v: number, casas = 2) => pontos(v, casas, casas);
 type ModoTributacao = 'atual' | 'reforma' | 'simples';
 const textoAliquotas = (ano: number) => { const a = ALIQUOTAS_ESTIMADAS[ano] ?? { cbs: 0.9, ibsUf: 0.1, ibsMun: 0 }; return { cbs: String(a.cbs).replace('.', ','), ibsUf: String(a.ibsUf).replace('.', ','), ibsMun: String(a.ibsMun).replace('.', ',') }; };
 let proximaChave = 1;

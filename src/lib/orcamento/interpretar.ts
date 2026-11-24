@@ -1,3 +1,4 @@
+import { brl } from '@/lib/base/formato';
 import { FUNCOES } from './catalogo';
 import { calcularOrcamento, type PostoEntrada } from './calculo';
 
@@ -48,7 +49,7 @@ export function linkFerramenta(i: Interpretacao) {
   const postos = i.postos.map(p => `${p.funcaoId}:${p.quantidade}:${p.turno}`).join(',');
   return `/orcamento?postos=${encodeURIComponent(postos)}${i.metrosQuadrados ? `&m2=${i.metrosQuadrados}` : ''}`;
 }
-const brl = (v: number, en = false) => v.toLocaleString(en ? 'en-US' : 'pt-BR', { style: 'currency', currency: 'BRL' });
+const moeda = (v: number, en = false) => brl(v, en ? 'en-US' : 'pt-BR');
 const nomeTurno = (t: string, en: boolean) => (t === 'noturno' ? (en ? 'night' : 'noturno') : (en ? 'day' : 'diurno'));
 
 /**
@@ -67,10 +68,10 @@ export function orcamentoAnswer(pergunta: string, language: string): string | un
   }
   const r = calcularOrcamento({ postos: interpretado.postos as PostoEntrada[], metrosQuadrados: interpretado.metrosQuadrados });
   if (!r.postos.length) return undefined;
-  const linhas = r.postos.map(p => `- ${p.quantidade}× ${p.funcao.nome} (${nomeTurno(p.entrada.turno, en)}): **${brl(p.valorMensal, en)}**/${en ? 'month' : 'mês'} (${brl(p.valorPorFuncionario, en)} ${en ? 'each' : 'por funcionário'})`);
-  const area = r.precoPorMetro !== null ? ` · ${brl(r.precoPorMetro, en)}/m²` : '';
+  const linhas = r.postos.map(p => `- ${p.quantidade}× ${p.funcao.nome} (${nomeTurno(p.entrada.turno, en)}): **${moeda(p.valorMensal, en)}**/${en ? 'month' : 'mês'} (${moeda(p.valorPorFuncionario, en)} ${en ? 'each' : 'por funcionário'})`);
+  const area = r.precoPorMetro !== null ? ` · ${moeda(r.precoPorMetro, en)}/m²` : '';
   return [
-    en ? `Estimated monthly cost for ${r.funcionarios} employee(s): **${brl(r.valorContrato, en)}** (${brl(r.valorAnual, en)} in 12 months)${area}.` : `Estimativa mensal para ${r.funcionarios} funcionário(s): **${brl(r.valorContrato)}** (${brl(r.valorAnual)} em 12 meses)${area}.`,
+    en ? `Estimated monthly cost for ${r.funcionarios} employee(s): **${moeda(r.valorContrato, en)}** (${moeda(r.valorAnual, en)} in 12 months)${area}.` : `Estimativa mensal para ${r.funcionarios} funcionário(s): **${moeda(r.valorContrato)}** (${moeda(r.valorAnual)} em 12 meses)${area}.`,
     linhas.join('\n'),
     en ? `Includes salaries, ${(r.taxaEncargos * 100).toFixed(2)}% payroll charges, benefits, uniforms, PPE, taxes, overhead and margin, based on a reference price table.`
       : `Inclui salários, ${(r.taxaEncargos * 100).toLocaleString('pt-BR', { maximumFractionDigits: 2 })}% de encargos, benefícios, uniformes, EPIs, tributos, BDI e lucro, com base em tabela de referência de custos.`,

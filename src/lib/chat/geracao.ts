@@ -1,27 +1,27 @@
 import { gerarTexto } from '@/lib/ia/cascata';
 import type { Nivel } from '@/lib/ia/tipos';
-import type { Mensagem } from '@/lib/cerebro/instrucoes';
-import type { Passage } from '@/lib/knowledge/core';
+import type { Mensagem } from '@/lib/base/tipos';
+import type { Passagem } from '@/lib/base/tipos';
 import { notaDaSituacao, trechoDeContato, verificarFatos, type Situacao } from '@/lib/knowledge/grounded';
 import { ateAUltimaFrase, limparResposta, somar, type Uso } from './prompt';
 
-export type Tentativa = { nota: string; fontes: Passage[] };
+export type Tentativa = { nota: string; fontes: Passagem[] };
 /**
  * Verificação de fatos: e-mail, site, telefone, valor, número ou lei que não conste nas fontes indica invenção do modelo. Nesse caso o modelo reescreve, com a correção; se ainda
  * falhar, escreve sem afirmar nada além do contato oficial. A resposta nunca é um texto fixo do servidor.
  */
-export function tentativasDeResposta(situacao: Situacao | undefined, choices: Passage[]): Tentativa[] {
+export function tentativasDeResposta(situacao: Situacao | undefined, choices: Passagem[]): Tentativa[] {
   return [
     { nota: situacao ? notaDaSituacao(situacao) : '', fontes: choices },
     { nota: notaDaSituacao('correcao') + (situacao ? notaDaSituacao(situacao) : ''), fontes: choices },
     { nota: notaDaSituacao('sem-fonte'), fontes: [trechoDeContato()] },
   ];
 }
-const fatosDas = (fontes: Passage[]) => fontes.map(p => `${p.title} ${p.content}`).join(' ');
+const fatosDas = (fontes: Passagem[]) => fontes.map(p => `${p.title} ${p.content}`).join(' ');
 
 export type OpcoesDaEscrita = {
   base: Mensagem[]; tentativas: Tentativa[];
-  pedido: (nota: string, fontes: Passage[]) => { texto: string; palavras: number };
+  pedido: (nota: string, fontes: Passagem[]) => { texto: string; palavras: number };
   /** O pedido da primeira tentativa, já montado (a chave da memória de respostas depende dele). */
   primeira: { texto: string; palavras: number };
   /** Nível pedido à cascata: `rapido` só para o que o servidor já decidiu dizer (saudação, recusa, encaminhamento). */

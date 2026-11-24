@@ -3,7 +3,8 @@ import { cache } from 'react';
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import { ArrowUpRight } from 'lucide-react';
-import { Etiqueta, Migalhas, data, endereco, numero } from '@/components/biblioteca';
+import { Etiqueta, Migalhas, data, endereco } from '@/components/biblioteca';
+import { numeroBR } from '@/lib/base/formato';
 import { estantePorId } from '@/lib/biblioteca/estantes';
 import { lerDocumento as lerDoBanco } from '@/lib/biblioteca/consulta';
 import { pdfPermitido } from '@/lib/biblioteca/pdf';
@@ -33,7 +34,7 @@ export default async function DocumentoPage({ params, searchParams }: { params: 
         <header>
           <div className="flex flex-wrap gap-x-4 gap-y-1">{estante && <Etiqueta tom="destaque">{estante.nome}</Etiqueta>}{documento.etiquetas.map(e => <Etiqueta key={e}>{e}</Etiqueta>)}</div>
           <h1 className="mt-3 text-2xl font-semibold leading-snug tracking-tight text-slate-900 sm:text-3xl">{documento.titulo}</h1>
-          <p className="mt-2 text-sm text-slate-500">{documento.origem}{documento.publicado ? ` · publicado em ${data(documento.publicado)}` : ''} · coletado em {data(documento.coletado, true)} · {numero(documento.tamanho)} caracteres</p>
+          <p className="mt-2 text-sm text-slate-500">{documento.origem}{documento.publicado ? ` · publicado em ${data(documento.publicado)}` : ''} · coletado em {data(documento.coletado, true)} · {numeroBR(documento.tamanho)} caracteres</p>
           <a href={linkSeguro(documento.fonteOriginal)} target="_blank" rel="noopener noreferrer" className="mt-4 inline-flex items-center gap-1.5 rounded-lg border border-slate-300 bg-surface px-3 py-2 text-sm font-medium text-slate-900 hover:bg-slate-100">Abrir a fonte oficial <ArrowUpRight size={15} aria-hidden /></a>
         </header>
         {pdf && <iframe src={`/api/biblioteca/pdf/${documento.id}?r=${documento.ref}`} title={documento.titulo} className="mt-6 h-[80dvh] min-h-[min(30rem,85dvh)] w-full rounded-xl border border-slate-200 bg-surface" />}
@@ -43,7 +44,7 @@ export default async function DocumentoPage({ params, searchParams }: { params: 
           {paragrafos.length ? paragrafos.map((p, i) => <p key={i}>{p}</p>) : <p className="border-y border-slate-200 py-4 text-sm text-slate-600">Este documento não tem texto extraído (por exemplo, um PDF digitalizado como imagem). Ele está listado e aponta para a fonte, mas a SINDI não consegue consultá-lo.</p>}
         </div>}
         {!pdf && cortado && <div className="mt-6 border-y border-slate-200 py-4 text-sm text-slate-600">
-          Mostrando o começo do documento ({numero(recorte.length)} de {numero(documento.tamanho)} caracteres). {documento.texto.length > LIMITE_TOTAL && completo ? `A leitura aqui vai até ${numero(LIMITE_TOTAL)} caracteres; o restante está na fonte oficial.` : ''}
+          Mostrando o começo do documento ({numeroBR(recorte.length)} de {numeroBR(documento.tamanho)} caracteres). {documento.texto.length > LIMITE_TOTAL && completo ? `A leitura aqui vai até ${numeroBR(LIMITE_TOTAL)} caracteres; o restante está na fonte oficial.` : ''}
           {!completo && <> <Link href={endereco(`/base/documento/${documento.id}`, { completo: '1', r: documento.ref })} className="font-medium text-slate-900 underline decoration-amber-400 decoration-2 underline-offset-4">Ler mais<Pendente /></Link></>}
         </div>}
         <p className="mt-10 border-t border-slate-200 pt-4 text-xs leading-relaxed text-slate-500">Texto extraído automaticamente da fonte indicada; tabelas e formatação de PDFs podem se perder. Consulte sempre a fonte oficial para a versão vigente: a coleta não determina a vigência jurídica dos documentos.</p>

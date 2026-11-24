@@ -1,4 +1,6 @@
-import { SITE, normalize, type Passage } from '../knowledge/core';
+import { SITE } from '@/lib/base/constantes';
+import type { Passagem } from '@/lib/base/tipos';
+import { normalize } from '../knowledge/core';
 import { trechosDoCerebro } from './carregar';
 
 /**
@@ -33,12 +35,12 @@ function faixasDa(secao: string): Faixa[] {
 }
 const secao = (nome: string) => trechosDoCerebro().find(t => t.arquivo.endsWith('contribuicoes.md') && t.secao.startsWith(nome))?.texto;
 
-export function faixasDeContribuicao(pergunta: string): Passage[] {
+export function faixasDeContribuicao(pergunta: string): Passagem[] {
   const q = normalize(pergunta);
   if (!/contribui|mensalidade|associativ|confederativ|negocial|quanto (paga|pago|custa|pagam)|taxa/.test(q)) return [];
   const capital = capitalDaPergunta(pergunta); const colaboradores = colaboradoresDaPergunta(pergunta); const semColaboradores = /sem (colaboradores|funcionarios|empregados)/.test(q);
   if (capital === undefined && colaboradores === undefined && !semColaboradores) return [];
-  const url = `${SITE}/contribuicao-sindical`; const fetchedAt = new Date().toISOString(); const passagens: Passage[] = [];
+  const url = `${SITE}/contribuicao-sindical`; const fetchedAt = new Date().toISOString(); const passagens: Passagem[] = [];
   if (capital !== undefined || semColaboradores) {
     for (const [nome, rotulo] of [['Tabela da contribuição associativa', 'Contribuição associativa (apenas empresas associadas)'], ['Tabela da contribuição confederativa', 'Contribuição confederativa (empresas associadas e filiadas)']] as const) {
       const faixas = faixasDa(nome);

@@ -2,7 +2,8 @@
  * Contrato comum dos provedores de IA da SINDI. Todo provedor recebe as mesmas mensagens (regras, exemplos, histórico e o pedido com as fontes) e devolve
  * o mesmo formato; a cascata (cascata.ts) escolhe quem responde. Nada aqui chega ao navegador.
  */
-export type Mensagem = { role: 'system' | 'user' | 'assistant'; content: string };
+import type { Mensagem } from '@/lib/base/tipos';
+
 /** `principal`: respostas com fatos. `rapido`: saudação, recusa e encaminhamento (texto curto que o servidor já decidiu). */
 export type Nivel = 'principal' | 'rapido';
 export type OpcoesDeGeracao = { temperature?: number; maxTokens?: number };

@@ -1,6 +1,7 @@
 import { provedoresAtivos } from './provedores';
+import type { Mensagem } from '@/lib/base/tipos';
 import { podeTentar, registrarFalha, registrarSucesso, registrarTentativa } from './saude';
-import { LlmError, type Mensagem, type Nivel, type OpcoesDeGeracao, type Resultado } from './tipos';
+import { LlmError, type Nivel, type OpcoesDeGeracao, type Resultado } from './tipos';
 import { entrarNaVez, sairDaVez } from './vez';
 
 /**

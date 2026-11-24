@@ -6,7 +6,8 @@ import robotsParser from 'robots-parser';
 import { PDFParse } from 'pdf-parse';
 import { Agent, setGlobalDispatcher } from 'undici';
 import { setDefaultResultOrder } from 'node:dns';
-import { SITE, chunks, type KnowledgeDocument, type KnowledgeSnapshot } from '../src/lib/knowledge/core';
+import { SITE } from '@/lib/base/constantes';
+import { chunks, type KnowledgeDocument, type KnowledgeSnapshot } from '../src/lib/knowledge/core';
 import { siteUrl, pdfUrl, extractHtml } from '../src/lib/knowledge/extract';
 import { supabaseRequest } from '../src/lib/knowledge/supabase';
 

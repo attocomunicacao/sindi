@@ -1,4 +1,4 @@
-import type { Passage } from '@/lib/knowledge/core';
+import type { Passagem } from '@/lib/base/tipos';
 import type { Conector } from '@/lib/cerebro/conectores';
 import type { Pagina } from '@/lib/paginas';
 
@@ -6,7 +6,7 @@ import type { Pagina } from '@/lib/paginas';
 export type ContextoDaFerramenta = { idioma: string; conector?: Conector };
 /** O resultado vira uma fonte para o modelo: ele apresenta os números com palavras próprias, e a verificação de fatos confere que cada valor citado está em `passagem.content`. */
 export type ResultadoDaFerramenta = {
-  passagem: Pick<Passage, 'url' | 'title' | 'content'>;
+  passagem: Pick<Passagem, 'url' | 'title' | 'content'>;
   /** Instrução curta ao modelo sobre como apresentar este resultado; substitui a orientação genérica das fontes. */
   orientacao: string;
 };

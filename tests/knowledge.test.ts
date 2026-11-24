@@ -1,6 +1,7 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { chunks, searchSnapshot, contextText, sufficientEvidence, type KnowledgeDocument, SITE } from '../src/lib/knowledge/core';
+import { SITE } from '@/lib/base/constantes';
+import { chunks, searchSnapshot, contextText, sufficientEvidence, type KnowledgeDocument } from '../src/lib/knowledge/core';
 test('missing facts fail the evidence gate even when generic institutional words match', () => {
   const passages = [{ url: `${SITE}/contato`, title: 'Contato', content: 'Sindicato com sede em São Paulo. Trabalho temporário e serviços jurídicos.', fetchedAt: '2026-10-10' }];
   assert.equal(sufficientEvidence(passages, 'Qual é o nome do robô que limpa a sede do SINDEPRESTEM?'), false);

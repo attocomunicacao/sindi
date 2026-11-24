@@ -1,4 +1,6 @@
-import { normalize, queryTerms, SITE, type Passage } from '../knowledge/core';
+import { SITE } from '@/lib/base/constantes';
+import type { Passagem } from '@/lib/base/tipos';
+import { normalize, queryTerms } from '../knowledge/core';
 import { trechosDoCerebro, type Trecho } from './carregar';
 
 export type Resultado = { trecho: Trecho; pontos: number };
@@ -32,7 +34,7 @@ export function buscarNoCerebro(pergunta: string, limite = 2, trechos: Trecho[] 
   return pontuados.sort((a, b) => b.pontos - a.pontos).slice(0, limite);
 }
 /** Trechos no formato de evidência do chat; o link de referência é a fonte oficial do arquivo (ou o site do sindicato). */
-export function passagensDoCerebro(pergunta: string, limite = 2): Passage[] {
+export function passagensDoCerebro(pergunta: string, limite = 2): Passagem[] {
   return buscarNoCerebro(pergunta, limite).map(({ trecho }) => ({
     url: trecho.fonte ?? SITE, title: `${trecho.titulo} — ${trecho.secao}`, content: trecho.texto, fetchedAt: trecho.atualizado ?? '', pinned: true,
   }));
@@ -80,7 +82,7 @@ export async function buscarHibrido(pergunta: string, limite = 2, trechos: Trech
 }
 
 /** Versão assíncrona usada pelo chat: busca híbrida com queda para palavras quando o provedor de embeddings não responde a tempo. */
-export async function passagensHibridas(pergunta: string, limite = 2): Promise<Passage[]> {
+export async function passagensHibridas(pergunta: string, limite = 2): Promise<Passagem[]> {
   // A linha "Variações:" serve à busca; para o modelo é só leitura a mais.
   return (await buscarHibrido(pergunta, limite)).map(({ trecho }) => ({
     url: trecho.fonte ?? SITE, title: `${trecho.titulo} — ${trecho.secao}`, content: trecho.texto.replace(VARIACOES, '').trim(), fetchedAt: trecho.atualizado ?? '', pinned: true,

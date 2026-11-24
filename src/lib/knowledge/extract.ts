@@ -1,5 +1,5 @@
 import { load } from 'cheerio';
-import { SITE } from './core';
+import { SITE } from '@/lib/base/constantes';
 export function siteUrl(value: string, base = SITE): string | null {
   try {
     const u = new URL(value, base);

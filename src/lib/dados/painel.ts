@@ -1,7 +1,9 @@
+import { SITE } from '@/lib/base/constantes';
 import { DatabaseSync } from 'node:sqlite';
+import type { PassagemFixa } from '@/lib/base/tipos';
 import { existsSync } from 'node:fs';
 import { dbPath, falhasSeguidas } from './db';
-import { isPercent } from './format';
+import { numeroDoIndicador } from '@/lib/base/formato';
 
 export type PainelIndicator = { id: string; group: string; label: string; value: number; unit: string; period: string; previous: number | null; source: string; url: string; fetchedAt: string };
 export type PainelBill = { source: string; title: string; summary: string; situacao: string | null; movedAt: string | null; url: string };
@@ -10,7 +12,6 @@ export type Painel = { available: boolean; updatedAt: string | null; indicators:
 
 /** Ordem de exibição dos indicadores; os demais, se existirem, vêm depois. */
 export const INDICATOR_ORDER = ['bcb.selic-meta', 'ibge.ipca-12m', 'ibge.ipca-mensal', 'ibge.desocupacao', 'caged.saldo', 'caged.saldo-sp', 'caged.saldo-temporario', 'caged.saldo-servicos', 'ibge.servicos'];
-export { isPercent };
 /** Projetos que importam à terceirização e ao trabalho temporário. */
 export const BILL_TOPIC = /terceiriz|trabalho tempor[aá]ri|6\.?019|escala 6\s?x\s?1|jornada de trabalho|contribui[cç][aã]o sindical|reforma trabalhista|13\.?467|13\.?429/i;
 /** Notícias do IBGE só entram se tratarem de trabalho ou economia. */
@@ -84,7 +85,7 @@ const ROTULO_DA_FONTE: Record<string, string> = { bcb: 'Banco Central', ibge: 'I
  * interpretar sinal e variação: aqui a conta e a comparação são feitas pelo código, e o modelo só escolhe e redige.
  */
 export function fraseDoIndicador(i: PainelIndicator, locale = 'pt-BR'): string {
-  const numero = (valor: number) => Math.abs(valor).toLocaleString(locale, isPercent(i.unit) ? { minimumFractionDigits: 2, maximumFractionDigits: 2 } : { maximumFractionDigits: 0 });
+  const numero = (valor: number) => numeroDoIndicador(Math.abs(valor), i.unit, locale);
   const fonte = ROTULO_DA_FONTE[i.source] ?? i.source.toUpperCase();
   if (/vagas/.test(i.unit)) {
     // O dado mais recente vem primeiro e rotulado: medido, até o modelo de 3B respondeu com o número do mês anterior quando os dois vinham na mesma oração.
@@ -104,7 +105,7 @@ function recorteDoCaged(q: string, ids: string[]): string[] {
  * Números oficiais mais recentes que a pergunta menciona, entregues ao modelo como trechos (um por indicador, com a fonte); a SINDI explica o número
  * com palavras próprias em vez de devolver uma ficha pronta. Perguntas de definição ("O que é o CAGED?") não trazem números: vão ao glossário do cérebro.
  */
-export function indicatorPassages(question: string, language: string, file = dbPath()): TrechoDoc[] {
+export function indicatorPassages(question: string, language: string, file = dbPath()): PassagemFixa[] {
   const q = question.normalize('NFD').replace(/\p{Diacritic}/gu, '').toLowerCase();
   if (/redij|escrev|reescrev|traduz|draft|write|translate/.test(q)) return [];
   if (/^(o que (e|significa|quer dizer)|what (is|does)|para que serve|defina|qual (e )?o significado)/.test(q.trim()) && /\b(caged|pnad|pms|ipca|selic)\b/.test(q)) return [];
@@ -132,8 +133,8 @@ export function articleKey(question: string) {
 }
 /** Palavras que não ajudam a achar o trecho certo dentro de um documento longo (perguntas do tipo "como a NR-1 impacta minha empresa?"). */
 const GENERICAS_DOC = new Set('como qual quais quem onde quando porque para pode posso preciso precisa impacta impacto impactar afeta afetar minha meu minhas meus vida empresa empresas sobre isso esta esse essa diz fala dizem norma normas regulamentadora regulamentadoras artigo artigos constituicao regimento federal explique explica significa quer dizer exemplo'.split(' '));
-export type TrechoDoc = { url: string; title: string; content: string; fetchedAt: string; pinned: true };
-export type TrechosDeDocumentos = { passages: TrechoDoc[]; semResposta?: string; lista?: boolean };
+
+export type TrechosDeDocumentos = { passages: PassagemFixa[]; semResposta?: string; lista?: boolean };
 /** Termos da pergunta que distinguem o assunto dentro do documento, sem os rótulos ("NR", número) e sem palavras genéricas. */
 export function termosDoDocumento(question: string) {
   return [...new Set((norm(question).match(/[a-z0-9]{4,}/g) ?? []).filter(w => !GENERICAS_DOC.has(w) && !STOP.has(w) && !/^\d+$/.test(w)))].slice(0, 8);
@@ -224,7 +225,7 @@ const CATEGORY_WORDS: [RegExp, string][] = [[/poupatempo|detran/, 'Poupatempo'],
  * Perguntas sobre o conteúdo de uma cláusula seguem para `clausePassages`, e as institucionais para o cérebro.
  */
 const ROTULO_DA_SECAO: Record<string, string> = { convencao: 'convenção coletiva', cartilha: 'cartilha', juridico: 'documento jurídico', noticia: 'notícia', artigo: 'artigo do presidente' };
-export function sindicatoPassages(question: string, language: string, file = dbPath()): TrechoDoc[] {
+export function sindicatoPassages(question: string, language: string, file = dbPath()): PassagemFixa[] {
   const q = norm(question);
   if (/redij|escrev|reescrev|traduz|draft|write|translate/.test(q) || !existsSync(file)) return [];
   const convention = CONVENCAO_RE.test(q) && !/artigo|noticia/.test(q);
@@ -264,7 +265,6 @@ export function sindicatoPassages(question: string, language: string, file = dbP
     }));
   } catch { return []; } finally { db.close(); }
 }
-const SITE_URL = 'https://www.sindeprestem.com.br';
 
 const STOP = new Set('qual quais como onde quando para por com que uma uns umas dos das nos nas pelo pela sobre este esta esse essa existe tem ter ser sao foi aos aquele convencao convencoes coletiva coletivas cct ccts aditivo sindicato sindeprestem trabalhador trabalhadores empresa empresas categoria'.split(' '));
 const SYNONYMS: Record<string, string[]> = { piso: ['piso salarial', 'salario normativo', 'salario base', 'salarios'], reajuste: ['reajuste', 'correcao salarial', 'data-base', 'data base'], vale: ['vale refeicao', 'vale alimentacao', 'tickets', 'cesta basica'] };
@@ -294,8 +294,8 @@ export function clausePassages(question: string, language: string, file = dbPath
     const pool = docs.filter(d => (!wanted || d.category === wanted) && (!anos.length || anos.includes(d.year ?? 0)) && !/jundia/i.test(d.title));
     const latest = Math.max(0, ...pool.map(d => d.year ?? 0));
     const candidates = pool.filter(d => d.type === 'Convenção coletiva' && (d.year ?? 0) >= (year ?? latest)).sort((a, b) => (b.year ?? 0) - (a.year ?? 0)).slice(0, 2);
-    if (!candidates.length) return { passages: [], semResposta: `${en ? 'I did not find the agreement for that category and year. See' : 'Não encontrei a convenção dessa categoria e ano. Veja'} [${en ? 'Collective documents' : 'Documentos coletivos'}](${SITE_URL}/convencoes-coletivas).` };
-    const passages: TrechoDoc[] = [];
+    if (!candidates.length) return { passages: [], semResposta: `${en ? 'I did not find the agreement for that category and year. See' : 'Não encontrei a convenção dessa categoria e ano. Veja'} [${en ? 'Collective documents' : 'Documentos coletivos'}](${SITE}/convencoes-coletivas).` };
+    const passages: PassagemFixa[] = [];
     for (const doc of candidates) {
       const all = doc.content.split(NL); const wins: { score: number; at: number }[] = [];
       for (let i = 0; i < all.length; i += 4) {
@@ -314,8 +314,8 @@ export function clausePassages(question: string, language: string, file = dbPath
       if (excerpts.length) passages.push({ url: doc.url, title: doc.title, content: excerpts.join(' […] '), fetchedAt: doc.fetchedAt, pinned: true });
     }
     if (!passages.length) return { passages: [], semResposta: en
-      ? `I could not confirm this in the collected agreements${cargo.length ? ' (I could not tie it to a category or job title)' : ''}. See [Collective documents](${SITE_URL}/convencoes-coletivas) or contact the SINDEPRESTEM legal sector: (11) 3215-8250.`
-      : `Não consegui confirmar isso nas convenções coletadas${cargo.length ? ' (não identifiquei a categoria ou o cargo)' : ''}. Veja [Documentos coletivos](${SITE_URL}/convencoes-coletivas) ou fale com o Setor Jurídico do SINDEPRESTEM: (11) 3215-8250.` };
+      ? `I could not confirm this in the collected agreements${cargo.length ? ' (I could not tie it to a category or job title)' : ''}. See [Collective documents](${SITE}/convencoes-coletivas) or contact the SINDEPRESTEM legal sector: (11) 3215-8250.`
+      : `Não consegui confirmar isso nas convenções coletadas${cargo.length ? ' (não identifiquei a categoria ou o cargo)' : ''}. Veja [Documentos coletivos](${SITE}/convencoes-coletivas) ou fale com o Setor Jurídico do SINDEPRESTEM: (11) 3215-8250.` };
     return { passages };
   } catch { return { passages: [] }; } finally { db.close(); }
 }
@@ -352,8 +352,8 @@ export function posicionamentoPassages(question: string, language: string, file 
       WHERE documents_fts MATCH ? AND d.source = 'sindeprestem' AND d.url LIKE '%/post/%' AND json_extract(d.meta, '$.section') IN ('artigo', 'noticia')
       ORDER BY (json_extract(d.meta, '$.section') = 'artigo') DESC, bm25(documents_fts, 6.0, 1.0) LIMIT 4`).all(words.map(w => `"${w}"*`).join(' AND ')) as { title: string; url: string; content: string; published_at: string | null; fetchedAt: string; section: string }[];
     if (!rows.length) return { passages: [], semResposta: en
-      ? `I did not find articles or news from SINDEPRESTEM about "${words.join(' ')}" in the collected sources. See [Articles](${SITE_URL}/artigos) and [News](${SITE_URL}/noticias).`
-      : `Não encontrei artigos ou notícias do SINDEPRESTEM sobre "${words.join(' ')}" nas fontes coletadas. Consulte [Artigos](${SITE_URL}/artigos) e [Notícias](${SITE_URL}/noticias).` };
+      ? `I did not find articles or news from SINDEPRESTEM about "${words.join(' ')}" in the collected sources. See [Articles](${SITE}/artigos) and [News](${SITE}/noticias).`
+      : `Não encontrei artigos ou notícias do SINDEPRESTEM sobre "${words.join(' ')}" nas fontes coletadas. Consulte [Artigos](${SITE}/artigos) e [Notícias](${SITE}/noticias).` };
     return { passages: rows.map(r => ({ url: r.url, title: r.title.replace(/^Artigo\s*[-–]\s*/i, ''), fetchedAt: r.fetchedAt, pinned: true as const,
       content: `${r.section === 'artigo' ? (en ? 'Article by the president' : 'Artigo do presidente') : (en ? 'News' : 'Notícia do sindicato')} de ${dateBr(r.published_at, language)}. ${trechosRelevantes(r.content.replace(/Por Vander Morales[^\n]*/g, ''), words, 600, 300).replace(/\s+/g, ' ')}` })) };
   } catch { return { passages: [] }; } finally { db.close(); }

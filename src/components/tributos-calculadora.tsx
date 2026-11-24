@@ -2,7 +2,7 @@
 import { useId, useMemo, useState, type KeyboardEvent, type ReactNode } from 'react';
 import { calcularDas, type Anexo } from '@/lib/tributos/das';
 import { ErroTributario } from '@/lib/tributos/decimal';
-import { brl, lerNumero, pontos } from '@/lib/tributos/formato';
+import { brl, lerNumero, pontos } from '@/lib/base/formato';
 import { ALIQUOTAS_ESTIMADAS, ANOS, calcularCbsIbsServico, ROTULO_ESTIMATIVA, type AliquotasCbsIbs } from '@/lib/tributos/regime-regular';
 import { SERVICOS } from '@/lib/tributos/servicos';
 import { calcularCbsIbsSimples, escolherParAliquotas } from '@/lib/tributos/simples-cbs-ibs';

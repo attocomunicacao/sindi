@@ -9,9 +9,9 @@ import { respostaEmFluxo } from '../src/lib/chat/stream';
 import { limparRespostasGuardadas, guardarResposta, chaveDaResposta } from '../src/lib/cache-respostas';
 import { reiniciarCotaNaMemoria } from '../src/lib/cota';
 import { reiniciarLimitesNaMemoria } from '../src/lib/limite';
-import type { Passage } from '../src/lib/knowledge/core';
+import type { Passagem } from '@/lib/base/tipos';
 
-const fonte = (extra: Partial<Passage> = {}): Passage => ({ url: '/x', title: 'Fonte X', content: 'conteúdo', fetchedAt: '2026-11-20T00:00:00Z', ...extra });
+const fonte = (extra: Partial<Passagem> = {}): Passagem => ({ url: '/x', title: 'Fonte X', content: 'conteúdo', fetchedAt: '2026-11-20T00:00:00Z', ...extra });
 const base = { writing: false, lista: false, relatorio: false, conector: undefined, pergunta: 'Qual o prazo?' };
 const requisicao = (corpo: BodyInit | null, cab: Record<string, string> = {}) => new Request('http://localhost/api/chat', { method: 'POST', headers: { origin: 'http://localhost', 'content-type': 'application/json', ...cab }, body: corpo });
 const mensagens = (...textos: string[]) => textos.map((content, i) => ({ role: i % 2 ? 'assistant' as const : 'user' as const, content }));
@@ -19,7 +19,7 @@ const mensagens = (...textos: string[]) => textos.map((content, i) => ({ role: i
 test('prompt: a orientação vem da ferramenta, da situação, da redação ou do conector, nessa ordem de especificidade, e o limite de palavras segue o tipo de pedido', () => {
   const choices = [fonte()];
   const ferramenta = [fonte({ ferramenta: { id: 'cnpj', orientacao: 'Cite só os dados da fonte.' } })];
-  const pedido = (extra: object, nota: string, fontes: Passage[]) => construirPedido({ ...base, choices, ...extra } as never)(nota, fontes);
+  const pedido = (extra: object, nota: string, fontes: Passagem[]) => construirPedido({ ...base, choices, ...extra } as never)(nota, fontes);
   assert.match(pedido({}, '', ferramenta).texto, /Cite só os dados da fonte\./);
   assert.match(pedido({}, '', choices).texto, new RegExp(COM_FONTES.slice(0, 30)));
   assert.match(pedido({}, '', []).texto, new RegExp(SEM_FONTES.slice(0, 30)));

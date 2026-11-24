@@ -1,4 +1,4 @@
-import type { Passage } from '@/lib/knowledge/core';
+import type { Passagem } from '@/lib/base/tipos';
 import { ferramentaOrcamento } from '@/lib/orcamento/ferramenta';
 import type { ContextoDaFerramenta, Ferramenta } from './tipos';
 
@@ -6,10 +6,10 @@ import type { ContextoDaFerramenta, Ferramenta } from './tipos';
 export const FERRAMENTAS: Ferramenta[] = [ferramentaOrcamento];
 
 /**
- * Pergunta ao chat: a primeira ferramenta que reconhece o pedido responde, e o resultado volta como fonte (`Passage`) marcada com a ferramenta e a orientação dela.
+ * Pergunta ao chat: a primeira ferramenta que reconhece o pedido responde, e o resultado volta como fonte (`Passagem`) marcada com a ferramenta e a orientação dela.
  * Uma ferramenta que falha não derruba a resposta: o chat segue como se ela não existisse.
  */
-export async function executarFerramentas(pergunta: string, contexto: ContextoDaFerramenta, ferramentas: Ferramenta[] = FERRAMENTAS): Promise<Passage[]> {
+export async function executarFerramentas(pergunta: string, contexto: ContextoDaFerramenta, ferramentas: Ferramenta[] = FERRAMENTAS): Promise<Passagem[]> {
   for (const ferramenta of ferramentas) {
     if (!ferramenta.chat) continue;
     try {

@@ -1,5 +1,5 @@
 import { arred2, dec, ErroTributario, num, type Dec } from './decimal';
-import { brl, pontos } from './formato';
+import { brl, pontos } from '@/lib/base/formato';
 
 /**
  * DAS do Simples Nacional (serviços): anexos III, IV e V da LC 123/2006, art. 18.

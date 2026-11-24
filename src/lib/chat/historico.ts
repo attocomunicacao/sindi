@@ -13,10 +13,8 @@ export function historicoParaOModelo<T extends { role: string; content: string }
   trocas = 2,
   limite = 400,
 ): T[] {
-  return anteriores
-    .slice(-trocas * 2)
-    .map((m) => ({
-      ...m,
-      content: m.content.replace(/\n\n(?:Referências|References): [\s\S]*$/, '').slice(0, limite),
-    }));
+  return anteriores.slice(-trocas * 2).map((m) => ({
+    ...m,
+    content: m.content.replace(/\n\n(?:Referências|References): [\s\S]*$/, '').slice(0, limite),
+  }));
 }

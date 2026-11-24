@@ -1,4 +1,16 @@
-# Pendências da refatoração (Fase 6) para decisão humana
+# Pendências da refatoração para decisão humana
+
+## Fechamento da refatoração estrutural (branch `refatora/estrutura`, 2026-11-24)
+Ponto de retorno: commit `2d5d696`. Comportamento mantido; o que foi provado e o que não foi:
+
+- **Provado:** lint, typecheck, build, 304 testes (1 `todo` conhecido de SSRF por DNS), cobertura de linhas 91% (mínimo 80%), sem ciclos entre arquivos (`madge`), `npm audit --audit-level=high` sem altas, `verificar:funcional` 28/28 e `-- --chat` 29/29, Prettier limpo. PDFs (orçamento, custos, painel, DANFSe) e o grafo do cérebro saem byte a byte iguais. A recuperação lexical é idêntica nas 319 perguntas de `cerebro/avaliacao/` (só o carimbo `fetchedAt` e os campos removidos `context`/`sufficient` diferem). Guardião de segurança: 0 achados; `.claude/settings.json`, hooks e `.mcp.json` idênticos ao original.
+- **NÃO provado — rode quando a cota do Gemini renovar:** `npm run avaliar:treino` (leia as respostas) e `npm run cerebro:comparar`. A rodada feita bateu no limite gratuito (429) em 49 de 91 perguntas; as 41 respondidas foram lidas sem fato trocado. A parte semântica (embeddings) da recuperação não foi comparada. Não existe linha de base do `avaliar:treino` anterior à refatoração.
+- **e2e: 5 falhas que já existiam antes da refatoração** (conferidas num worktree do estado anterior): `/tributos` com violação axe `listitem` (4 casos: `<ul role="note">` em `MemoriaDeCalculo` deixa os `<li>` fora de uma lista) e o teste "Tab chega à caixa do chat" (o botão Configuração consome um Tab e o teste tenta 14). O teste de rolagem do chat (`chat.spec.ts`) é instável sob carga. Corrigir fica fora da refatoração.
+- **Deixado de propósito (sensível ou de risco médio):** reorganizar `segredoConfere` (`ehAquecimento` e `repasseConfiavel` têm o mesmo `timingSafeEqual`), `recusa()` em `infra/cota.ts`, mover `http/ip.ts` para `infra/`, regex gigantes de `chat/escopo.ts` (1.343 colunas; montar por lista comentada), cache por mtime em 5 cópias (`cerebro/*`, `grafo/consulta`), `process.loadEnvFile('.env.knowledge')` no topo de `recuperacao/recuperar.ts`, `respostaDireta`/campo `direta` (usados por `cerebro/conhecimento/faq.md` e `diretoria.md`), aberturas de SQLite fora de `try` (migrar para `comBancoSomenteLeitura` mudaria o comportamento ao falhar), `gerarTextoGemini` agora só no teste, callbacks `onDelta`/`onReset`, `chat/stream.ts` e `scripts/knowledge-sync.ts` ainda com nomes em inglês, e a função `gerar` da rota do chat (53 linhas, orquestra cota e guarda).
+- **Observação de segurança (já documentada):** sem `SINDI_IP_HEADER`, `ipDoPedido` aceita `cf-connecting-ip`, `x-vercel-forwarded-for` e `x-real-ip` sem assinatura; fora do túnel/repasse a cota por IP pode ser forjada (só o teto global limita). Mantenha `SINDI_IP_HEADER` definido em produção.
+- **Para você revisar antes de mesclar:** a branch tem 13 commits pequenos e reversíveis desde `2d5d696` (`git log --oneline 2d5d696..HEAD`). Nada foi enviado a nenhum remoto. A tarefa agendada do Windows não precisou ser recriada (nenhum script que ela usa foi renomeado).
+
+# Pendências da Fase 6 para decisão humana
 
 Nada abaixo foi apagado nem renomeado: a execução foi conservadora, sem confirmação do usuário.
 
